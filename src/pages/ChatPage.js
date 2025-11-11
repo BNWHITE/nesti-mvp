@@ -47,87 +47,57 @@ export default function ChatPage({ user }) {
   // 🔥 VERSION TEMPORAIRE INTELLIGENTE
   const callNestiAI = async (prompt) => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const lowerPrompt = prompt.toLowerCase();
-    
-    // Réponses contextuelles intelligentes
-    if (lowerPrompt.includes('bonjour') || lowerPrompt.includes('salut')) {
-      return `Bonjour ${user?.user_metadata?.first_name || ''} ! 👋 Ravie de vous revoir !
-
-Comment puis-je vous aider aujourd'hui ?
-
-🎯 **Activités adaptées** à Paris
-📅 **Organisation** de votre semaine  
-💡 **Conseils éducatifs** bienveillants
-🍽️ **Idées repas** équilibrés
-
-Dites-moi ce qui vous préoccupe ! ✨`;
+  
+    try {
+      // 🔥 REMPLACEZ CETTE URL PAR VOTRE VRAIE URL RAILWAY
+      const API_URL = 'https://nesti-ai-server.up.railway.app/api/nesti-ai';
+  
+      console.log('📤 Sending to AI:', prompt);
+      
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: prompt,
+          userContext: {
+            userName: user?.user_metadata?.first_name,
+            location: 'Paris'
+          }
+        }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      console.log('📥 Received AI response');
+      
+      return data.response;
+  
+    } catch (error) {
+      console.error('❌ AI Error:', error);
+      
+      // Fallback intelligent
+      return `Je rencontre une difficulté de connexion avec mon serveur. 😔
+  
+  Mais voici ce que je peux vous dire immédiatement :
+  
+  **Pour les familles à Paris :**
+  • Les musées sont souvent gratuits le 1er dimanche du mois
+  • Les parcs (Luxembourg, Buttes-Chaumont) sont excellents pour les enfants
+  • La Cité des Sciences propose des activités adaptées
+  
+  **Conseil rapide :** Établissez des routines stables et utilisez des timer visuels.
+  
+  Pouvez-vous réessayer votre question ? Le service devrait revenir rapidement. ✨`;
+    } finally {
+      setLoading(false);
     }
-    
-    if (lowerPrompt.includes('paris') && lowerPrompt.includes('activité')) {
-      return `À Paris avec des enfants ? Voici mes suggestions : 🗼
-
-**Pour les petits (3-6 ans) :**
-• **Jardin du Luxembourg** - Aire de jeux emblématique
-• **Cité des Sciences** - Espaces dédiés aux petits
-• **Parc de Bercy** - Grands espaces verts
-
-**Pour les 6-12 ans :**
-• **Musée en Herbe** - Visites interactives
-• **Aquarium de Paris** - Découverte marine
-• **Ateliers du Centre Pompidou** - Créativité
-
-**Conseil :** Réservez en ligne pour éviter les files !`;
-    }
-    
-    if (lowerPrompt.includes('organisation') || lowerPrompt.includes('semaine')) {
-      return `Voici un modèle d'organisation équilibrée : 📅
-
-**Lundi** : Devoirs (20min) + Temps calme (15min)
-**Mardi** : Activité sportive (30min) + Jeux libres  
-**Mercredi** : Sortie découverte (1h) + Repos
-**Jeudi** : Jeux société (30min) + Lecture
-**Vendredi** : Temps libre + Bilan semaine
-
-**Astuces Paris :**
-• Profitez des musées gratuits 1er dimanche
-• Les parcs sont parfaits pour dépenser l'énergie
-• Alternez sorties payantes et gratuites`;
-    }
-    
-    if (lowerPrompt.includes('repas') || lowerPrompt.includes('manger')) {
-      return `Idées de repas équilibrés et rapides : 🍽️
-
-**Rapides (15-20 min) :**
-• Omelette aux légumes + salade verte
-• Wrap poulet/avocat + crudités
-• Pâtes complètes sauce tomate maison
-
-**Plats familiaux :**
-• Bowl de riz + protéines + légumes
-• Mini-pizzas sur pain pita
-• Parmentier de patate douce
-
-**Astuce :** Impliquez les enfants dans la préparation !`;
-    }
-    
-    // Réponse par défaut intelligente
-    setLoading(false); 
-    return `Je comprends votre demande ! 🤔
-
-Pour vous aider au mieux, pourriez-vous me préciser :
-
-• **Les âges des enfants** concernés ?
-• **Le type de besoin** (calme, énergie, créativité) ?
-• **Le moment** de la journée ?
-
-Je peux vous aider sur :
-🎯 Activités adaptées • 📅 Organisation • 💡 Conseils
-🍽️ Nutrition • 😴 Sommeil • 🏡 Environnement
-
-Je suis là pour vous accompagner ! 💫`;
-    };
+  };
 
   const handleSendMessage = async (text = inputMessage) => {
     if (!text.trim()) return;
