@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import './ChatPage.css';
 
@@ -8,49 +8,51 @@ export default function ChatPage({ user, familyId }) {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Messages de bienvenue initiaux
-  const welcomeMessages = [
-    {
-      id: 1,
-      type: 'ai',
-      content: `Bonjour ${user?.user_metadata?.first_name || ''} ! 👋 Je suis Nesti, votre assistant familial bienveillant. Je peux vous aider à :`,
-      timestamp: new Date(),
-      suggestions: [
-        {
-          title: "Proposer des activités",
-          description: "Adaptées à chaque membre de la famille",
-          prompt: "Propose des activités adaptées pour mes enfants aujourd'hui",
-          emoji: "🎯"
-        },
-        {
-          title: "Organiser votre agenda", 
-          description: "Équilibre vie professionnelle/personnelle",
-          prompt: "Aide-moi à organiser notre semaine familiale",
-          emoji: "📅"
-        },
-        {
-          title: "Résoudre des conflits",
-          description: "Conseils pour la communication familiale",
-          prompt: "Comment gérer les disputes entre frères et sœurs ?",
-          emoji: "💡"
-        },
-        {
-          title: "Trouver des sorties",
-          description: "Idées adaptées à vos préférences",
-          prompt: "Quelles sorties familiales ce week-end ?",
-          emoji: "🏡"
-        }
-      ]
-    }
-  ];
+  // Messages de bienvenue initiaux - Déplacé dans useCallback
+  const getWelcomeMessages = useCallback(() => {
+    return [
+      {
+        id: 1,
+        type: 'ai',
+        content: `Bonjour ${user?.user_metadata?.first_name || ''} ! 👋 Je suis Nesti, votre assistant familial bienveillant. Je peux vous aider à :`,
+        timestamp: new Date(),
+        suggestions: [
+          {
+            title: "Proposer des activités",
+            description: "Adaptées à chaque membre de la famille",
+            prompt: "Propose des activités adaptées pour mes enfants aujourd'hui",
+            emoji: "🎯"
+          },
+          {
+            title: "Organiser votre agenda", 
+            description: "Équilibre vie professionnelle/personnelle",
+            prompt: "Aide-moi à organiser notre semaine familiale",
+            emoji: "📅"
+          },
+          {
+            title: "Résoudre des conflits",
+            description: "Conseils pour la communication familiale",
+            prompt: "Comment gérer les disputes entre frères et sœurs ?",
+            emoji: "💡"
+          },
+          {
+            title: "Trouver des sorties",
+            description: "Idées adaptées à vos préférences",
+            prompt: "Quelles sorties familiales ce week-end ?",
+            emoji: "🏡"
+          }
+        ]
+      }
+    ];
+  }, [user]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    setMessages(welcomeMessages);
-  }, [user]);
+    setMessages(getWelcomeMessages());
+  }, [getWelcomeMessages]); // Maintenant c'est correct
 
   useEffect(() => {
     scrollToBottom();
