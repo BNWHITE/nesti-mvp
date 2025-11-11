@@ -13,28 +13,32 @@ export default function ChatPage({ user, familyId }) {
     {
       id: 1,
       type: 'ai',
-      content: `Bonjour ${user?.user_metadata?.first_name || ''} ! Je suis Nesti, votre assistant familial bienveillant. Je peux vous aider à :`,
+      content: `Bonjour ${user?.user_metadata?.first_name || ''} ! 👋 Je suis Nesti, votre assistant familial bienveillant. Je peux vous aider à :`,
       timestamp: new Date(),
       suggestions: [
         {
           title: "Proposer des activités",
           description: "Adaptées à chaque membre de la famille",
-          prompt: "Propose des activités adaptées pour mes enfants"
+          prompt: "Propose des activités adaptées pour mes enfants aujourd'hui",
+          emoji: "🎯"
         },
         {
           title: "Organiser votre agenda", 
           description: "Équilibre vie professionnelle/personnelle",
-          prompt: "Aide-moi à organiser notre semaine familiale"
+          prompt: "Aide-moi à organiser notre semaine familiale",
+          emoji: "📅"
         },
         {
           title: "Résoudre des conflits",
           description: "Conseils pour la communication familiale",
-          prompt: "Comment gérer les disputes entre frères et sœurs ?"
+          prompt: "Comment gérer les disputes entre frères et sœurs ?",
+          emoji: "💡"
         },
         {
           title: "Trouver des sorties",
           description: "Idées adaptées à vos préférences",
-          prompt: "Quelles sorties familiales ce week-end ?"
+          prompt: "Quelles sorties familiales ce week-end ?",
+          emoji: "🏡"
         }
       ]
     }
@@ -46,16 +50,16 @@ export default function ChatPage({ user, familyId }) {
 
   useEffect(() => {
     setMessages(welcomeMessages);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // 🔥 INTÉGRATION IA RÉELLE - 3 OPTIONS DISPONIBLES
+  // 🔥 INTÉGRATION RÉELLE AVEC OPENAI
   const callNestiAI = async (prompt) => {
     setLoading(true);
-  
+
     try {
       const response = await fetch('/api/nesti-ai', {
         method: 'POST',
@@ -71,15 +75,15 @@ export default function ChatPage({ user, familyId }) {
           }
         }),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Erreur API');
       }
-  
+
       const data = await response.json();
       return data.response;
-  
+
     } catch (error) {
       console.error('Erreur IA:', error);
       
@@ -87,74 +91,43 @@ export default function ChatPage({ user, familyId }) {
       if (prompt.toLowerCase().includes('activité') || prompt.toLowerCase().includes('sortie')) {
         return `En attendant que je sois pleinement opérationnel, je vous suggère ces activités adaptées :
         
-  🎯 **Pour aujourd'hui** :
-  • Parc de Bercy - Espaces verts apaisants
-  • Médiathèque - Coin lecture calme
-  • Atelier pâte à modeler - Stimulation sensorielle
-  
-  🎯 **Pour ce week-end** :
-  • Musée en entrée libre le 1er dimanche du mois
-  • Marché local - Découverte des sens
-  • Pique-nique au parc floral
-  
-  Quel type d'activité recherchez-vous précisément ?`;
+🎯 **Pour aujourd'hui** :
+• **Parc de Bercy** - Espaces verts apaisants (30 min)
+• **Médiathèque** - Coin lecture calme (45 min)  
+• **Atelier pâte à modeler** - Stimulation sensorielle (25 min)
+
+🎯 **Pour ce week-end** :
+• **Musée** en entrée libre le 1er dimanche du mois
+• **Marché local** - Découverte des sens
+• **Pique-nique** au parc floral
+
+Quel type d'activité recherchez-vous précisément ? 🎨⚽🍽️`;
       }
       
-      return `Je suis désolé, je rencontre une difficult technique momentanée. 
-  
-  En tant qu'assistant familial Nesti, je peux vous aider sur :
-  🎯 Activités adaptées aux besoins spécifiques
-  📅 Organisation du temps familial
-  💡 Conseils éducatifs bienveillants
-  🏡 Gestion des routines quotidiennes
-  
-  Pouvez-vous reformuler votre question ?`;
+      if (prompt.toLowerCase().includes('agenda') || prompt.toLowerCase().includes('organisation')) {
+        return `Voici une proposition d'organisation pour votre semaine :
+
+**Lundi** : Devoirs + temps calme (20 min)
+**Mardi** : Activité sportive en extérieur (30 min)  
+**Mercredi** : Sortie culturelle ou créative (1h)
+**Jeudi** : Soirée jeux en famille (45 min)
+**Vendredi** : Temps libre individualisé
+
+Souhaitez-vous ajuster quelque chose ? 📅`;
+      }
+      
+      return `Je suis désolé, je rencontre une difficulté technique momentanée. 😔
+
+En tant qu'assistant familial Nesti, je peux vous aider sur :
+🎯 **Activités adaptées** aux besoins spécifiques
+📅 **Organisation** du temps familial  
+💡 **Conseils éducatifs** bienveillants
+🏡 **Gestion** des routines quotidiennes
+
+Pouvez-vous reformuler votre question ? Je suis là pour vous aider ! ✨`;
     } finally {
       setLoading(false);
     }
-  };
-  // Simulation d'IA en attendant l'intégration réelle
-  const simulateAIResponse = (prompt) => {
-    const responses = {
-      'activité': `D'après votre profil familial, je vous suggère :
-• **Parc de Bercy** (30min) - Espaces verts pour se détendre
-• **Atelier cuisine** (1h) - Recette simple et amusante
-• **Jeu de société coopératif** (45min) - Renforce la complicité
-
-Quelle activité vous tente le plus ?`,
-      
-      'agenda': `Voici une proposition d'organisation pour votre semaine :
-**Lundi** : Devoirs + temps calme
-**Mardi** : Activité sportive en extérieur  
-**Mercredi** : Sortie culturelle ou creative
-**Jeudi** : Soirée jeux en famille
-**Vendredi** : Temps libre individualisé
-
-Souhaitez-vous ajuster quelque chose ?`,
-      
-      'conseil': `En tant qu'assistant familial, je vous recommande :
-• Établir des routines stables pour sécuriser les enfants
-• Utiliser des minuteurs visuels pour les transitions
-• Créer des espaces calmes dans la maison
-• Célébrer les petites victoires quotidiennes
-
-Ces approches aident à créer un environnement apaisant.`,
-      
-      'default': `Je comprends votre demande ! En tant qu'assistant familial Nesti, je peux vous aider sur :
-🎯 **Activités adaptées** aux besoins de chacun
-📅 **Organisation** du temps familial  
-💡 **Conseils éducatifs** bienveillants
-🏡 **Aménagement** d'espaces familiaux
-
-Pouvez-vous me préciser votre besoin ?`
-    };
-
-    const lowerPrompt = prompt.toLowerCase();
-    if (lowerPrompt.includes('activité') || lowerPrompt.includes('sortie')) return responses.activité;
-    if (lowerPrompt.includes('agenda') || lowerPrompt.includes('organisation')) return responses.agenda;
-    if (lowerPrompt.includes('conseil') || lowerPrompt.includes('problème')) return responses.conseil;
-    
-    return responses.default;
   };
 
   const handleSendMessage = async (text = inputMessage) => {
@@ -182,7 +155,7 @@ Pouvez-vous me préciser votre besoin ?`
 
     setMessages(prev => [...prev, aiMessage]);
 
-    // Sauvegarder dans Supabase
+    // Sauvegarder dans Supabase (optionnel)
     try {
       await supabase
         .from('chat_messages')
@@ -203,13 +176,25 @@ Pouvez-vous me préciser votre besoin ?`
   };
 
   const quickActions = [
-    { emoji: '🎨', label: 'Activités créatives', prompt: 'Propose des activités créatives pour enfants' },
-    { emoji: '⚽', label: 'Sports adaptés', prompt: 'Quels sports adaptés pour un enfant TDAH ?' },
-    { emoji: '🍽️', label: 'Idées repas', prompt: 'Donne-moi des idées de repas équilibrés et rapides' },
-    { emoji: '🎭', label: 'Sorties culture', prompt: 'Quelles sorties culturelles adaptées à la famille ?' },
-    { emoji: '😴', label: 'Gestion sommeil', prompt: 'Comment améliorer le sommeil des enfants ?' },
-    { emoji: '⚡', label: 'Crise TDAH', prompt: 'Comment gérer les crises et surcharges sensorielles ?' }
+    { emoji: '🎨', label: 'Activités créatives', prompt: 'Propose des activités créatives adaptées pour enfants' },
+    { emoji: '⚽', label: 'Sports adaptés', prompt: 'Quels sports adaptés pour un enfant qui a besoin de bouger ?' },
+    { emoji: '🍽️', label: 'Idées repas', prompt: 'Donne-moi des idées de repas équilibrés, rapides et appréciés des enfants' },
+    { emoji: '🎭', label: 'Sorties culture', prompt: 'Quelles sorties culturelles adaptées à toute la famille ce week-end ?' },
+    { emoji: '😴', label: 'Gestion sommeil', prompt: 'Comment améliorer le sommeil et les routines du coucher ?' },
+    { emoji: '⚡', label: 'Crise TDAH', prompt: 'Comment gérer les crises et les surcharges sensorielles ?' }
   ];
+
+  const formatMessageContent = (content) => {
+    return content.split('\n').map((line, index) => {
+      if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
+        return <div key={index} className="message-bullet">• {line.substring(1).trim()}</div>;
+      }
+      if (line.trim().startsWith('**') && line.trim().endsWith('**')) {
+        return <div key={index} className="message-bold">{line.replace(/\*\*/g, '')}</div>;
+      }
+      return <div key={index}>{line}</div>;
+    });
+  };
 
   return (
     <div className="chat-page">
@@ -232,7 +217,9 @@ Pouvez-vous me préciser votre besoin ?`
               {message.type === 'ai' ? '✨' : '👤'}
             </div>
             <div className="message-content">
-              <p>{message.content}</p>
+              <div className="message-text">
+                {formatMessageContent(message.content)}
+              </div>
               
               {message.suggestions && (
                 <div className="suggestion-cards">
@@ -242,8 +229,8 @@ Pouvez-vous me préciser votre besoin ?`
                       className="suggestion-card"
                       onClick={() => handleSuggestionClick(suggestion)}
                     >
-                      <span>{suggestion.emoji || '💡'}</span>
-                      <div>
+                      <span className="suggestion-emoji">{suggestion.emoji}</span>
+                      <div className="suggestion-text">
                         <strong>{suggestion.title}</strong>
                         <p>{suggestion.description}</p>
                       </div>
@@ -269,6 +256,7 @@ Pouvez-vous me préciser votre besoin ?`
                 <span></span>
                 <span></span>
                 <span></span>
+                <span className="typing-text">Nesti réfléchit...</span>
               </div>
             </div>
           </div>
@@ -286,14 +274,21 @@ Pouvez-vous me préciser votre besoin ?`
             onClick={() => handleSendMessage(action.prompt)}
             disabled={loading}
           >
-            {action.emoji} {action.label}
+            <span className="quick-emoji">{action.emoji}</span>
+            <span className="quick-label">{action.label}</span>
           </button>
         ))}
       </div>
 
       {/* Input */}
       <div className="chat-input">
-        <button className="voice-btn" title="Voice input">🎤</button>
+        <button 
+          className="voice-btn" 
+          title="Voice input"
+          disabled={loading}
+        >
+          🎤
+        </button>
         <input 
           type="text" 
           value={inputMessage}
@@ -308,7 +303,11 @@ Pouvez-vous me préciser votre besoin ?`
           onClick={() => handleSendMessage()}
           disabled={!inputMessage.trim() || loading}
         >
-          {loading ? '...' : '➤'}
+          {loading ? (
+            <div className="send-loading"></div>
+          ) : (
+            '➤'
+          )}
         </button>
       </div>
     </div>
