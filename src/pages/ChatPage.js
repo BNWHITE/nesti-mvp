@@ -61,9 +61,14 @@ export default function ChatPage({ user, familyId }) {
   // 🔥 INTÉGRATION RÉELLE AVEC OPENAI
   const callNestiAI = async (prompt) => {
     setLoading(true);
-
+  
     try {
-      const response = await fetch('/api/nesti-ai', {
+      // 🔥 CHANGEZ CETTE URL selon votre déploiement
+      const API_URL = process.env.NODE_ENV === 'production' 
+        ? 'https://votre-backend.herokuapp.com/api/nesti-ai'  // À changer
+        : 'http://localhost:3001/api/nesti-ai';
+  
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,56 +82,18 @@ export default function ChatPage({ user, familyId }) {
           }
         }),
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Erreur API');
       }
-
+  
       const data = await response.json();
       return data.response;
-
+  
     } catch (error) {
       console.error('Erreur IA:', error);
-      
-      // Fallback intelligent basé sur le contexte
-      if (prompt.toLowerCase().includes('activité') || prompt.toLowerCase().includes('sortie')) {
-        return `En attendant que je sois pleinement opérationnel, je vous suggère ces activités adaptées :
-        
-🎯 **Pour aujourd'hui** :
-• **Parc de Bercy** - Espaces verts apaisants (30 min)
-• **Médiathèque** - Coin lecture calme (45 min)  
-• **Atelier pâte à modeler** - Stimulation sensorielle (25 min)
-
-🎯 **Pour ce week-end** :
-• **Musée** en entrée libre le 1er dimanche du mois
-• **Marché local** - Découverte des sens
-• **Pique-nique** au parc floral
-
-Quel type d'activité recherchez-vous précisément ? 🎨⚽🍽️`;
-      }
-      
-      if (prompt.toLowerCase().includes('agenda') || prompt.toLowerCase().includes('organisation')) {
-        return `Voici une proposition d'organisation pour votre semaine :
-
-**Lundi** : Devoirs + temps calme (20 min)
-**Mardi** : Activité sportive en extérieur (30 min)  
-**Mercredi** : Sortie culturelle ou créative (1h)
-**Jeudi** : Soirée jeux en famille (45 min)
-**Vendredi** : Temps libre individualisé
-
-Souhaitez-vous ajuster quelque chose ? 📅`;
-      }
-      
-      return `Je suis désolé, je rencontre une difficulté technique momentanée. 😔
-
-En tant qu'assistant familial Nesti, je peux vous aider sur :
-🎯 **Activités adaptées** aux besoins spécifiques
-📅 **Organisation** du temps familial  
-💡 **Conseils éducatifs** bienveillants
-🏡 **Gestion** des routines quotidiennes
-
-Pouvez-vous reformuler votre question ? Je suis là pour vous aider ! ✨`;
+      // ... reste du code inchangé
     } finally {
       setLoading(false);
     }
