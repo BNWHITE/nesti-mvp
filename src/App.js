@@ -56,14 +56,19 @@ function App() {
 
   const checkUser = useCallback(async () => {
     try {
+      console.log('🔍 Checking user...');
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('👤 User:', user);
+      
       setUser(user);
       if (user) {
+        console.log('📦 Fetching user data...');
         await fetchUserData(user.id);
       }
     } catch (error) {
-      console.error('Error checking user:', error);
+      console.error('❌ Error checking user:', error);
     } finally {
+      console.log('✅ Loading complete');
       setLoading(false);
     }
   }, [fetchUserData]);
