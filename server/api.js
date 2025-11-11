@@ -1,6 +1,8 @@
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -36,7 +38,7 @@ app.post('/api/nesti-ai', async (req, res) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo', // Plus rapide et économique pour MVP
+        model: 'gpt-3.5-turbo',
         messages: [
           {
             role: 'system',
@@ -106,4 +108,5 @@ Réponds toujours en français, avec bienveillance et expertise.`
 app.listen(PORT, () => {
   console.log(`🚀 Nesti API server running on port ${PORT}`);
   console.log(`🔮 AI endpoint: http://localhost:${PORT}/api/nesti-ai`);
+  console.log(`🔑 OpenAI Key: ${process.env.OPENAI_API_KEY ? '✅ Loaded' : '❌ Missing'}`);
 });
