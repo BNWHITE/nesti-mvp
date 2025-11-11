@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import './AgendaPage.css';
 
@@ -14,11 +14,7 @@ export default function AgendaPage({ user, familyId }) {
     location: ''
   });
 
-  useEffect(() => {
-    fetchEvents();
-  }, [familyId]);
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     const { data, error } = await supabase
       .from('family_events')
       .select('*')
@@ -28,7 +24,11 @@ export default function AgendaPage({ user, familyId }) {
     if (!error && data) {
       setEvents(data);
     }
-  };
+  }, [familyId]);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   const handleCreateEvent = async (e) => {
     e.preventDefault();
@@ -131,21 +131,28 @@ export default function AgendaPage({ user, familyId }) {
       )}
 
       <div className="events-list">
-        {events.map(event => (
-          <div key={event.id} className="event-card">
-            <div className="event-emoji">
-              {eventTypes.find(t => t.value === event.event_type)?.emoji}
-            </div>
-            <div className="event-details">
-              <h3>{event.title}</h3>
-              <p>{event.description}</p>
-              <div className="event-meta">
-                <span>📅 {new Date(event.start_time).toLocaleString()}</span>
-                {event.location && <span>📍 {event.location}</span>}
+        {events.length === 0 ? (
+          <div className="empty-state">
+            <p>Aucun événement pour le moment</p>
+            <p>Créez votre premier événement familial !</p>
+          </div>
+        ) : (
+          events.map(event => (
+            <div key={event.id} className="event-card">
+              <div className="event-emoji">
+                {eventTypes.find(t => t.value === event.event_type)?.emoji}
+              </div>
+              <div className="event-details">
+                <h3>{event.title}</h3>
+                <p>{event.description}</p>
+                <div className="event-meta">
+                  <span>📅 {new Date(event.start_time).toLocaleString('fr-FR')}</span>
+                  {event.location && <span>📍 {event.location}</span>}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );
