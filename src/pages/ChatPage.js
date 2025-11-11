@@ -49,11 +49,6 @@ export default function ChatPage({ user }) {
     setLoading(true);
   
     try {
-      // 🔥 REMPLACEZ CETTE URL PAR VOTRE VRAIE URL RAILWAY
-  const callNestiAI = async (prompt) => {
-    setLoading(true);
-  
-    try {
       // 🔥 VOTRE URL RAILWAY
       const API_URL = 'https://nesti-ai-server-production.up.railway.app/api/nesti-ai';
   
@@ -107,7 +102,7 @@ export default function ChatPage({ user }) {
     } finally {
       setLoading(false);
     }
-  };
+  };  // ⚠️ N'OUBLIEZ PAS CETTE ACCOLADE FERMANTE
 
   const handleSendMessage = async (text = inputMessage) => {
     if (!text.trim()) return;
