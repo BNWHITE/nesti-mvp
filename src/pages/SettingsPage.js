@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import './SettingsPage.css';
 
@@ -10,11 +10,7 @@ export default function SettingsPage({ user, onClose }) {
   });
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchProfile();
-  }, [user]);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     const { data, error } = await supabase
       .from('user_profiles')
       .select('*')
@@ -24,7 +20,11 @@ export default function SettingsPage({ user, onClose }) {
     if (!error && data) {
       setProfile(data);
     }
-  };
+  }, [user.id]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleSave = async () => {
     setLoading(true);
