@@ -167,3 +167,20 @@
   align-items: center;
   gap: 4px;
 }
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+.empty-state p:first-child {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #374151;
+}
+
+.empty-state p:last-child {
+  font-size: 14px;
+}
