@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import './Onboarding.css';
 
 export default function Onboarding({ onComplete }) {
   const [step, setStep] = useState(1);
