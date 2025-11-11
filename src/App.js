@@ -1,175 +1,152 @@
-import './App.css';
-import { useState, useEffect } from 'react';
-import { supabase } from './lib/supabaseClient';
-import Header from './components/Header';
-import Navigation from './components/Navigation';
-import FeedPage from './pages/FeedPage';
-import AgendaPage from './pages/AgendaPage';
-import NestPage from './pages/NestPage';
-import DiscoveriesPage from './pages/DiscoveriesPage';
-import ChatPage from './pages/ChatPage';
-import SettingsPage from './pages/SettingsPage';
-import CreatePost from './components/CreatePost';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabaseClient';
+import './AgendaPage.css';
 
-function App() {
-  const [user, setUser] = useState(null);
-  const [familyId, setFamilyId] = useState(null);
-  const [familyName, setFamilyName] = useState('');
-  const [activeTab, setActiveTab] = useState('feed');
-  const [showSettings, setShowSettings] = useState(false);
-  const [loading, setLoading] = useState(true);
+export default function AgendaPage({ user, familyId }) {
+  const [events, setEvents] = useState([]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newEvent, setNewEvent] = useState({
+    title: '',
+    description: '',
+    start_time: '',
+    end_time: '',
+    event_type: 'activity',
+    location: ''
+  });
+
+  const fetchEvents = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('family_events')
+      .select('*')
+      .eq('family_id', familyId)
+      .order('start_time', { ascending: true });
+
+    if (!error && data) {
+      setEvents(data);
+    }
+  }, [familyId]);
 
   useEffect(() => {
-    checkUser();
+    fetchEvents();
+  }, [fetchEvents]);
+
+  const handleCreateEvent = async (e) => {
+    e.preventDefault();
     
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user || null);
-      if (session?.user) {
-        await fetchUserData(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
+    const { error } = await supabase
+      .from('family_events')
+      .insert([{
+        ...newEvent,
+        family_id: familyId,
+        created_by: user.id
+      }]);
 
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const checkUser = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) {
-        await fetchUserData(user.id);
-      }
-    } catch (error) {
-      console.error('Error checking user:', error);
-    } finally {
-      setLoading(false);
+    if (!error) {
+      setShowCreateForm(false);
+      setNewEvent({
+        title: '', description: '', start_time: '', end_time: '', event_type: 'activity', location: ''
+      });
+      fetchEvents();
     }
   };
 
-  const fetchUserData = async (userId) => {
-    try {
-      // Récupérer les infos utilisateur et famille
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('family_id, first_name')
-        .eq('id', userId)
-        .single();
-
-      if (userError) throw userError;
-
-      if (userData?.family_id) {
-        setFamilyId(userData.family_id);
-        
-        // Récupérer le nom de la famille
-        const { data: familyData, error: familyError } = await supabase
-          .from('families')
-          .select('family_name')
-          .eq('id', userData.family_id)
-          .single();
-
-        if (!familyError && familyData) {
-          setFamilyName(familyData.family_name);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-    }
-  };
-
-  const handlePostCreated = () => {
-    // Pour rafraîchir le feed si nécessaire
-    console.log('Nouveau post créé');
-  };
-
-  const renderPage = () => {
-    if (!user || !familyId) return null;
-
-    switch (activeTab) {
-      case 'feed':
-        return (
-          <>
-            <FeedPage user={user} familyId={familyId} />
-            <CreatePost 
-              user={user} 
-              familyId={familyId} 
-              onPostCreated={handlePostCreated} 
-            />
-          </>
-        );
-      case 'agenda':
-        return <AgendaPage user={user} familyId={familyId} />;
-      case 'nest':
-        return <NestPage user={user} familyId={familyId} familyName={familyName} />;
-      case 'discover':
-        return <DiscoveriesPage user={user} familyId={familyId} />;
-      case 'chat':
-        return <ChatPage user={user} familyId={familyId} />;
-      default:
-        return <FeedPage user={user} familyId={familyId} />;
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="app">
-        <div className="loading-screen">
-          <div className="loading-logo">
-            <span>N</span>
-          </div>
-          <p>Chargement de votre espace familial...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="auth-container">
-        <div className="auth-card">
-          <div className="auth-header">
-            <div className="auth-logo">
-              <span>N</span>
-            </div>
-            <h1>Connexion Nesti</h1>
-            <p>Veuillez vous connecter à votre compte</p>
-          </div>
-          <button 
-            onClick={() => window.location.reload()}
-            className="auth-button"
-          >
-            Rafraîchir et se connecter
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const eventTypes = [
+    { value: 'activity', emoji: '⚽', label: 'Activité' },
+    { value: 'appointment', emoji: '📅', label: 'Rendez-vous' },
+    { value: 'celebration', emoji: '🎉', label: 'Célébration' },
+    { value: 'task', emoji: '✅', label: 'Tâche' }
+  ];
 
   return (
-    <div className="app">
-      <div className="app-container">
-        <Header 
-          user={user} 
-          familyName={familyName}
-          onSettingsOpen={() => setShowSettings(true)} 
-        />
-        
-        <main className="main-content">
-          {renderPage()}
-        </main>
-        
-        <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
-        
-        {showSettings && (
-          <SettingsPage 
-            user={user} 
-            onClose={() => setShowSettings(false)} 
-          />
-        )}
+    <div className="agenda-page">
+      <div className="agenda-header">
+        <h1>📅 Agenda Familial</h1>
+        <button 
+          className="add-event-btn"
+          onClick={() => setShowCreateForm(true)}
+        >
+          + Ajouter
+        </button>
+      </div>
+
+      {showCreateForm && (
+        <div className="event-form-overlay">
+          <div className="event-form">
+            <h3>Nouvel événement</h3>
+            <form onSubmit={handleCreateEvent}>
+              <input
+                type="text"
+                placeholder="Titre de l'événement"
+                value={newEvent.title}
+                onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
+                required
+              />
+              
+              <textarea
+                placeholder="Description"
+                value={newEvent.description}
+                onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
+              />
+
+              <select
+                value={newEvent.event_type}
+                onChange={(e) => setNewEvent({...newEvent, event_type: e.target.value})}
+              >
+                {eventTypes.map(type => (
+                  <option key={type.value} value={type.value}>
+                    {type.emoji} {type.label}
+                  </option>
+                ))}
+              </select>
+
+              <input
+                type="datetime-local"
+                value={newEvent.start_time}
+                onChange={(e) => setNewEvent({...newEvent, start_time: e.target.value})}
+                required
+              />
+
+              <input
+                type="datetime-local"
+                value={newEvent.end_time}
+                onChange={(e) => setNewEvent({...newEvent, end_time: e.target.value})}
+              />
+
+              <input
+                type="text"
+                placeholder="Lieu"
+                value={newEvent.location}
+                onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
+              />
+
+              <div className="form-actions">
+                <button type="button" onClick={() => setShowCreateForm(false)}>
+                  Annuler
+                </button>
+                <button type="submit">Créer</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <div className="events-list">
+        {events.map(event => (
+          <div key={event.id} className="event-card">
+            <div className="event-emoji">
+              {eventTypes.find(t => t.value === event.event_type)?.emoji}
+            </div>
+            <div className="event-details">
+              <h3>{event.title}</h3>
+              <p>{event.description}</p>
+              <div className="event-meta">
+                <span>📅 {new Date(event.start_time).toLocaleString()}</span>
+                {event.location && <span>📍 {event.location}</span>}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
-
-export default App;
