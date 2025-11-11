@@ -55,12 +55,9 @@ export default function ChatPage({ user, familyId }) {
   // 🔥 INTÉGRATION IA RÉELLE - 3 OPTIONS DISPONIBLES
   const callNestiAI = async (prompt) => {
     setLoading(true);
-
+  
     try {
-      let response;
-
-      // OPTION 1: OpenAI GPT (Recommandé)
-      response = await fetch('/api/nesti-ai', {
+      const response = await fetch('/api/nesti-ai', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -74,39 +71,48 @@ export default function ChatPage({ user, familyId }) {
           }
         }),
       });
-
-      // OPTION 2: Hugging Face (Gratuit)
-      // response = await fetch('https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': 'Bearer VOTRE_CLE_API_HUGGING_FACE',
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({ inputs: prompt }),
-      // });
-
-      // OPTION 3: Groq (Très rapide et gratuit)
-      // response = await fetch('/api/groq-ai', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ prompt }),
-      // });
-
-      if (!response.ok) throw new Error('Erreur API');
-
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erreur API');
+      }
+  
       const data = await response.json();
-      
-      // Pour l'instant, simulation en attendant l'API
-      return simulateAIResponse(prompt);
-
+      return data.response;
+  
     } catch (error) {
       console.error('Erreur IA:', error);
-      return "Je rencontre quelques difficultés techniques. Pouvez-vous reformuler votre question ?";
+      
+      // Fallback intelligent basé sur le contexte
+      if (prompt.toLowerCase().includes('activité') || prompt.toLowerCase().includes('sortie')) {
+        return `En attendant que je sois pleinement opérationnel, je vous suggère ces activités adaptées :
+        
+  🎯 **Pour aujourd'hui** :
+  • Parc de Bercy - Espaces verts apaisants
+  • Médiathèque - Coin lecture calme
+  • Atelier pâte à modeler - Stimulation sensorielle
+  
+  🎯 **Pour ce week-end** :
+  • Musée en entrée libre le 1er dimanche du mois
+  • Marché local - Découverte des sens
+  • Pique-nique au parc floral
+  
+  Quel type d'activité recherchez-vous précisément ?`;
+      }
+      
+      return `Je suis désolé, je rencontre une difficult technique momentanée. 
+  
+  En tant qu'assistant familial Nesti, je peux vous aider sur :
+  🎯 Activités adaptées aux besoins spécifiques
+  📅 Organisation du temps familial
+  💡 Conseils éducatifs bienveillants
+  🏡 Gestion des routines quotidiennes
+  
+  Pouvez-vous reformuler votre question ?`;
     } finally {
       setLoading(false);
     }
   };
-
   // Simulation d'IA en attendant l'intégration réelle
   const simulateAIResponse = (prompt) => {
     const responses = {
