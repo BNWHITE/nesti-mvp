@@ -5,6 +5,7 @@ import {
   MapIcon, 
   ChatBubbleLeftRightIcon 
 } from '@heroicons/react/24/outline';
+import './BottomNav.css';
 
 const navItems = [
   { id: 'feed', icon: HomeIcon, label: 'Accueil' },
