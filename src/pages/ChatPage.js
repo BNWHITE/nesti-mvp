@@ -113,6 +113,7 @@ Dites-moi ce qui vous préoccupe ! ✨`;
     }
     
     // Réponse par défaut intelligente
+    setLoading(false); 
     return `Je comprends votre demande ! 🤔
 
 Pour vous aider au mieux, pourriez-vous me préciser :
@@ -126,9 +127,7 @@ Je peux vous aider sur :
 🍽️ Nutrition • 😴 Sommeil • 🏡 Environnement
 
 Je suis là pour vous accompagner ! 💫`;
-    
-    setLoading(false);
-  };
+    };
 
   const handleSendMessage = async (text = inputMessage) => {
     if (!text.trim()) return;
