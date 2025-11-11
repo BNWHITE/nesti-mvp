@@ -50,9 +50,14 @@ export default function ChatPage({ user }) {
   
     try {
       // 🔥 REMPLACEZ CETTE URL PAR VOTRE VRAIE URL RAILWAY
-      const API_URL = 'https://nesti-ai-server.up.railway.app/api/nesti-ai';
+  const callNestiAI = async (prompt) => {
+    setLoading(true);
   
-      console.log('📤 Sending to AI:', prompt);
+    try {
+      // 🔥 VOTRE URL RAILWAY
+      const API_URL = 'https://nesti-ai-server-production.up.railway.app/api/nesti-ai';
+  
+      console.log('📤 Envoi à Nesti AI:', prompt);
       
       const response = await fetch(API_URL, {
         method: 'POST',
@@ -70,30 +75,35 @@ export default function ChatPage({ user }) {
   
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        throw new Error(errorData.error || `Erreur HTTP: ${response.status}`);
       }
   
       const data = await response.json();
-      console.log('📥 Received AI response');
+      console.log('✅ Réponse reçue de Nesti AI');
       
       return data.response;
   
     } catch (error) {
-      console.error('❌ AI Error:', error);
+      console.error('❌ Erreur Nesti AI:', error);
       
-      // Fallback intelligent
-      return `Je rencontre une difficulté de connexion avec mon serveur. 😔
+      // Fallback temporaire
+      return `Je rencontre une difficulté technique momentanée. 😔
   
-  Mais voici ce que je peux vous dire immédiatement :
+  Mais voici ce que je peux vous proposer immédiatement :
   
-  **Pour les familles à Paris :**
-  • Les musées sont souvent gratuits le 1er dimanche du mois
-  • Les parcs (Luxembourg, Buttes-Chaumont) sont excellents pour les enfants
-  • La Cité des Sciences propose des activités adaptées
+  🎯 **Activités à Paris ce week-end :**
+  • Cité des Sciences - Nouvelle expo interactive
+  • Jardin des Plantes - Ménagerie rénovée  
+  • Parc de Bercy - Grands espaces verts
   
-  **Conseil rapide :** Établissez des routines stables et utilisez des timer visuels.
+  📅 **Organisation de la semaine :**
+  Lundi : Devoirs 17h + Temps calme
+  Mardi : Sport 17h30 + Jeux créatifs
+  Mercredi : Sortie culturelle + Repos
+  Jeudi : Jeux société + Histoire
+  Vendredi : Temps libre en famille
   
-  Pouvez-vous réessayer votre question ? Le service devrait revenir rapidement. ✨`;
+  Pouvez-vous réessayer votre question ? ✨`;
     } finally {
       setLoading(false);
     }
