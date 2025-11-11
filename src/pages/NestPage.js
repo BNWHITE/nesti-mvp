@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import './NestPage.css';
 
@@ -6,11 +6,7 @@ export default function NestPage({ user, familyId, familyName }) {
   const [familyMembers, setFamilyMembers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchFamilyMembers();
-  }, [familyId]);
-
-  const fetchFamilyMembers = async () => {
+  const fetchFamilyMembers = useCallback(async () => {
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -21,7 +17,11 @@ export default function NestPage({ user, familyId, familyName }) {
       setFamilyMembers(data);
     }
     setLoading(false);
-  };
+  }, [familyId]);
+
+  useEffect(() => {
+    fetchFamilyMembers();
+  }, [fetchFamilyMembers]);
 
   const getRoleEmoji = (role) => {
     const emojis = {
