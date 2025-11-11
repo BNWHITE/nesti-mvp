@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import './SplashScreen.css';
 
 export default function SplashScreen() {
   return (
