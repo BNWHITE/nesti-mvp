@@ -1,0 +1,167 @@
+.nest-page {
+  padding: 16px;
+  padding-bottom: 80px;
+  background: #f8fafc;
+  min-height: calc(100vh - 80px);
+}
+
+.nest-header {
+  margin-bottom: 24px;
+}
+
+.family-card {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.family-emoji {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.family-info h1 {
+  margin: 0 0 8px 0;
+  color: #1f2937;
+  font-size: 24px;
+}
+
+.family-info p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.invite-btn {
+  width: 100%;
+  background: #2D5F5D;
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.invite-btn:hover {
+  background: #4A8B7A;
+}
+
+.members-section {
+  margin-bottom: 24px;
+}
+
+.members-section h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #1f2937;
+}
+
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.member-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.member-card:hover {
+  transform: translateY(-2px);
+}
+
+.member-avatar {
+  font-size: 24px;
+  width: 50px;
+  height: 50px;
+  background: #f3f4f6;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-info h3 {
+  margin: 0 0 4px 0;
+  color: #1f2937;
+  font-size: 16px;
+}
+
+.member-role {
+  margin: 0 0 4px 0;
+  color: #2D5F5D;
+  font-weight: 500;
+  font-size: 14px;
+  text-transform: capitalize;
+}
+
+.member-email {
+  margin: 0;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.member-actions {
+  display: flex;
+  align-items: center;
+}
+
+.badge-you {
+  background: #2D5F5D;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.family-stats h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #1f2937;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-number {
+  display: block;
+  font-size: 24px;
+  font-weight: bold;
+  color: #2D5F5D;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #6b7280;
+}
