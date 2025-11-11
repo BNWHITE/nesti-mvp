@@ -7,34 +7,25 @@ export default function ChatPage({ user }) {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // URL de votre backend déployé - REMPLACEZ par votre URL Railway
-  const API_URL = 'https://votre-app.railway.app/api/nesti-ai';
-
   const getWelcomeMessages = useCallback(() => {
     return [
       {
         id: 1,
         type: 'ai',
-        content: `Bonjour ${user?.user_metadata?.first_name || ''} ! 👋 Je suis Nesti, votre assistant familial bienveillant. Je peux vous aider avec les activités, l'organisation, les conseils éducatifs et bien plus !`,
+        content: `Bonjour ${user?.user_metadata?.first_name || ''} ! 👋 Je suis Nesti, votre assistant familial bienveillant.`,
         timestamp: new Date(),
         suggestions: [
           {
-            title: "Activités à Paris",
-            description: "Sorties adaptées selon les âges",
-            prompt: "Quelles activités familiales à Paris pour ce week-end ?",
+            title: "Activités Paris",
+            description: "Sorties adaptées selon les âges", 
+            prompt: "Quelles activités à Paris pour des enfants ?",
             emoji: "🎯"
           },
           {
-            title: "Organisation", 
+            title: "Organisation",
             description: "Planning et routines familiales",
-            prompt: "Comment organiser notre semaine à Paris avec des enfants ?",
+            prompt: "Comment organiser notre semaine à Paris ?",
             emoji: "📅"
-          },
-          {
-            title: "Conseils pratiques",
-            description: "Astuces pour la vie quotidienne",
-            prompt: "Donne-moi des conseils pour gérer le quotidien avec les enfants",
-            emoji: "💡"
           }
         ]
       }
@@ -53,53 +44,90 @@ export default function ChatPage({ user }) {
     scrollToBottom();
   }, [messages]);
 
-  // 🔥 VRAIE IA OPENAI
+  // 🔥 VERSION TEMPORAIRE INTELLIGENTE
   const callNestiAI = async (prompt) => {
     setLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const lowerPrompt = prompt.toLowerCase();
+    
+    // Réponses contextuelles intelligentes
+    if (lowerPrompt.includes('bonjour') || lowerPrompt.includes('salut')) {
+      return `Bonjour ${user?.user_metadata?.first_name || ''} ! 👋 Ravie de vous revoir !
 
-    try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: prompt,
-          userContext: {
-            userName: user?.user_metadata?.first_name,
-            location: 'Paris'
-          }
-        }),
-      });
+Comment puis-je vous aider aujourd'hui ?
 
-      if (!response.ok) {
-        throw new Error('Erreur de connexion');
-      }
+🎯 **Activités adaptées** à Paris
+📅 **Organisation** de votre semaine  
+💡 **Conseils éducatifs** bienveillants
+🍽️ **Idées repas** équilibrés
 
-      const data = await response.json();
-      
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      return data.response;
-
-    } catch (error) {
-      console.error('Erreur IA:', error);
-      
-      // Fallback intelligent
-      return `Je rencontre une difficulté technique momentanée. 😔
-
-Mais je peux vous dire que pour les familles à Paris, il y a de nombreuses options :
-
-🎯 **Activités** : Parc de Bercy, Cité des Sciences, musées familiaux
-📅 **Organisation** : Créer des routines stables avec des timer visuels
-💡 **Conseils** : Impliquer les enfants dans les décisions
-
-Pouvez-vous reformuler votre question ? Je suis là pour vous aider ! ✨`;
-    } finally {
-      setLoading(false);
+Dites-moi ce qui vous préoccupe ! ✨`;
     }
+    
+    if (lowerPrompt.includes('paris') && lowerPrompt.includes('activité')) {
+      return `À Paris avec des enfants ? Voici mes suggestions : 🗼
+
+**Pour les petits (3-6 ans) :**
+• **Jardin du Luxembourg** - Aire de jeux emblématique
+• **Cité des Sciences** - Espaces dédiés aux petits
+• **Parc de Bercy** - Grands espaces verts
+
+**Pour les 6-12 ans :**
+• **Musée en Herbe** - Visites interactives
+• **Aquarium de Paris** - Découverte marine
+• **Ateliers du Centre Pompidou** - Créativité
+
+**Conseil :** Réservez en ligne pour éviter les files !`;
+    }
+    
+    if (lowerPrompt.includes('organisation') || lowerPrompt.includes('semaine')) {
+      return `Voici un modèle d'organisation équilibrée : 📅
+
+**Lundi** : Devoirs (20min) + Temps calme (15min)
+**Mardi** : Activité sportive (30min) + Jeux libres  
+**Mercredi** : Sortie découverte (1h) + Repos
+**Jeudi** : Jeux société (30min) + Lecture
+**Vendredi** : Temps libre + Bilan semaine
+
+**Astuces Paris :**
+• Profitez des musées gratuits 1er dimanche
+• Les parcs sont parfaits pour dépenser l'énergie
+• Alternez sorties payantes et gratuites`;
+    }
+    
+    if (lowerPrompt.includes('repas') || lowerPrompt.includes('manger')) {
+      return `Idées de repas équilibrés et rapides : 🍽️
+
+**Rapides (15-20 min) :**
+• Omelette aux légumes + salade verte
+• Wrap poulet/avocat + crudités
+• Pâtes complètes sauce tomate maison
+
+**Plats familiaux :**
+• Bowl de riz + protéines + légumes
+• Mini-pizzas sur pain pita
+• Parmentier de patate douce
+
+**Astuce :** Impliquez les enfants dans la préparation !`;
+    }
+    
+    // Réponse par défaut intelligente
+    return `Je comprends votre demande ! 🤔
+
+Pour vous aider au mieux, pourriez-vous me préciser :
+
+• **Les âges des enfants** concernés ?
+• **Le type de besoin** (calme, énergie, créativité) ?
+• **Le moment** de la journée ?
+
+Je peux vous aider sur :
+🎯 Activités adaptées • 📅 Organisation • 💡 Conseils
+🍽️ Nutrition • 😴 Sommeil • 🏡 Environnement
+
+Je suis là pour vous accompagner ! 💫`;
+    
+    setLoading(false);
   };
 
   const handleSendMessage = async (text = inputMessage) => {
@@ -138,28 +166,22 @@ Pouvez-vous reformuler votre question ? Je suis là pour vous aider ! ✨`;
 
     return content.split('\n').map((line, index) => {
       const trimmedLine = line.trim();
-      
       if (!trimmedLine) return <br key={index} />;
-      
       if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-')) {
         return <div key={index} className="message-bullet">• {trimmedLine.substring(1).trim()}</div>;
       }
-      
       if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
         return <div key={index} className="message-bold">{trimmedLine.replace(/\*\*/g, '')}</div>;
       }
-      
       return <div key={index}>{line}</div>;
     });
   };
 
   const quickActions = [
-    { emoji: '🏛️', label: 'Musées Paris', prompt: 'Quels musées à Paris sont adaptés aux enfants de 6 et 10 ans ?' },
-    { emoji: '🌳', label: 'Parcs Paris', prompt: 'Quels sont les meilleurs parcs à Paris pour les familles ?' },
-    { emoji: '📅', label: 'Organisation', prompt: 'Comment organiser une semaine équilibrée pour une famille à Paris ?' },
-    { emoji: '🍽️', label: 'Restaurants', prompt: 'Des restaurants familiaux sympas à Paris ?' },
-    { emoji: '🎨', label: 'Activités créa', prompt: 'Activités créatives à faire à la maison à Paris quand il pleut ?' },
-    { emoji: '⚽', label: 'Sports', prompt: 'Quelles activités sportives pour enfants à Paris ?' }
+    { emoji: '🏛️', label: 'Musées Paris', prompt: 'Quels musées à Paris pour enfants ?' },
+    { emoji: '🌳', label: 'Parcs Paris', prompt: 'Meilleurs parcs à Paris pour famille' },
+    { emoji: '📅', label: 'Organisation', prompt: 'Comment organiser notre semaine à Paris ?' },
+    { emoji: '🍽️', label: 'Repas équilibrés', prompt: 'Idées repas équilibrés pour enfants' }
   ];
 
   return (
@@ -184,7 +206,6 @@ Pouvez-vous reformuler votre question ? Je suis là pour vous aider ! ✨`;
               <div className="message-text">
                 {formatMessageContent(message.content)}
               </div>
-              
               {message.suggestions && (
                 <div className="suggestion-cards">
                   {message.suggestions.map((suggestion, index) => (
