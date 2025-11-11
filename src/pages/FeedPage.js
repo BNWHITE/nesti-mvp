@@ -1,18 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import './FeedPage.css';
 
 export default function FeedPage({ user }) {
   const [posts, setPosts] = useState([]);
   const [activities, setActivities] = useState([]);
-  const [newPost, setNewPost] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       // Récupérer les activités depuis Supabase
       const { data: activitiesData, error: activitiesError } = await supabase
@@ -30,7 +25,7 @@ export default function FeedPage({ user }) {
         {
           id: 1,
           author: { name: user?.user_metadata?.first_name || 'Utilisateur', role: 'parent', emoji: '👨‍👩‍👧' },
-          content: "Bienvenue dans notre Nest familial ! 🏠",
+          content: "Bienvenue dans notre Nest familial ! 🏡",
           type: "welcome",
           time: "Maintenant",
           reactions: { likes: 0, hearts: 0, trophy: 0 }
@@ -43,7 +38,11 @@ export default function FeedPage({ user }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const suggestActivity = async (activityId) => {
     try {
