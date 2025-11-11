@@ -169,6 +169,20 @@ function App() {
             <span>N</span>
           </div>
           <p className="loading-text">Chargement de votre espace familial...</p>
+          <button 
+            onClick={() => setLoading(false)} 
+            style={{
+              marginTop: '20px',
+              padding: '10px 20px',
+              background: 'rgba(255,255,255,0.2)',
+              border: 'none',
+              borderRadius: '10px',
+              color: 'white',
+              cursor: 'pointer'
+            }}
+          >
+            Passer au login
+          </button>
         </div>
       </div>
     );
