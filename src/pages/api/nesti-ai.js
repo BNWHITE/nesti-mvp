@@ -42,7 +42,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4', // ou 'gpt-3.5-turbo' pour économiser
+        model: 'gpt-3.5-turbo', // ou 'gpt-4' pour économiser
         messages: [
           {
             role: 'system',
