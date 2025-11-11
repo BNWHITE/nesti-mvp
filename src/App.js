@@ -18,10 +18,16 @@ function App() {
   const [activeTab, setActiveTab] = useState('feed');
   const [showSettings, setShowSettings] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  // États pour l'authentification
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
 
   const fetchUserData = useCallback(async (userId) => {
     try {
-      // Récupérer les infos utilisateur et famille
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('family_id, first_name')
@@ -33,7 +39,6 @@ function App() {
       if (userData?.family_id) {
         setFamilyId(userData.family_id);
         
-        // Récupérer le nom de la famille
         const { data: familyData, error: familyError } = await supabase
           .from('families')
           .select('family_name')
@@ -77,6 +82,46 @@ function App() {
 
     return () => subscription.unsubscribe();
   }, [checkUser, fetchUserData]);
+
+  const handleAuth = async (e) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError('');
+
+    try {
+      if (isSignUp) {
+        // Inscription
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        
+        if (error) throw error;
+        
+        if (data.user) {
+          alert('Compte créé ! Vérifiez votre email pour confirmer votre inscription.');
+        }
+      } else {
+        // Connexion
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (error) throw error;
+        
+        if (data.user) {
+          setUser(data.user);
+          await fetchUserData(data.user.id);
+        }
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+      setAuthError(error.message || 'Une erreur est survenue');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
 
   const handlePostCreated = () => {
     console.log('Nouveau post créé');
@@ -124,7 +169,7 @@ function App() {
     );
   }
 
-  // Écran de connexion
+  // Écran de connexion/inscription
   if (!user) {
     return (
       <div className="app">
@@ -134,15 +179,62 @@ function App() {
               <div className="auth-logo">
                 <span>N</span>
               </div>
-              <h1>Bienvenue sur Nesti</h1>
+              <h1>{isSignUp ? 'Créer un compte' : 'Bienvenue sur Nesti'}</h1>
               <p>L'application qui rapproche votre famille</p>
             </div>
-            <button 
-              onClick={() => window.location.reload()}
-              className="auth-button"
-            >
-              Se connecter
-            </button>
+
+            <form onSubmit={handleAuth} className="auth-form">
+              <div className="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="votre@email.com"
+                  required
+                  disabled={authLoading}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Mot de passe</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  disabled={authLoading}
+                  minLength={6}
+                />
+              </div>
+
+              {authError && (
+                <div className="auth-error">
+                  {authError}
+                </div>
+              )}
+
+              <button 
+                type="submit" 
+                className="auth-button"
+                disabled={authLoading}
+              >
+                {authLoading ? 'Chargement...' : (isSignUp ? 'Créer mon compte' : 'Se connecter')}
+              </button>
+            </form>
+
+            <div className="auth-switch">
+              <button 
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setAuthError('');
+                }}
+                className="switch-button"
+              >
+                {isSignUp ? 'Déjà un compte ? Se connecter' : 'Pas de compte ? S\'inscrire'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
