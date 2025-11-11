@@ -8,38 +8,26 @@ export default function ChatPage({ user, familyId }) {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Messages de bienvenue initiaux - Déplacé dans useCallback
+  // Messages de bienvenue initiaux
   const getWelcomeMessages = useCallback(() => {
     return [
       {
         id: 1,
         type: 'ai',
-        content: `Bonjour ${user?.user_metadata?.first_name || ''} ! 👋 Je suis Nesti, votre assistant familial bienveillant. Je peux vous aider à :`,
+        content: `Bonjour ${user?.user_metadata?.first_name || ''} ! 👋 Je suis Nesti, votre assistant familial bienveillant.`,
         timestamp: new Date(),
         suggestions: [
           {
             title: "Proposer des activités",
-            description: "Adaptées à chaque membre de la famille",
-            prompt: "Propose des activités adaptées pour mes enfants aujourd'hui",
+            description: "Adaptées à chaque membre",
+            prompt: "Propose des activités adaptées pour aujourd'hui",
             emoji: "🎯"
           },
           {
-            title: "Organiser votre agenda", 
-            description: "Équilibre vie professionnelle/personnelle",
-            prompt: "Aide-moi à organiser notre semaine familiale",
+            title: "Organiser l'agenda", 
+            description: "Équilibre vie pro/perso",
+            prompt: "Aide-moi à organiser notre semaine",
             emoji: "📅"
-          },
-          {
-            title: "Résoudre des conflits",
-            description: "Conseils pour la communication familiale",
-            prompt: "Comment gérer les disputes entre frères et sœurs ?",
-            emoji: "💡"
-          },
-          {
-            title: "Trouver des sorties",
-            description: "Idées adaptées à vos préférences",
-            prompt: "Quelles sorties familiales ce week-end ?",
-            emoji: "🏡"
           }
         ]
       }
@@ -52,48 +40,140 @@ export default function ChatPage({ user, familyId }) {
 
   useEffect(() => {
     setMessages(getWelcomeMessages());
-  }, [getWelcomeMessages]); // Maintenant c'est correct
+  }, [getWelcomeMessages]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // 🔥 INTÉGRATION RÉELLE AVEC OPENAI
+  // 🔥 VERSION SIMULÉE SANS API EXTERNE
   const callNestiAI = async (prompt) => {
     setLoading(true);
-  
+
+    // Simulation de chargement
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     try {
-      // 🔥 CHANGEZ CETTE URL selon votre déploiement
-      const API_URL = process.env.NODE_ENV === 'production' 
-        ? 'https://votre-backend.herokuapp.com/api/nesti-ai'  // À changer
-        : 'http://localhost:3001/api/nesti-ai';
-  
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: prompt,
-          userContext: {
-            userId: user.id,
-            familyId: familyId,
-            userName: user.user_metadata?.first_name
-          }
-        }),
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erreur API');
-      }
-  
-      const data = await response.json();
-      return data.response;
-  
+      // RÉPONSES PRÉDÉFINIES INTELLIGENTES
+      const responses = {
+        'bonjour': `Bonjour ${user?.user_metadata?.first_name || ''} ! 👋 
+Je suis ravi de vous retrouver ! Comment puis-je vous aider aujourd'hui ?
+
+🎯 **Activités adaptées** pour vos enfants
+📅 **Organisation** de votre semaine familiale  
+💡 **Conseils éducatifs** bienveillants
+🏡 **Aménagement** d'espaces calmes
+🍽️ **Idées repas** équilibrés et rapides
+
+De quoi avez-vous besoin ? ✨`,
+
+        'activité': `Voici des activités adaptées selon les moments : 🎯
+
+**Pour aujourd'hui (activités calmes) :**
+• **Parc de Bercy** - 30 min - Espaces verts apaisants
+• **Lecture interactive** - 20 min - Histoires participatives  
+• **Puzzle sensoriel** - 25 min - Développe la concentration
+• **Dessin libre** - 15 min - Expression créative
+
+**Pour ce week-end (sorties) :**
+• **Musée en famille** - Visite avec livret jeu
+• **Atelier cuisine** - Recette simple ensemble
+• **Jeu en extérieur** - Parc avec aires de jeux
+
+**Conseil :** Alternez activités calmes et dynamiques pour maintenir l'équilibre.`,
+
+        'organisation': `Voici un modèle d'organisation équilibrée : 📅
+
+**Semaine type recommandée :**
+• **Lundi** : Devoirs (20min) + Temps calme (15min)
+• **Mardi** : Sport doux (30min) + Jeux créatifs  
+• **Mercredi** : Sortie découverte (1h) + Repos
+• **Jeudi** : Jeux société (30min) + Lecture
+• **Vendredi** : Temps libre + Bilan semaine
+
+**Astuces :**
+• Utilisez des timer visuels
+• Créez des routines stables
+• Prévoir des transitions douces
+• Célébrez les petites réussites`,
+
+        'conseil': `En tant qu'assistant familial, je vous recommande : 💡
+
+**Pour le quotidien :**
+• Établir des routines visuelles stables
+• Créer des espaces calmes dédiés
+• Utiliser des minuteurs pour les transitions
+• Verbaliser les émotions ensemble
+
+**Communication :**
+• Reformuler ce que l'enfant exprime
+• Valoriser les efforts plus que les résultats
+• Maintenir un ton positif et encourageant
+• Prendre le temps des retrouvailles`,
+
+        'repas': `Idées de repas équilibrés et appréciés : 🍽️
+
+**Rapides (15-20 min) :**
+• Omelette aux légumes + salade
+• Wrap poulet/avocat + crudités
+• Pâtes complètes sauce tomate maison
+
+**Plats familiaux :**
+• Bowl de riz + protéines + légumes
+• Mini-pizzas sur pain pita
+• Parmentier de patate douce
+
+**Astuces :**
+• Impliquer les enfants dans la préparation
+• Présentation ludique et colorée
+• Goûter ensemble sans distraction`,
+
+        'default': `Je comprends votre demande ! 🤔
+
+En tant qu'assistant familial Nesti, je peux vous aider sur :
+
+🎯 **Activités adaptées** - Selon âges et besoins
+📅 **Organisation** - Planning et routines  
+💡 **Conseils éducatifs** - Communication positive
+🏡 **Environnement** - Espaces calmes et stimulants
+🍽️ **Nutrition** - Repas équilibrés et pratiques
+😴 **Sommeil** - Routines du coucher apaisantes
+
+**Pour une réponse plus précise, dites-moi :**
+• L'âge des enfants concernés ?
+• Le type de besoin (calme, énergie, créativité) ?
+• Le moment de la journée ?
+
+Je suis là pour vous accompagner ! 💫`
+      };
+
+      const lowerPrompt = prompt.toLowerCase();
+      
+      if (lowerPrompt.includes('bonjour') || lowerPrompt.includes('salut') || lowerPrompt.includes('coucou')) 
+        return responses.bonjour;
+      if (lowerPrompt.includes('activité') || lowerPrompt.includes('sortie') || lowerPrompt.includes('jeu') || lowerPrompt.includes('loisir'))
+        return responses.activité;
+      if (lowerPrompt.includes('organisation') || lowerPrompt.includes('agenda') || lowerPrompt.includes('planning') || lowerPrompt.includes('semaine'))
+        return responses.organisation;
+      if (lowerPrompt.includes('conseil') || lowerPrompt.includes('aide') || lowerPrompt.includes('problème') || lowerPrompt.includes('difficulté'))
+        return responses.conseil;
+      if (lowerPrompt.includes('repas') || lowerPrompt.includes('manger') || lowerPrompt.includes('cuisine') || lowerPrompt.includes('nourriture'))
+        return responses.repas;
+      
+      return responses.default;
+
     } catch (error) {
       console.error('Erreur IA:', error);
-      // ... reste du code inchangé
+      return `Je suis désolé, je rencontre un petit problème technique. 😔
+
+Mais je peux toujours vous aider ! Voici ce que je propose :
+
+🎯 **Activités adaptées** pour tous les âges
+📅 **Organisation** du temps familial
+💡 **Conseils** éducatifs bienveillants  
+🍽️ **Idées repas** équilibrés et rapides
+
+Que souhaitez-vous explorer ensemble ? ✨`;
     } finally {
       setLoading(false);
     }
@@ -105,7 +185,7 @@ export default function ChatPage({ user, familyId }) {
     const userMessage = {
       id: Date.now(),
       type: 'user',
-      content: text,
+      content: text.trim(),
       timestamp: new Date()
     };
 
@@ -123,47 +203,51 @@ export default function ChatPage({ user, familyId }) {
     };
 
     setMessages(prev => [...prev, aiMessage]);
-
-    // Sauvegarder dans Supabase (optionnel)
-    try {
-      await supabase
-        .from('chat_messages')
-        .insert([{
-          family_id: familyId,
-          user_id: user.id,
-          message: text,
-          response: aiResponse,
-          message_type: 'user_question'
-        }]);
-    } catch (error) {
-      console.error('Erreur sauvegarde message:', error);
-    }
   };
 
   const handleSuggestionClick = (suggestion) => {
     handleSendMessage(suggestion.prompt);
   };
 
-  const quickActions = [
-    { emoji: '🎨', label: 'Activités créatives', prompt: 'Propose des activités créatives adaptées pour enfants' },
-    { emoji: '⚽', label: 'Sports adaptés', prompt: 'Quels sports adaptés pour un enfant qui a besoin de bouger ?' },
-    { emoji: '🍽️', label: 'Idées repas', prompt: 'Donne-moi des idées de repas équilibrés, rapides et appréciés des enfants' },
-    { emoji: '🎭', label: 'Sorties culture', prompt: 'Quelles sorties culturelles adaptées à toute la famille ce week-end ?' },
-    { emoji: '😴', label: 'Gestion sommeil', prompt: 'Comment améliorer le sommeil et les routines du coucher ?' },
-    { emoji: '⚡', label: 'Crise TDAH', prompt: 'Comment gérer les crises et les surcharges sensorielles ?' }
-  ];
-
+  // 🔥 CORRECTION DE LA FONCTION formatMessageContent
   const formatMessageContent = (content) => {
+    if (!content || typeof content !== 'string') {
+      return <div>Message non disponible</div>;
+    }
+
     return content.split('\n').map((line, index) => {
-      if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
-        return <div key={index} className="message-bullet">• {line.substring(1).trim()}</div>;
+      const trimmedLine = line.trim();
+      
+      if (!trimmedLine) {
+        return <br key={index} />;
       }
-      if (line.trim().startsWith('**') && line.trim().endsWith('**')) {
-        return <div key={index} className="message-bold">{line.replace(/\*\*/g, '')}</div>;
+      
+      if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-')) {
+        return (
+          <div key={index} className="message-bullet">
+            • {trimmedLine.substring(1).trim()}
+          </div>
+        );
       }
+      
+      if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+        return (
+          <div key={index} className="message-bold">
+            {trimmedLine.replace(/\*\*/g, '')}
+          </div>
+        );
+      }
+      
       return <div key={index}>{line}</div>;
     });
   };
+
+  const quickActions = [
+    { emoji: '🎨', label: 'Activités calmes', prompt: 'Propose des activités calmes pour cet après-midi' },
+    { emoji: '⚽', label: 'Sports adaptés', prompt: 'Quels sports pour un enfant plein d énergie' },
+    { emoji: '🍽️', label: 'Idées repas', prompt: 'Donne des idées de repas équilibrés et rapides' },
+    { emoji: '📅', label: 'Organisation', prompt: 'Comment organiser notre semaine familiale' }
+  ];
 
   return (
     <div className="chat-page">
@@ -251,13 +335,6 @@ export default function ChatPage({ user, familyId }) {
 
       {/* Input */}
       <div className="chat-input">
-        <button 
-          className="voice-btn" 
-          title="Voice input"
-          disabled={loading}
-        >
-          🎤
-        </button>
         <input 
           type="text" 
           value={inputMessage}
