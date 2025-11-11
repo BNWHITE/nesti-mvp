@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
-import './AgendaPage.css';
+import './pages/AgendaPage.css';
+import './App.css';
+
 
 export default function AgendaPage({ user, familyId }) {
   const [events, setEvents] = useState([]);
