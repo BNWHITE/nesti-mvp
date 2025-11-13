@@ -1,4 +1,4 @@
-// src/pages/FeedPage.js (VERSION FINALE ET NETTOYÉE)
+// src/pages/FeedPage.js (VERSION FINALE ET CORRIGÉE)
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
@@ -11,6 +11,7 @@ export default function FeedPage({ user, familyId }) {
   const [userName, setUserName] = useState('Utilisateur'); 
 
   const fetchUserData = useCallback(async () => {
+    // ... (Récupération du prénom inchangée) ...
     try {
       const { data: profileData } = await supabase
         .from('user_profiles')
@@ -30,17 +31,17 @@ export default function FeedPage({ user, familyId }) {
     await fetchUserData();
 
     try {
-      // Récupérer les 3 activités principales (Rennes)
+      // Récupérer 3 activités principales (Maintenant généralisé)
       const { data: activitiesData, error: activitiesError } = await supabase
         .from('activities')
         .select('id, title, difficulty')
         .order('created_at', { ascending: false })
-        .limit(3); // Limité à 3 pour le feed
+        .limit(3); 
 
       if (activitiesError) throw activitiesError;
       setActivities(activitiesData || []);
 
-      // Mock posts (à remplacer par family_posts plus tard)
+      // Mock posts avec des compteurs de likes et commentaires
       const mockPosts = [
         {
           id: 1,
@@ -48,7 +49,8 @@ export default function FeedPage({ user, familyId }) {
           content: "Bienvenue dans notre Nest familial ! 🏡 N'oubliez pas de consulter les nouvelles idées d'activités !",
           type: "welcome",
           time: "Maintenant",
-          reactions: { likes: 0, hearts: 0, trophy: 0 }
+          likes: 5,
+          comments: 2
         }
       ];
       setPosts(mockPosts);
@@ -65,6 +67,7 @@ export default function FeedPage({ user, familyId }) {
   }, [fetchData]);
 
   const suggestActivity = async (activityId) => {
+    // ... (Logique suggestActivity inchangée) ...
     if (!familyId) {
       alert("Veuillez d'abord rejoindre un Nest familial.");
       return;
@@ -76,7 +79,7 @@ export default function FeedPage({ user, familyId }) {
         .insert([{
           user_id: user.id,
           activity_id: activityId,
-          family_id: familyId, // Ajout de familyId
+          family_id: familyId, 
           status: 'pending'
         }]);
 
@@ -90,6 +93,7 @@ export default function FeedPage({ user, familyId }) {
   };
 
   const quickActions = [
+    // ... (quickActions inchangés) ...
     { emoji: '🎂', label: 'Anniversaire', color: 'bg-warning' },
     { emoji: '🎉', label: 'Événement', color: 'bg-secondary' },
     { emoji: '🏆', label: 'Achievement', color: 'bg-success' },
@@ -97,6 +101,7 @@ export default function FeedPage({ user, familyId }) {
   ];
 
   if (loading) {
+    // ... (Rendu loading inchangé) ...
     return (
       <div className="feed-page">
         <div className="loading">Chargement...</div>
@@ -121,9 +126,9 @@ export default function FeedPage({ user, familyId }) {
         </div>
       </div>
 
-      {/* Activités suggérées rapides du Feed */}
       <div className="activities-section">
-        <h2>🔥 Suggestions rapides (Rennes)</h2>
+        {/* FIX: Texte généralisé */}
+        <h2>🔥 Suggestions d'Activités Rapides</h2> 
         <div className="activities-grid">
           {activities.map(activity => (
             <div key={activity.id} className="activity-card-feed">
@@ -142,14 +147,12 @@ export default function FeedPage({ user, familyId }) {
         </div>
       </div>
 
-      {/* Posts familiaux */}
       <div className="posts-section">
         <h2>📝 Actualités familiales</h2>
         <div className="posts-container">
           {posts.map(post => (
             <div key={post.id} className="post-card">
-              {/* Rendu des posts... (inchangé) */}
-               <div className="post-header">
+              <div className="post-header">
                 <div className="author-info">
                   <div className="author-avatar">{post.author.emoji}</div>
                   <div>
@@ -165,9 +168,10 @@ export default function FeedPage({ user, familyId }) {
               </div>
 
               <div className="post-reactions">
-                <button className="reaction-btn">👍 {post.reactions.likes}</button>
-                <button className="reaction-btn">❤️ {post.reactions.hearts}</button>
-                <button className="reaction-btn">🏆 {post.reactions.trophy}</button>
+                {/* FEATURE: Liker/Commenter */}
+                <button className="reaction-btn like-btn">❤️ J'aime ({post.likes})</button> 
+                <button className="reaction-btn comment-btn">💬 Commenter ({post.comments})</button>
+                <button className="reaction-btn share-btn">🔗 Partager</button>
               </div>
             </div>
           ))}
