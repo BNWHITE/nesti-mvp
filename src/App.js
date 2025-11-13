@@ -1,4 +1,4 @@
-// bnwhite/nesti-mvp/.../src/App.js
+// bnwhite/nesti-mvp/.../src/App.js (VERSION FINALE)
 
 import './App.css';
 import { useState, useEffect, useCallback } from 'react';
@@ -12,7 +12,8 @@ import DiscoveriesPage from './pages/DiscoveriesPage';
 import ChatPage from './pages/ChatPage';
 import SettingsPage from './pages/SettingsPage';
 import CreatePost from './components/CreatePost';
-import OnboardingPage from './pages/OnboardingPage'; // Assurez-vous d'avoir ce nom de fichier
+import OnboardingPage from './pages/OnboardingPage'; 
+// Assurez-vous que l'import OnboardingPage correspond à votre nom de fichier
 
 function App() {
   const [user, setUser] = useState(null);
@@ -22,7 +23,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [loading, setLoading] = useState(true);
   
-  // NOUVEL ÉTAT: Pour gérer le cas où l'utilisateur est inscrit mais sans prénom/famille
+  // ÉTAT CRITIQUE: Vrai si first_name est présent dans user_profiles
   const [profileComplete, setProfileComplete] = useState(false); 
   
   // États pour l'authentification
@@ -34,26 +35,32 @@ function App() {
 
   const fetchUserData = useCallback(async (userId) => {
     try {
+      // Réinitialisation des états
       setFamilyId(null); 
       setFamilyName('');
-      setProfileComplete(false); // Réinitialisation
+      setProfileComplete(false); 
 
-      // La table 'users' est maintenant la table 'user_profiles' pour le prénom/famille.
+      // 1. Récupérer le profil utilisateur dans la table 'user_profiles'
       const { data: userData, error: userError } = await supabase
-        .from('user_profiles') // MODIFIÉ: Utilisation de la table user_profiles
+        .from('user_profiles') 
         .select('family_id, first_name')
         .eq('id', userId)
-        .maybeSingle(); // Utiliser maybeSingle pour mieux gérer 'No rows found'
+        .maybeSingle(); 
 
-      if (userError) throw userError;
+      if (userError) {
+          console.error("Supabase Error fetching profile:", userError);
+          throw userError;
+      }
       
       if (userData) {
-          // L'utilisateur est dans la table des profils
-          setProfileComplete(!!userData.first_name); // Profil complet si un prénom existe
+          // 2. Vérifier si le profil est complété (présence du prénom)
+          const isProfileComplete = !!userData.first_name;
+          setProfileComplete(isProfileComplete); 
           
-          if (userData.family_id) {
+          if (isProfileComplete && userData.family_id) {
             setFamilyId(userData.family_id);
             
+            // 3. Récupérer le nom de la famille
             const { data: familyData, error: familyError } = await supabase
               .from('families')
               .select('family_name')
@@ -64,65 +71,43 @@ function App() {
               setFamilyName(familyData.family_name);
             }
           }
-      } else {
-        // Cas d'un nouvel utilisateur inscrit (Supabase Auth) mais pas encore dans user_profiles
-        // Ceci est normal juste après l'inscription.
-        setProfileComplete(false);
-      }
+      } 
+      // Si userData est null, le profil n'a pas encore été créé (juste après signup).
+      // profileComplete reste false, ce qui force l'OnboardingPage.
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
-  }, []);
+  }, []); // Aucune dépendance ici, car setFamilyId, etc. sont les setters de App.js
 
-  const checkUser = useCallback(async () => {
-    try {
-      console.log('🔍 Checking user...');
-      const { data: { user } } = await supabase.auth.getUser();
-      console.log('👤 User:', user);
-      
-      setUser(user);
-      if (user) {
-        console.log('📦 Fetching user data...');
-        await fetchUserData(user.id);
-      }
-    } catch (error) {
-      console.error('❌ Error checking user:', error);
-    } finally {
-      console.log('✅ Loading complete');
-      setLoading(false);
-    }
-  }, [fetchUserData]);
-
+  // Utilisation de onAuthStateChange uniquement pour la robustesse
   useEffect(() => {
-    // Suppression du checkUser initial pour ne dépendre que de onAuthStateChange
-    // checkUser(); 
     
-    // Ajout d'un timer pour s'assurer que setLoading(false) est appelé même si Supabase traîne
+    // Simuler la fin du chargement après 5s si Supabase est trop lent
     const timeoutId = setTimeout(() => {
       if(loading) setLoading(false);
-    }, 5000);
+    }, 5000); 
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const authUser = session?.user || null;
       setUser(authUser);
+      clearTimeout(timeoutId); // Arrêter le timer
 
       if (authUser) {
         await fetchUserData(authUser.id);
       } else {
-        // Déconnexion
+        // Déconnexion ou pas d'utilisateur
         setFamilyId(null);
         setFamilyName('');
         setProfileComplete(false);
       }
       setLoading(false);
-      clearTimeout(timeoutId); // Arrêter le timer si l'état est mis à jour
     });
 
     return () => {
       subscription.unsubscribe();
       clearTimeout(timeoutId);
     };
-  }, [fetchUserData]); // RETIRER checkUser des dépendances
+  }, [fetchUserData]); 
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -131,26 +116,15 @@ function App() {
 
     try {
       if (isSignUp) {
-        // Inscription
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-        
+        // Inscription: on laisse onAuthStateChange gérer l'état après confirmation d'email
+        const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        
-        // La fonction onAuthStateChange gère la connexion post-signup
         alert('Compte créé ! Vérifiez votre email pour confirmer, puis connectez-vous.');
-
-      } else {
-        // Connexion
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
         
+      } else {
+        // Connexion: on laisse onAuthStateChange gérer l'état après connexion
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        // L'état de l'utilisateur sera mis à jour par onAuthStateChange
       }
     } catch (error) {
       console.error('Auth error:', error);
@@ -160,42 +134,36 @@ function App() {
     }
   };
 
-  const handlePostCreated = () => {
-    console.log('Nouveau post créé');
-  };
-
   const renderPage = () => {
     if (!user) return null;
 
-    // NOUVELLE LOGIQUE: Profil incomplet (prénom/nom manquant)
+    // ÉTAPE 1: Compléter le profil (Nom/Prénom)
     if (!profileComplete) {
-      // L'utilisateur doit d'abord compléter son profil (Nom/Prénom)
       return (
         <OnboardingPage 
           user={user} 
-          setFamilyId={setFamilyId} 
-          setFamilyName={setFamilyName} 
-          setProfileComplete={setProfileComplete} // Passer la fonction de mise à jour
-          initialView="profile" // Nouveau prop pour démarrer sur la vue Profil
-        />
-      );
-    }
-
-    // Utilisateur connecté AVEC prénom mais SANS famille
-    if (!familyId) {
-      // L'utilisateur peut créer/rejoindre une famille
-      return (
-        <OnboardingPage 
-          user={user} 
-          setFamilyId={setFamilyId} 
-          setFamilyName={familyName} 
           setProfileComplete={setProfileComplete} 
-          initialView="family" // Démarrer sur la vue Famille
+          setFamilyId={setFamilyId}
+          setFamilyName={setFamilyName}
+          initialView="profile" 
         />
       );
     }
 
-    // Utilisateur connecté AVEC prénom ET AVEC famille
+    // ÉTAPE 2: Créer/Rejoindre une famille
+    if (!familyId) {
+      return (
+        <OnboardingPage 
+          user={user} 
+          setProfileComplete={setProfileComplete} 
+          setFamilyId={setFamilyId} 
+          setFamilyName={setFamilyName}
+          initialView="family" 
+        />
+      );
+    }
+
+    // ÉTAPE 3: Application principale
     switch (activeTab) {
       case 'feed':
         return (
@@ -221,9 +189,10 @@ function App() {
     }
   };
 
-  // Écran de chargement
+  // ... (Écran de chargement et Écran d'authentification inchangés) ...
+  
   if (loading) {
-    // ... (Code de l'écran de chargement inchangé)
+    // ... (Rendu de l'écran de chargement) ...
     return (
       <div className="app">
         <div className="loading-screen">
@@ -250,9 +219,8 @@ function App() {
     );
   }
 
-  // Écran de connexion/inscription
   if (!user) {
-    // ... (Code de l'écran d'authentification inchangé)
+    // ... (Rendu de l'écran de connexion/inscription) ...
     return (
       <div className="app">
         <div className="auth-container">
@@ -323,11 +291,12 @@ function App() {
     );
   }
 
-  // Application principale
+
+  // Application principale (inclut l'Onboarding)
   return (
     <div className="app">
       <div className="app-container">
-        {/* Header et Navigation conditionnels à la famille (et au profil complet) */}
+        {/* Header et Navigation visibles UNIQUEMENT lorsque le profil ET la famille sont configurés */}
         {familyId && profileComplete && (
           <Header 
             user={user} 
