@@ -1,5 +1,4 @@
 /* src/pages/AgendaPage.css */
-
 .agenda-page {
     padding: 20px;
     background-color: var(--color-background);
@@ -27,15 +26,6 @@
     font-weight: 600;
 }
 
-/* Calendrier */
-.calendar-container {
-    background-color: var(--color-card-bg);
-    border-radius: 8px;
-    box-shadow: var(--color-shadow);
-    margin-bottom: 20px;
-    overflow: hidden;
-}
-
 .calendar-toggle {
     text-align: center;
     padding: 10px;
@@ -44,15 +34,16 @@
     font-size: 0.9em;
     color: var(--color-text-light);
     font-weight: 600;
+    border-radius: 8px 8px 0 0;
 }
 
 .calendar-placeholder {
     padding: 20px;
     text-align: center;
     color: var(--color-text-light);
+    background-color: var(--color-card-bg);
 }
 
-/* Liste d'événements */
 .event-list-container h2 {
     font-size: 1.3em;
     margin-bottom: 15px;
@@ -60,9 +51,9 @@
 }
 
 .event-list {
-    max-height: 40vh; /* Hauteur fixe pour le scroll */
+    max-height: 50vh; 
     overflow-y: auto;
-    padding-right: 5px; /* Espace pour la barre de scroll */
+    padding-right: 5px; 
 }
 
 .event-card {
@@ -73,6 +64,7 @@
     border-radius: 8px;
     margin-bottom: 12px;
     padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .event-date-box {
@@ -103,4 +95,5 @@
 .event-time {
     font-size: 0.9em;
     color: var(--color-text-light);
+    margin-top: 5px;
 }
