@@ -1,8 +1,9 @@
-// src/pages/AgendaPage.js (UX/UI REFONTE)
+// src/pages/AgendaPage.js (DESIGN AMÉLIORÉ)
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import './AgendaPage.css'; 
+// NOTE: Vous devez installer et importer un composant Calendrier ici (ex: react-calendar)
 
 const AgendaPage = ({ user, familyId }) => {
   const [events, setEvents] = useState([]);
@@ -19,12 +20,13 @@ const AgendaPage = ({ user, familyId }) => {
     }
 
     try {
+      // Mock events avec des données plus précises pour le rendu
       const mockEvents = [
-        { id: 1, title: "Rendez-vous chez le dentiste", date: "15 Nov", time: "14:00", type: "Rendez-vous" },
-        { id: 2, title: "Dîner chez Papi et Mamie", date: "20 Nov", time: "19:30", type: "Social" },
-        { id: 3, title: "Match de foot de Léo", date: "25 Nov", time: "10:00", type: "Sport" },
-        { id: 4, title: "Sortie Découverte Rennes", date: "28 Nov", time: "16:00", type: "Loisir" },
-        { id: 5, title: "Réunion école", date: "02 Déc", time: "18:30", type: "Administratif" },
+        { id: 1, title: "Rendez-vous chez le dentiste", date: "15 Nov", time: "14:00", type: "Rendez-vous", color: "#F78888" },
+        { id: 2, title: "Dîner chez Papi et Mamie", date: "20 Nov", time: "19:30", type: "Social", color: "#98A8F8" },
+        { id: 3, title: "Match de foot de Léo", date: "25 Nov", time: "10:00", type: "Sport", color: "#97F797" },
+        { id: 4, title: "Sortie Découverte Rennes", date: "28 Nov", time: "16:00", type: "Loisir", color: "#F7C388" },
+        { id: 5, title: "Réunion école", date: "02 Déc", time: "18:30", type: "Administratif", color: "#D397F7" },
       ];
 
       setEvents(mockEvents); 
@@ -47,12 +49,12 @@ const AgendaPage = ({ user, familyId }) => {
     <div className="agenda-page">
       <div className="agenda-header">
         <h1>🗓️ Agenda du Nest</h1>
-        <button className="add-event-btn">+ Ajouter un événement</button>
+        <button className="add-event-btn primary">+ Ajouter</button>
       </div>
 
       <div className={`calendar-container ${isCalendarOpen ? 'open' : 'closed'}`}>
         <div className="calendar-toggle" onClick={() => setIsCalendarOpen(!isCalendarOpen)}>
-           {isCalendarOpen ? 'Réduire le calendrier' : 'Agrandir le calendrier'}
+           {isCalendarOpen ? 'Réduire le calendrier ▲' : 'Agrandir le calendrier ▼'}
         </div>
         
         {isCalendarOpen && (
@@ -67,20 +69,20 @@ const AgendaPage = ({ user, familyId }) => {
         <h2>Événements à venir</h2>
         <div className="event-list"> 
           {events.map(event => (
-            <div key={event.id} className="event-card">
+            <div key={event.id} className="event-card" style={{borderLeftColor: event.color}}>
               <div className="event-date-box">
                 <span className="event-day">{event.date.split(' ')[0]}</span>
                 <span className="event-month">{event.date.split(' ')[1]}</span>
               </div>
               <div className="event-details">
                 <h2 className="event-title">{event.title}</h2>
-                <p className="event-time">{event.time} | {event.type}</p>
+                <p className="event-time" style={{color: event.color}}>{event.time} • {event.type}</p>
               </div>
             </div>
           ))}
           {events.length === 0 && !error && (
             <div className="empty-state">
-              <p>Aucun événement planifié pour le moment. Planifions quelque chose !</p>
+              <p>Aucun événement planifié pour le moment.</p>
             </div>
           )}
         </div>
