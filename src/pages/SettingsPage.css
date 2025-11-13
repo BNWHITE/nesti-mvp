@@ -1,6 +1,5 @@
 /* src/pages/SettingsPage.css (FIX DE LA FUITE UI) */
 
-/* FIX: Overlay pour cacher le panneau */
 .settings-page-overlay {
     position: fixed;
     top: 0;
