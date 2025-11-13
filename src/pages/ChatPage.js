@@ -1,4 +1,4 @@
-// src/pages/ChatPage.js (UX/UI REFONTE)
+// src/pages/ChatPage.js (DESIGN AMÉLIORÉ)
 
 import { useState, useRef, useEffect } from 'react';
 import './ChatPage.css'; 
@@ -104,7 +104,7 @@ const ChatPage = ({ user, familyId }) => {
           disabled={isTyping}
         />
         <button type="submit" disabled={isTyping}>
-          {isTyping ? '⏳' : 'Envoyer'}
+          {isTyping ? '⏳' : '▶️'}
         </button>
       </form>
     </div>
