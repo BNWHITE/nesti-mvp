@@ -145,12 +145,15 @@ function App() {
   };
 
   const renderPage = () => {
-    // CORRECTION APPLIQUÉE ICI: Si l'utilisateur est connecté mais sans familyId, on affiche l'onboarding.
-    if (!user) return null; 
-
+    if (!user) return null;
+  
     if (!familyId) {
-      // Si l'utilisateur est connecté mais sans famille, affiche l'onboarding
-      return <FamilyOnboarding user={user} setFamilyId={setFamilyId} setFamilyName={setFamilyName} />;
+      // Remplacer l'ancien placeholder par le composant OnboardingPage importé
+      return <OnboardingPage 
+        user={user} 
+        setFamilyId={setFamilyId} 
+        setFamilyName={setFamilyName} 
+      />;
     }
 
     // Le reste de l'application (seulement si user ET familyId sont présents)
