@@ -1,13 +1,13 @@
-// src/pages/OnboardingPage.js (VERSION FINALE ET CORRIGÉE)
+// src/pages/Onboarding.js (VERSION FINALE)
 
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient'; 
+import { useState, useEffect, useCallback } from 'react'; 
+import { supabase } from '../lib/supabaseClient'; // CORRECTION CHEMIN (depuis src/pages/)
 import './OnboardingPage.css'; 
 
-// PROPS: setProfileComplete est essentiel pour informer le parent App.js
-const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, initialView = 'profile' }) => {
+// Renommé Onboarding
+const Onboarding = ({ user, setFamilyId, setFamilyName, setProfileComplete, initialView = 'profile' }) => {
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('create'); // 'create' ou 'join'
+  const [activeTab, setActiveTab] = useState('create'); 
   const [isProfileStep, setIsProfileStep] = useState(initialView === 'profile');
 
   const [firstName, setFirstName] = useState('');
@@ -18,7 +18,6 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
   
   const [error, setError] = useState('');
 
-  // S'assurer que le prénom est mis à jour si l'utilisateur revient à cette page
   const fetchCurrentProfile = useCallback(async () => {
     const { data } = await supabase
       .from('user_profiles')
@@ -29,7 +28,6 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
     if (data && data.first_name) {
       setFirstName(data.first_name);
       setLastName(data.last_name || '');
-      // Si la vue initiale est 'family' (profil déjà fait), on passe
       if (initialView === 'family') {
         setIsProfileStep(false);
       }
@@ -42,7 +40,6 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
 
   // --- LOGIQUE SUPABASE ---
 
-  // 0. Compléter le profil (Nom/Prénom)
   const handleCompleteProfile = async (e) => {
     e.preventDefault();
     setError('');
@@ -53,20 +50,18 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
     setLoading(true);
 
     try {
-      // 1. Insérer/Mettre à jour les données dans la table 'user_profiles'
       const { error: profileError } = await supabase
         .from('user_profiles') 
         .upsert({ 
             id: user.id, 
             first_name: firstName.trim(),
             last_name: lastName.trim() || null,
-        }, { onConflict: 'id' }); // upsert sur l'ID de l'utilisateur
+        }, { onConflict: 'id' });
       
       if (profileError) throw profileError;
       
-      // 2. Mise à jour de l'état local et global pour passer à l'étape Famille (DÉBLOCAGE)
-      setProfileComplete(true); // Informe App.js que le profil est OK
-      setIsProfileStep(false); // Change la vue localement
+      setProfileComplete(true); 
+      setIsProfileStep(false); 
       
     } catch (err) {
       console.error("Erreur lors de la mise à jour du profil:", err);
@@ -76,7 +71,6 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
     }
   };
 
-  // 1. Gérer la création d'une nouvelle famille
   const handleCreateFamily = async (e) => {
     e.preventDefault();
     setError('');
@@ -87,12 +81,11 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
     setLoading(true);
 
     try {
-      // 1. Créer la famille
+      // Suppression de 'created_by' (erreur de schéma)
       const { data: familyData, error: familyError } = await supabase
         .from('families')
         .insert([{ 
             family_name: newFamilyName.trim(), 
-            created_by: user.id,
             join_code: Math.random().toString(36).substring(2, 8).toUpperCase()
         }])
         .select('id, family_name')
@@ -101,8 +94,8 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
       if (familyError) throw familyError;
       
       const newFamilyId = familyData.id;
+      const familyNameCreated = familyData.family_name;
 
-      // 2. Mettre à jour la table 'user_profiles'
       const { error: userError } = await supabase
         .from('user_profiles')
         .update({ family_id: newFamilyId })
@@ -110,9 +103,8 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
 
       if (userError) throw userError;
 
-      // 3. Mise à jour de l'état global de l'application (DÉBLOCAGE FINAL)
       setFamilyId(newFamilyId);
-      setFamilyName(familyData.family_name);
+      setFamilyName(familyNameCreated);
       
     } catch (err) {
       console.error("Erreur lors de la création de la famille:", err);
@@ -122,7 +114,6 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
     }
   };
   
-  // 2. Gérer la jointure d'une famille existante
   const handleJoinFamily = async (e) => {
     e.preventDefault();
     setError('');
@@ -133,7 +124,6 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
     setLoading(true);
     
     try {
-      // 1. Rechercher la famille par son code de jointure
       const { data: familyData, error: familyError } = await supabase
         .from('families')
         .select('id, family_name')
@@ -142,7 +132,6 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
         
       if (familyError || !familyData) throw new Error("Code familial invalide ou Nest introuvable.");
 
-      // 2. Mettre à jour l'utilisateur dans 'user_profiles'
       const { error: userUpdateError } = await supabase
         .from('user_profiles')
         .update({ family_id: familyData.id })
@@ -150,7 +139,6 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
 
       if (userUpdateError) throw userUpdateError;
 
-      // 3. Mise à jour de l'état global de l'application (DÉBLOCAGE FINAL)
       setFamilyId(familyData.id);
       setFamilyName(familyData.family_name);
 
@@ -162,7 +150,6 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
     }
   };
 
-  // ... (Fonctions de rendu renderProfileContent et renderFamilyContent, voir code précédent) ...
   const renderProfileContent = () => (
     <form onSubmit={handleCompleteProfile} className="onboarding-form">
         <p className="form-description">
@@ -268,7 +255,6 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
     );
   };
 
-  // RENDER PRINCIPAL
   const currentStepTitle = isProfileStep ? "Complétez votre profil" : "Mise en route familiale";
   
   return (
@@ -296,4 +282,4 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
   );
 };
 
-export default OnboardingPage;
+export default Onboarding;
