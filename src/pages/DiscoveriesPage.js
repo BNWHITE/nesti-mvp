@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import './DiscoveriesPage.css';
 
-const CURRENT_LOCATION = "Rennes, France"; // Localisation de la ville par défaut
+const CURRENT_LOCATION = "Rennes, France"; 
 
 const DiscoveriesPage = ({ user, familyId }) => {
   const [activities, setActivities] = useState([]);
@@ -13,7 +13,7 @@ const DiscoveriesPage = ({ user, familyId }) => {
   const [activeFilter, setActiveFilter] = useState('Tout');
   
   const fetchActivities = useCallback(async () => {
-    // Charger toutes les activités disponibles (Rennes + IDF pour l'instant)
+    // Simule la fusion des données (Rennes + IDF pour l'instant)
     const { data, error } = await supabase
       .from('activities')
       .select('id, title, description, difficulty, age_min, age_max, category')
