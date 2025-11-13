@@ -3,9 +3,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import './AgendaPage.css'; 
-// NOTE: Vous devez installer et importer un composant Calendrier ici (ex: react-calendar)
-// import Calendar from 'react-calendar'; 
-// import 'react-calendar/dist/Calendar.css';
 
 const AgendaPage = ({ user, familyId }) => {
   const [events, setEvents] = useState([]);
@@ -21,14 +18,13 @@ const AgendaPage = ({ user, familyId }) => {
       return;
     }
 
-    // ... (Logique de fetchEvents inchangée, utilise les mockEvents) ...
     try {
       const mockEvents = [
-        { id: 1, title: "Rendez-vous chez le dentiste", date: "15 Novembre", time: "14:00", type: "Rendez-vous" },
-        { id: 2, title: "Dîner chez Papi et Mamie", date: "20 Novembre", time: "19:30", type: "Social" },
-        { id: 3, title: "Match de foot de Léo", date: "25 Novembre", time: "10:00", type: "Sport" },
-        { id: 4, title: "Sortie Découverte Rennes", date: "28 Novembre", time: "16:00", type: "Loisir" },
-        { id: 5, title: "Réunion école", date: "02 Décembre", time: "18:30", type: "Administratif" },
+        { id: 1, title: "Rendez-vous chez le dentiste", date: "15 Nov", time: "14:00", type: "Rendez-vous" },
+        { id: 2, title: "Dîner chez Papi et Mamie", date: "20 Nov", time: "19:30", type: "Social" },
+        { id: 3, title: "Match de foot de Léo", date: "25 Nov", time: "10:00", type: "Sport" },
+        { id: 4, title: "Sortie Découverte Rennes", date: "28 Nov", time: "16:00", type: "Loisir" },
+        { id: 5, title: "Réunion école", date: "02 Déc", time: "18:30", type: "Administratif" },
       ];
 
       setEvents(mockEvents); 
@@ -67,7 +63,6 @@ const AgendaPage = ({ user, familyId }) => {
         )}
       </div>
 
-      {/* FIX: Conteneur de la liste d'événements pour le scroll */}
       <div className="event-list-container">
         <h2>Événements à venir</h2>
         <div className="event-list"> 
