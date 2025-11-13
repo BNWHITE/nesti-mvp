@@ -1,4 +1,4 @@
-// src/pages/Onboarding.js (VERSION FINALE AVEC RÔLE)
+// src/pages/Onboarding.js (VERSION INTÉGRALE)
 
 import { useState, useEffect, useCallback } from 'react'; 
 import { supabase } from '../lib/supabaseClient'; 
