@@ -1,10 +1,9 @@
-// src/pages/Onboarding.js (VERSION FINALE)
+// src/pages/Onboarding.js (VERSION FINALE AVEC RÔLE)
 
 import { useState, useEffect, useCallback } from 'react'; 
-import { supabase } from '../lib/supabaseClient'; // CORRECTION CHEMIN (depuis src/pages/)
+import { supabase } from '../lib/supabaseClient'; 
 import './OnboardingPage.css'; 
 
-// Renommé Onboarding
 const Onboarding = ({ user, setFamilyId, setFamilyName, setProfileComplete, initialView = 'profile' }) => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('create'); 
@@ -12,6 +11,7 @@ const Onboarding = ({ user, setFamilyId, setFamilyName, setProfileComplete, init
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [role, setRole] = useState('parent'); 
   
   const [newFamilyName, setNewFamilyName] = useState('');
   const [joinCode, setJoinCode] = useState('');
@@ -21,14 +21,18 @@ const Onboarding = ({ user, setFamilyId, setFamilyName, setProfileComplete, init
   const fetchCurrentProfile = useCallback(async () => {
     const { data } = await supabase
       .from('user_profiles')
-      .select('first_name, last_name')
+      .select('first_name, last_name, role') 
       .eq('id', user.id)
       .maybeSingle();
 
-    if (data && data.first_name) {
-      setFirstName(data.first_name);
-      setLastName(data.last_name || '');
-      if (initialView === 'family') {
+    if (data) {
+      if (data.first_name) {
+        setFirstName(data.first_name);
+        setLastName(data.last_name || '');
+        setRole(data.role || 'parent');
+      }
+      
+      if (initialView === 'family' && data.first_name) {
         setIsProfileStep(false);
       }
     }
@@ -37,8 +41,6 @@ const Onboarding = ({ user, setFamilyId, setFamilyName, setProfileComplete, init
   useEffect(() => {
     fetchCurrentProfile();
   }, [fetchCurrentProfile]);
-
-  // --- LOGIQUE SUPABASE ---
 
   const handleCompleteProfile = async (e) => {
     e.preventDefault();
@@ -56,6 +58,7 @@ const Onboarding = ({ user, setFamilyId, setFamilyName, setProfileComplete, init
             id: user.id, 
             first_name: firstName.trim(),
             last_name: lastName.trim() || null,
+            role: role 
         }, { onConflict: 'id' });
       
       if (profileError) throw profileError;
@@ -81,7 +84,6 @@ const Onboarding = ({ user, setFamilyId, setFamilyName, setProfileComplete, init
     setLoading(true);
 
     try {
-      // Suppression de 'created_by' (erreur de schéma)
       const { data: familyData, error: familyError } = await supabase
         .from('families')
         .insert([{ 
@@ -153,7 +155,7 @@ const Onboarding = ({ user, setFamilyId, setFamilyName, setProfileComplete, init
   const renderProfileContent = () => (
     <form onSubmit={handleCompleteProfile} className="onboarding-form">
         <p className="form-description">
-            Veuillez nous indiquer votre prénom et nom pour personnaliser votre espace.
+            Veuillez nous indiquer votre prénom, nom et votre rôle dans le Nest.
         </p>
         <div className="input-group">
             <label htmlFor="firstName">Prénom *</label>
@@ -178,6 +180,21 @@ const Onboarding = ({ user, setFamilyId, setFamilyName, setProfileComplete, init
               disabled={loading}
             />
         </div>
+        
+        <div className="input-group">
+            <label htmlFor="role">Votre rôle dans la famille *</label>
+            <select
+                id="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                disabled={loading}
+                required
+            >
+                <option value="parent">Parent/Tuteur</option>
+                <option value="child">Enfant/Adolescent</option>
+            </select>
+        </div>
+
         <button type="submit" disabled={loading} className="main-action-btn">
             {loading ? 'Enregistrement...' : '✨ Continuer'}
         </button>
