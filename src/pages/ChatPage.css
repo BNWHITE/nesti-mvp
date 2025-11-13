@@ -1,4 +1,4 @@
-/* src/pages/ChatPage.css (REFONTE CHAT) */
+/* src/pages/ChatPage.css (DESIGN AMÉLIORÉ) */
 
 .chat-page {
     display: flex;
@@ -31,11 +31,12 @@
 
 .message-bubble {
     max-width: 80%;
-    padding: 10px 15px;
+    padding: 12px 18px;
     border-radius: 20px;
     position: relative;
     font-size: 0.95em;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    line-height: 1.4;
 }
 
 .user-msg .message-bubble {
@@ -57,8 +58,10 @@
     font-size: 0.7em;
     opacity: 0.7;
     margin-top: 5px;
+    color: inherit; /* Utilise la couleur du texte parent */
 }
 
+/* Input Bar */
 .chat-input-container {
     position: fixed;
     bottom: 50px; 
@@ -91,5 +94,8 @@
     border-radius: 50%;
     width: 45px;
     height: 45px;
-    font-size: 1.2em;
+    font-size: 1.5em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
