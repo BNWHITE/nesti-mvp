@@ -1,9 +1,13 @@
+// bnwhite/nesti-ai-server/nesti-ai-server-ef01f1739abbbfa3c52ce7635556bce3bcefce41/api/nesti-ai.js
+
 import { createClient } from '@supabase/supabase-js';
 
-// Initialisation Supabase (optionnel pour contexte)
+// CORRECTION APPLIQUÉE ICI : 
+// Suppression des préfixes NEXT_PUBLIC_ pour utiliser les variables d'environnement standard
+// de l'environnement Vercel Serverless Function.
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
 );
 
 export default async function handler(req, res) {
@@ -34,7 +38,7 @@ export default async function handler(req, res) {
       messageLength: message.length 
     });
 
-    // 🔥 APPEL RÉEL À OPENAI
+    // 🔥 APPEL RÉEL À OPENAI - OPENAI_API_KEY est correctement utilisée
     const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
