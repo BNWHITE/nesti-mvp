@@ -1,10 +1,10 @@
-// src/pages/FeedPage.js (VERSION FINALE)
+// src/pages/FeedPage.js (VERSION FINALE ET NETTOYÉE)
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabaseClient'; // CORRECTION CHEMIN (depuis src/pages/)
+import { supabase } from '../lib/supabaseClient';
 import './FeedPage.css';
 
-export default function FeedPage({ user }) { 
+export default function FeedPage({ user, familyId }) { 
   const [posts, setPosts] = useState([]);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,20 +30,22 @@ export default function FeedPage({ user }) {
     await fetchUserData();
 
     try {
+      // Récupérer les 3 activités principales (Rennes)
       const { data: activitiesData, error: activitiesError } = await supabase
         .from('activities')
-        .select('*')
+        .select('id, title, difficulty')
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(3); // Limité à 3 pour le feed
 
       if (activitiesError) throw activitiesError;
       setActivities(activitiesData || []);
 
+      // Mock posts (à remplacer par family_posts plus tard)
       const mockPosts = [
         {
           id: 1,
           author: { name: userName || 'Utilisateur', role: 'parent', emoji: '👨‍👩‍👧' }, 
-          content: "Bienvenue dans notre Nest familial ! 🏡",
+          content: "Bienvenue dans notre Nest familial ! 🏡 N'oubliez pas de consulter les nouvelles idées d'activités !",
           type: "welcome",
           time: "Maintenant",
           reactions: { likes: 0, hearts: 0, trophy: 0 }
@@ -62,15 +64,19 @@ export default function FeedPage({ user }) {
     fetchData();
   }, [fetchData]);
 
-  // ... (Reste du composant FeedPage inchangé, notamment le suggestActivity, quickActions et le rendu)
-
   const suggestActivity = async (activityId) => {
+    if (!familyId) {
+      alert("Veuillez d'abord rejoindre un Nest familial.");
+      return;
+    }
+    
     try {
       const { error } = await supabase
         .from('suggestions')
         .insert([{
           user_id: user.id,
           activity_id: activityId,
+          family_id: familyId, // Ajout de familyId
           status: 'pending'
         }]);
 
@@ -115,29 +121,21 @@ export default function FeedPage({ user }) {
         </div>
       </div>
 
-      {/* Activités suggérées */}
+      {/* Activités suggérées rapides du Feed */}
       <div className="activities-section">
-        <h2>🎯 Activités disponibles</h2>
+        <h2>🔥 Suggestions rapides (Rennes)</h2>
         <div className="activities-grid">
           {activities.map(activity => (
-            <div key={activity.id} className="activity-card">
-              <div className="activity-header">
-                <h3>{activity.title}</h3>
-                <span className={`difficulty-badge ${activity.difficulty}`}>
-                  {activity.difficulty}
-                </span>
-              </div>
-              <p className="activity-description">{activity.description}</p>
-              <div className="activity-meta">
-                <span>⏱️ {activity.duration_min} min</span>
-                <span>👥 {activity.age_min}-{activity.age_max} ans</span>
-                <span>🏷️ {activity.category}</span>
-              </div>
+            <div key={activity.id} className="activity-card-feed">
+              <h3>{activity.title}</h3>
+              <span className={`difficulty-badge ${activity.difficulty}`}>
+                {activity.difficulty}
+              </span>
               <button 
                 onClick={() => suggestActivity(activity.id)}
-                className="suggest-button"
+                className="suggest-button-feed"
               >
-                Proposer à la famille
+                Proposer
               </button>
             </div>
           ))}
@@ -150,7 +148,8 @@ export default function FeedPage({ user }) {
         <div className="posts-container">
           {posts.map(post => (
             <div key={post.id} className="post-card">
-              <div className="post-header">
+              {/* Rendu des posts... (inchangé) */}
+               <div className="post-header">
                 <div className="author-info">
                   <div className="author-avatar">{post.author.emoji}</div>
                   <div>
