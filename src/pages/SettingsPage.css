@@ -1,169 +1,118 @@
-.settings-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 3000;
-  padding: 20px;
+/* src/pages/SettingsPage.css (FIX DE LA FUITE UI) */
+
+/* FIX: Overlay pour cacher le panneau */
+.settings-page-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
-.settings-modal {
-  background: white;
-  border-radius: 20px;
-  width: 100%;
-  max-width: 500px;
-  max-height: 80vh;
-  overflow: hidden;
-  animation: slideUp 0.3s ease;
+.settings-panel {
+    background-color: var(--color-card-bg);
+    color: var(--color-text);
+    width: 90%;
+    max-width: 450px;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: var(--color-shadow);
 }
 
 .settings-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 10px;
 }
 
-.settings-header h2 {
-  margin: 0;
-  color: #1f2937;
-  font-size: 20px;
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.8em;
+    color: var(--color-text);
+    cursor: pointer;
 }
 
-.settings-header button {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+.settings-panel h2 {
+    font-size: 1.2em;
+    color: var(--color-primary);
+    margin-top: 20px;
+    margin-bottom: 10px;
 }
 
-.settings-header button:hover {
-  background: #f3f4f6;
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--color-border);
 }
 
-.settings-content {
-  padding: 20px;
-  overflow-y: auto;
-  max-height: 60vh;
+.dark-mode-switch {
+    background-color: var(--color-secondary);
+    color: var(--color-text-dark);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-weight: 600;
 }
 
-.settings-section {
-  margin-bottom: 32px;
+.role-changer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
 }
 
-.settings-section h3 {
-  margin: 0 0 16px 0;
-  color: #1f2937;
-  font-size: 16px;
-  font-weight: 600;
+.role-changer select {
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background-color: var(--color-background);
+    color: var(--color-text);
 }
 
-.setting-item {
-  margin-bottom: 16px;
+.role-changer button {
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: 600;
 }
 
-.setting-item label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #374151;
-  font-size: 14px;
+.logout-btn {
+    width: 100%;
+    margin-top: 30px;
+    padding: 10px;
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
 }
 
-.setting-item input[type="text"],
-.setting-item input[type="email"],
-.setting-item textarea,
-.setting-item select {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  font-size: 16px;
-  transition: border-color 0.2s ease;
+.status-message {
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 0.9em;
 }
 
-.setting-item input:focus,
-.setting-item textarea:focus,
-.setting-item select:focus {
-  outline: none;
-  border-color: #2D5F5D;
+.status-message.success {
+    background-color: #d4edda;
+    color: #155724;
 }
 
-.setting-item textarea {
-  resize: vertical;
-  min-height: 80px;
-  font-family: inherit;
-}
-
-.setting-item input:disabled {
-  background: #f9fafb;
-  color: #6b7280;
-}
-
-.setting-item.toggle {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.setting-item.toggle input[type="checkbox"] {
-  width: 44px;
-  height: 24px;
-  appearance: none;
-  background: #d1d5db;
-  border-radius: 12px;
-  position: relative;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.setting-item.toggle input[type="checkbox"]:checked {
-  background: #2D5F5D;
-}
-
-.setting-item.toggle input[type="checkbox"]::before {
-  content: '';
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  background: white;
-  border-radius: 50%;
-  top: 2px;
-  left: 2px;
-  transition: transform 0.2s ease;
-}
-
-.setting-item.toggle input[type="checkbox"]:checked::before {
-  transform: translateX(20px);
-}
-
-.save-btn {
-  width: 100%;
-  background: #2D5F5D;
-  color: white;
-  border: none;
-  padding: 16px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  margin-top: 20px;
-}
-
-.save-btn:hover:not(:disabled) {
-  background: #4A8B7A;
-}
-
-.save-btn:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
+.status-message.error {
+    background-color: #f8d7da;
+    color: #721c24;
 }
