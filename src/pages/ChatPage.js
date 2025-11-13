@@ -1,9 +1,8 @@
-// src/pages/ChatPage.js
+// src/pages/ChatPage.js (UX/UI REFONTE)
 
 import { useState, useRef, useEffect } from 'react';
 import './ChatPage.css'; 
 
-// URL de votre fonction Vercel Serverless
 const AI_API_URL = '/api/nesti-ai';
 
 const ChatPage = ({ user, familyId }) => {
@@ -14,7 +13,7 @@ const ChatPage = ({ user, familyId }) => {
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef(null);
 
-  const firstName = user?.user_metadata?.first_name || 'Utilisateur'; // Récupéré de la session ou du mock
+  const firstName = user?.first_name || 'Utilisateur'; // Utilise le prénom du profil
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -32,12 +31,9 @@ const ChatPage = ({ user, familyId }) => {
     setIsTyping(true);
 
     try {
-      // 1. Appel de l'API Nesti AI (Vercel Serverless)
       const response = await fetch(AI_API_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMessage.text,
           userContext: {
@@ -64,7 +60,6 @@ const ChatPage = ({ user, familyId }) => {
       setMessages(prev => [...prev, aiResponse]);
 
     } catch (error) {
-      console.error("Erreur lors de l'appel à l'IA:", error);
       const errorMessage = { 
         id: Date.now() + 1, 
         sender: 'Nesti', 
@@ -79,16 +74,10 @@ const ChatPage = ({ user, familyId }) => {
 
   return (
     <div className="chat-page">
-      <div className="chat-header">
-        <h1>🧠 Nesti IA</h1>
-        <p>Expert en activités, organisation et éducation familiale.</p>
-      </div>
-
       <div className="chat-window">
         {messages.map((msg) => (
-          <div key={msg.id} className={`message-row ${msg.sender === 'Nesti' ? 'nesti' : 'user'}`}>
+          <div key={msg.id} className={`message-row ${msg.sender === 'Nesti' ? 'nesti-msg' : 'user-msg'}`}>
             <div className="message-bubble">
-              <span className="message-sender">{msg.sender === 'Nesti' ? 'Nesti' : firstName}</span>
               <p>{msg.text}</p>
               <span className="message-time">
                 {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -97,7 +86,7 @@ const ChatPage = ({ user, familyId }) => {
           </div>
         ))}
         {isTyping && (
-          <div className="message-row nesti">
+          <div className="message-row nesti-msg">
             <div className="message-bubble typing-indicator">
               <p>Nesti est en train d'écrire...</p>
             </div>
