@@ -1,3 +1,5 @@
+// bnwhite/nesti-mvp/nesti-mvp-660c1dbb2ccb48e2c2fb34c1f4482ae22063e948/src/App.js
+
 import './App.css';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
@@ -10,6 +12,46 @@ import DiscoveriesPage from './pages/DiscoveriesPage';
 import ChatPage from './pages/ChatPage';
 import SettingsPage from './pages/SettingsPage';
 import CreatePost from './components/CreatePost';
+// Importez votre composant d'onboarding ici
+// Assurez-vous d'avoir un fichier OnboardingPage.js ou Onboarding.js dans src/pages/
+// Pour l'exemple, nous allons créer un composant placeholder directement dans App.js,
+// que vous remplacerez par votre fichier Onboarding.js importé.
+
+// COMPOSANT TEMPORAIRE DE MISE EN ROUTE (ONBOARDING)
+// Vous DEVEZ créer un fichier OnboardingPage.js (ou similaire) et l'importer
+function FamilyOnboarding({ user, setFamilyId, setFamilyName }) {
+  // NOTE: Ce composant doit permettre à l'utilisateur de créer sa famille (INSERT dans 'families' 
+  // puis UPDATE dans 'users') ou d'en rejoindre une (UPDATE dans 'users').
+  // Une fois l'action réussie, il doit appeler setFamilyId(newId) et setFamilyName(newName).
+  return (
+    <div className="onboarding-container" style={{ padding: '20px', textAlign: 'center', backgroundColor: '#f9f9f9', minHeight: '100vh' }}>
+      <h1>👋 Bienvenue sur Nesti, {user?.email} !</h1>
+      <p>Vous êtes connecté, mais vous devez encore créer ou rejoindre un Nest familial pour continuer.</p>
+      <div style={{ marginTop: '30px', padding: '20px', border: '1px solid #ccc', borderRadius: '10px' }}>
+        <h2>Écran d'Onboarding</h2>
+        <p>Ajouter ici les formulaires pour :</p>
+        <ul>
+          <li>1. Créer une nouvelle famille</li>
+          <li>2. Rejoindre une famille existante</li>
+        </ul>
+        {/* PLACEHOLDER: Ceci simule une réussite d'onboarding après développement */}
+        <button 
+          onClick={() => {
+            // Simuler l'ajout réussi à une famille pour tester
+            // Remplacer par votre logique réelle d'API/Supabase
+            // setFamilyId('TEST_FAMILY_ID'); 
+            // setFamilyName('Nom De Ma Famille'); 
+          }}
+          style={{ padding: '10px 20px', margin: '10px', backgroundColor: '#6200EE', color: 'white', border: 'none', borderRadius: '5px' }}
+        >
+          {/* Supprimer ce bouton après avoir implémenté la logique */}
+          (Action Onboarding)
+        </button>
+      </div>
+    </div>
+  );
+}
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -28,6 +70,10 @@ function App() {
 
   const fetchUserData = useCallback(async (userId) => {
     try {
+      // Réinitialiser au cas où l'utilisateur change de session/se déconnecte
+      setFamilyId(null);
+      setFamilyName('');
+      
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('family_id, first_name')
@@ -49,6 +95,7 @@ function App() {
           setFamilyName(familyData.family_name);
         }
       }
+      // Si userData.family_id est null, familyId restera null. C'est le nouveau point de blocage pour l'Onboarding.
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
@@ -81,6 +128,9 @@ function App() {
       if (session?.user) {
         await fetchUserData(session.user.id);
       } else {
+        // En cas de déconnexion
+        setFamilyId(null);
+        setFamilyName('');
         setLoading(false);
       }
     });
@@ -115,10 +165,7 @@ function App() {
         
         if (error) throw error;
         
-        if (data.user) {
-          setUser(data.user);
-          await fetchUserData(data.user.id);
-        }
+        // L'état de l'utilisateur sera mis à jour par onAuthStateChange
       }
     } catch (error) {
       console.error('Auth error:', error);
@@ -133,8 +180,15 @@ function App() {
   };
 
   const renderPage = () => {
-    if (!user || !familyId) return null;
+    // CORRECTION APPLIQUÉE ICI: Si l'utilisateur est connecté mais sans familyId, on affiche l'onboarding.
+    if (!user) return null; 
 
+    if (!familyId) {
+      // Si l'utilisateur est connecté mais sans famille, affiche l'onboarding
+      return <FamilyOnboarding user={user} setFamilyId={setFamilyId} setFamilyName={setFamilyName} />;
+    }
+
+    // Le reste de l'application (seulement si user ET familyId sont présents)
     switch (activeTab) {
       case 'feed':
         return (
@@ -260,26 +314,32 @@ function App() {
     );
   }
 
-  // Application principale
+  // Application principale (y compris l'Onboarding)
   return (
     <div className="app">
       <div className="app-container">
-        <Header 
-          user={user} 
-          familyName={familyName}
-          onSettingsOpen={() => setShowSettings(true)} 
-        />
+        {/* CORRECTION APPLIQUÉE ICI: Affichage conditionnel du Header et de la Navigation
+        pour ne pas les montrer sur l'écran d'Onboarding */}
+        {familyId && (
+          <Header 
+            user={user} 
+            familyName={familyName}
+            onSettingsOpen={() => setShowSettings(true)} 
+          />
+        )}
         
         <main className="main-content">
           {renderPage()}
         </main>
         
-        <Navigation 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab} 
-        />
+        {familyId && (
+          <Navigation 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab} 
+          />
+        )}
         
-        {showSettings && (
+        {showSettings && familyId && (
           <SettingsPage 
             user={user} 
             onClose={() => setShowSettings(false)} 
