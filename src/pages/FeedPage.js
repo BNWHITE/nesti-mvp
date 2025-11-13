@@ -1,4 +1,4 @@
-// src/pages/FeedPage.js (VERSION FINALE ET CORRIGÉE)
+// src/pages/FeedPage.js (DESIGN AMÉLIORÉ)
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
@@ -172,14 +172,18 @@ export default function FeedPage({ user, familyId }) {
                 {post.content}
               </div>
 
-              <div className="post-reactions">
+              <div className="post-stats">
+                <span>{post.likes} J'aime</span>
+                <span>{post.comments} Commentaires</span>
+              </div>
+
+              <div className="post-reactions-bar">
                 <button className="reaction-btn like-btn" onClick={() => handleLike(post.id)}>
-                    ❤️ J'aime ({post.likes})
+                    ❤️ J'aime
                 </button>
                 <button className="reaction-btn comment-btn" onClick={() => handleComment(post.id)}>
-                    💬 Commenter ({post.comments})
+                    💬 Commenter
                 </button>
-                <button className="reaction-btn share-btn">🔗 Partager</button>
               </div>
             </div>
           ))}
