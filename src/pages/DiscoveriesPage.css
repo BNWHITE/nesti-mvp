@@ -1,152 +1,99 @@
 /* src/pages/DiscoveriesPage.css */
 
-:root {
-    --nesti-primary: #6200EE;
-    --nesti-secondary: #03DAC6;
-    --nesti-text-dark: #333333;
-    --nesti-bg-light: #f9f9f9;
-    --nesti-radius: 8px;
-}
-
 .discoveries-page {
-    padding: 20px;
-    background-color: var(--nesti-bg-light);
-    min-height: calc(100vh - 100px); /* Laisse de la place pour la navigation/header */
+    padding: 0; 
+    background-color: var(--color-background);
 }
 
-.discoveries-header {
-    margin-bottom: 30px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
-}
-
-.discoveries-header h1 {
-    color: var(--nesti-primary);
-    font-size: 1.8em;
-    margin-bottom: 5px;
-}
-
-.discoveries-header p {
-    color: #666;
-    margin-bottom: 15px;
-}
-
-/* Sélection de Région (Tabs) */
-.region-selector {
+/* Zone Carte */
+.discoveries-map-area {
+    height: 250px;
+    background-color: #A9D0F5; 
     display: flex;
-    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 50px; 
+    z-index: 5;
 }
 
-.region-btn {
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: var(--nesti-radius);
-    background-color: white;
-    color: var(--nesti-text-dark);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.region-btn.active {
-    background-color: var(--nesti-primary);
+.map-placeholder {
     color: white;
-    border-color: var(--nesti-primary);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-.region-btn:hover:not(.active) {
-    background-color: #f0f0f0;
-}
-
-/* Liste des activités */
-
-.activities-list {
-    display: grid;
-    gap: 20px;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-}
-
-.activity-card {
-    background: white;
+.discoveries-content {
     padding: 20px;
-    border-radius: var(--nesti-radius);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
 }
 
-.activity-title {
-    color: var(--nesti-primary);
-    margin-top: 0;
-    font-size: 1.4em;
+/* Recherche et Filtres */
+.search-controls {
+    margin-bottom: 25px;
+    background-color: var(--color-card-bg);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: var(--color-shadow);
+    margin-top: -50px; 
+    position: relative;
+    z-index: 6;
+    border: 1px solid var(--color-border);
 }
 
-.activity-description {
-    color: #555;
-    font-size: 0.9em;
+.search-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
     margin-bottom: 15px;
-    line-height: 1.4;
+    background-color: var(--color-background);
+    color: var(--color-text);
 }
 
-.activity-meta {
+.filters {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 15px;
 }
 
-.badge {
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 0.8em;
-    font-weight: 700;
-    background-color: #f0f0f0;
-    color: #444;
+.filter-btn {
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    background-color: var(--color-background);
+    color: var(--color-text-light);
+    font-size: 0.9em;
 }
 
-/* Badges de difficulté */
-.difficulty-débutant, .difficulty-facile { background-color: #d4edda; color: #155724; }
-.difficulty-intermédiaire, .difficulty-moyen { background-color: #ffeeba; color: #856404; }
-.difficulty-avancé, .difficulty-difficile { background-color: #f8d7da; color: #721c24; }
-.badge.category { background-color: var(--nesti-secondary); color: var(--nesti-text-dark); }
-
-/* Boutons d'action */
-.suggest-btn, .link-btn {
-    width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 700;
-    margin-top: 10px;
-    transition: background-color 0.2s;
-    text-align: center;
-    text-decoration: none; /* Pour le lien */
-    display: block;
-}
-
-.suggest-btn {
-    background-color: var(--nesti-primary);
+.filter-btn.active {
+    background-color: var(--color-primary);
     color: white;
+    border-color: var(--color-primary);
 }
 
-.suggest-btn:hover {
-    background-color: #4b00c4;
+/* Liste des activités */
+.activity-list-title {
+    font-size: 1.4em;
+    margin-bottom: 15px;
+    color: var(--color-primary);
 }
 
-.link-btn {
-    background-color: #f0f0f0;
-    color: var(--nesti-text-dark);
+.activities-list {
+    display: grid;
+    gap: 15px;
+    grid-template-columns: 1fr; 
 }
 
-.link-btn:hover {
-    background-color: #e0e0e0;
+.activity-card {
+    background: var(--color-card-bg);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: var(--color-shadow);
+    border: 1px solid var(--color-border);
 }
-
-.error-message {
-    color: #c0392b;
-    font-weight: bold;
+.empty-results {
+    color: var(--color-text-light);
+    text-align: center;
     padding: 20px;
 }
