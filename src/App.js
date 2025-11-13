@@ -1,3 +1,5 @@
+// bnwhite/nesti-mvp/.../src/App.js
+
 import './App.css';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
@@ -10,9 +12,7 @@ import DiscoveriesPage from './pages/DiscoveriesPage';
 import ChatPage from './pages/ChatPage';
 import SettingsPage from './pages/SettingsPage';
 import CreatePost from './components/CreatePost';
-// NOUVEAU: Assurez-vous d'utiliser le bon nom de fichier (OnboardingPage ou Onboarding)
-import OnboardingPage from './pages/OnboardingPage';
-
+import OnboardingPage from './pages/OnboardingPage'; // Assurez-vous d'avoir ce nom de fichier
 
 function App() {
   const [user, setUser] = useState(null);
@@ -22,6 +22,9 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [loading, setLoading] = useState(true);
   
+  // NOUVEL ÉTAT: Pour gérer le cas où l'utilisateur est inscrit mais sans prénom/famille
+  const [profileComplete, setProfileComplete] = useState(false); 
+  
   // États pour l'authentification
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,52 +32,48 @@ function App() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState('');
 
-// Extrait de src/App.js
-
   const fetchUserData = useCallback(async (userId) => {
     try {
-      // Réinitialisation des états
       setFamilyId(null); 
       setFamilyName('');
-      
+      setProfileComplete(false); // Réinitialisation
+
+      // La table 'users' est maintenant la table 'user_profiles' pour le prénom/famille.
       const { data: userData, error: userError } = await supabase
-        .from('users')
+        .from('user_profiles') // MODIFIÉ: Utilisation de la table user_profiles
         .select('family_id, first_name')
         .eq('id', userId)
-        .single();
-      
-      // Gérer l'absence de l'utilisateur dans la table 'users'
-      // Cela peut arriver juste après un signup si vous n'avez pas de trigger
-      if (userError && userError.code === 'PGRST116') { // Code d'erreur 'No rows found'
-          console.warn('Utilisateur non trouvé dans la table users. Onboarding requis.');
-          // On laisse familyId à null, ce qui affichera l'OnboardingPage.
-          return;
-      }
-      
+        .maybeSingle(); // Utiliser maybeSingle pour mieux gérer 'No rows found'
+
       if (userError) throw userError;
+      
+      if (userData) {
+          // L'utilisateur est dans la table des profils
+          setProfileComplete(!!userData.first_name); // Profil complet si un prénom existe
+          
+          if (userData.family_id) {
+            setFamilyId(userData.family_id);
+            
+            const { data: familyData, error: familyError } = await supabase
+              .from('families')
+              .select('family_name')
+              .eq('id', userData.family_id)
+              .single();
 
-      if (userData?.family_id) {
-        setFamilyId(userData.family_id);
-        
-        const { data: familyData, error: familyError } = await supabase
-          .from('families')
-          .select('family_name')
-          .eq('id', userData.family_id)
-          .single();
-
-        if (familyError) throw familyError;
-
-        if (familyData) {
-          setFamilyName(familyData.family_name);
-        }
+            if (!familyError && familyData) {
+              setFamilyName(familyData.family_name);
+            }
+          }
+      } else {
+        // Cas d'un nouvel utilisateur inscrit (Supabase Auth) mais pas encore dans user_profiles
+        // Ceci est normal juste après l'inscription.
+        setProfileComplete(false);
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
-      // En cas d'erreur critique, on force la fin du chargement pour ne pas bloquer l'interface
-      setLoading(false); 
     }
-  }, []); // Note: setLoading n'est pas dans les dépendances de useCallback car il est un setter d'état React.
-  
+  }, []);
+
   const checkUser = useCallback(async () => {
     try {
       console.log('🔍 Checking user...');
@@ -95,22 +94,35 @@ function App() {
   }, [fetchUserData]);
 
   useEffect(() => {
-    checkUser();
+    // Suppression du checkUser initial pour ne dépendre que de onAuthStateChange
+    // checkUser(); 
     
+    // Ajout d'un timer pour s'assurer que setLoading(false) est appelé même si Supabase traîne
+    const timeoutId = setTimeout(() => {
+      if(loading) setLoading(false);
+    }, 5000);
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user || null);
-      if (session?.user) {
-        await fetchUserData(session.user.id);
+      const authUser = session?.user || null;
+      setUser(authUser);
+
+      if (authUser) {
+        await fetchUserData(authUser.id);
       } else {
-        // En cas de déconnexion
+        // Déconnexion
         setFamilyId(null);
         setFamilyName('');
-        setLoading(false);
+        setProfileComplete(false);
       }
+      setLoading(false);
+      clearTimeout(timeoutId); // Arrêter le timer si l'état est mis à jour
     });
 
-    return () => subscription.unsubscribe();
-  }, [checkUser, fetchUserData]);
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeoutId);
+    };
+  }, [fetchUserData]); // RETIRER checkUser des dépendances
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -120,25 +132,24 @@ function App() {
     try {
       if (isSignUp) {
         // Inscription
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email,
           password,
         });
         
         if (error) throw error;
         
-        if (data.user) {
-          alert('Compte créé ! Vérifiez votre email pour confirmer votre inscription.');
-        }
+        // La fonction onAuthStateChange gère la connexion post-signup
+        alert('Compte créé ! Vérifiez votre email pour confirmer, puis connectez-vous.');
+
       } else {
         // Connexion
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         
         if (error) throw error;
-        
         // L'état de l'utilisateur sera mis à jour par onAuthStateChange
       }
     } catch (error) {
@@ -155,17 +166,36 @@ function App() {
 
   const renderPage = () => {
     if (!user) return null;
-  
-    if (!familyId) {
-      // Remplacer l'ancien placeholder par le composant OnboardingPage importé
-      return <OnboardingPage 
-        user={user} 
-        setFamilyId={setFamilyId} 
-        setFamilyName={setFamilyName} 
-      />;
+
+    // NOUVELLE LOGIQUE: Profil incomplet (prénom/nom manquant)
+    if (!profileComplete) {
+      // L'utilisateur doit d'abord compléter son profil (Nom/Prénom)
+      return (
+        <OnboardingPage 
+          user={user} 
+          setFamilyId={setFamilyId} 
+          setFamilyName={setFamilyName} 
+          setProfileComplete={setProfileComplete} // Passer la fonction de mise à jour
+          initialView="profile" // Nouveau prop pour démarrer sur la vue Profil
+        />
+      );
     }
 
-    // Le reste de l'application (seulement si user ET familyId sont présents)
+    // Utilisateur connecté AVEC prénom mais SANS famille
+    if (!familyId) {
+      // L'utilisateur peut créer/rejoindre une famille
+      return (
+        <OnboardingPage 
+          user={user} 
+          setFamilyId={setFamilyId} 
+          setFamilyName={familyName} 
+          setProfileComplete={setProfileComplete} 
+          initialView="family" // Démarrer sur la vue Famille
+        />
+      );
+    }
+
+    // Utilisateur connecté AVEC prénom ET AVEC famille
     switch (activeTab) {
       case 'feed':
         return (
@@ -193,6 +223,7 @@ function App() {
 
   // Écran de chargement
   if (loading) {
+    // ... (Code de l'écran de chargement inchangé)
     return (
       <div className="app">
         <div className="loading-screen">
@@ -221,6 +252,7 @@ function App() {
 
   // Écran de connexion/inscription
   if (!user) {
+    // ... (Code de l'écran d'authentification inchangé)
     return (
       <div className="app">
         <div className="auth-container">
@@ -291,13 +323,12 @@ function App() {
     );
   }
 
-  // Application principale (y compris l'Onboarding)
+  // Application principale
   return (
     <div className="app">
       <div className="app-container">
-        {/* CORRECTION APPLIQUÉE ICI: Affichage conditionnel du Header et de la Navigation
-        pour ne pas les montrer sur l'écran d'Onboarding */}
-        {familyId && (
+        {/* Header et Navigation conditionnels à la famille (et au profil complet) */}
+        {familyId && profileComplete && (
           <Header 
             user={user} 
             familyName={familyName}
@@ -309,14 +340,14 @@ function App() {
           {renderPage()}
         </main>
         
-        {familyId && (
+        {familyId && profileComplete && (
           <Navigation 
             activeTab={activeTab} 
             onTabChange={setActiveTab} 
           />
         )}
         
-        {showSettings && familyId && (
+        {showSettings && familyId && profileComplete && (
           <SettingsPage 
             user={user} 
             onClose={() => setShowSettings(false)} 
