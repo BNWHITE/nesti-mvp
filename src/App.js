@@ -1,330 +1,285 @@
-// bnwhite/nesti-mvp/.../src/App.js (VERSION FINALE)
+// src/pages/OnboardingPage.js (VERSION FINALE CORRIGÉE)
 
-import './App.css';
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from './lib/supabaseClient';
-import Header from './components/Header';
-import Navigation from './components/Navigation';
-import FeedPage from './pages/FeedPage';
-import AgendaPage from './pages/AgendaPage';
-import NestPage from './pages/NestPage';
-import DiscoveriesPage from './pages/DiscoveriesPage';
-import ChatPage from './pages/ChatPage';
-import SettingsPage from './pages/SettingsPage';
-import CreatePost from './components/CreatePost';
-import OnboardingPage from './pages/OnboardingPage'; 
-// Assurez-vous que l'import OnboardingPage correspond à votre nom de fichier
+// CORRECTION APPLIQUÉE: Ajout de useCallback à l'import de React
+import { useState, useEffect, useCallback } from 'react'; 
+import { supabase } from '../lib/supabaseClient'; 
+import './OnboardingPage.css'; 
 
-function App() {
-  const [user, setUser] = useState(null);
-  const [familyId, setFamilyId] = useState(null);
-  const [familyName, setFamilyName] = useState('');
-  const [activeTab, setActiveTab] = useState('feed');
-  const [showSettings, setShowSettings] = useState(false);
-  const [loading, setLoading] = useState(true);
+const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, initialView = 'profile' }) => {
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('create'); 
+  const [isProfileStep, setIsProfileStep] = useState(initialView === 'profile');
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   
-  // ÉTAT CRITIQUE: Vrai si first_name est présent dans user_profiles
-  const [profileComplete, setProfileComplete] = useState(false); 
+  const [newFamilyName, setNewFamilyName] = useState('');
+  const [joinCode, setJoinCode] = useState('');
   
-  // États pour l'authentification
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authError, setAuthError] = useState('');
+  const [error, setError] = useState('');
 
-  const fetchUserData = useCallback(async (userId) => {
-    try {
-      // Réinitialisation des états
-      setFamilyId(null); 
-      setFamilyName('');
-      setProfileComplete(false); 
+  const fetchCurrentProfile = useCallback(async () => {
+    const { data } = await supabase
+      .from('user_profiles')
+      .select('first_name, last_name')
+      .eq('id', user.id)
+      .maybeSingle();
 
-      // 1. Récupérer le profil utilisateur dans la table 'user_profiles'
-      const { data: userData, error: userError } = await supabase
-        .from('user_profiles') 
-        .select('family_id, first_name')
-        .eq('id', userId)
-        .maybeSingle(); 
-
-      if (userError) {
-          console.error("Supabase Error fetching profile:", userError);
-          throw userError;
+    if (data && data.first_name) {
+      setFirstName(data.first_name);
+      setLastName(data.last_name || '');
+      if (initialView === 'family') {
+        setIsProfileStep(false);
       }
-      
-      if (userData) {
-          // 2. Vérifier si le profil est complété (présence du prénom)
-          const isProfileComplete = !!userData.first_name;
-          setProfileComplete(isProfileComplete); 
-          
-          if (isProfileComplete && userData.family_id) {
-            setFamilyId(userData.family_id);
-            
-            // 3. Récupérer le nom de la famille
-            const { data: familyData, error: familyError } = await supabase
-              .from('families')
-              .select('family_name')
-              .eq('id', userData.family_id)
-              .single();
-
-            if (!familyError && familyData) {
-              setFamilyName(familyData.family_name);
-            }
-          }
-      } 
-      // Si userData est null, le profil n'a pas encore été créé (juste après signup).
-      // profileComplete reste false, ce qui force l'OnboardingPage.
-    } catch (error) {
-      console.error('Error fetching user data:', error);
     }
-  }, []); // Aucune dépendance ici, car setFamilyId, etc. sont les setters de App.js
+  }, [user.id, initialView]);
 
-  // Utilisation de onAuthStateChange uniquement pour la robustesse
   useEffect(() => {
-    
-    // Simuler la fin du chargement après 5s si Supabase est trop lent
-    const timeoutId = setTimeout(() => {
-      if(loading) setLoading(false);
-    }, 5000); 
+    fetchCurrentProfile();
+  }, [fetchCurrentProfile]);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const authUser = session?.user || null;
-      setUser(authUser);
-      clearTimeout(timeoutId); // Arrêter le timer
+  // --- LOGIQUE SUPABASE ---
 
-      if (authUser) {
-        await fetchUserData(authUser.id);
-      } else {
-        // Déconnexion ou pas d'utilisateur
-        setFamilyId(null);
-        setFamilyName('');
-        setProfileComplete(false);
-      }
-      setLoading(false);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-      clearTimeout(timeoutId);
-    };
-  }, [fetchUserData]); 
-
-  const handleAuth = async (e) => {
+  const handleCompleteProfile = async (e) => {
     e.preventDefault();
-    setAuthLoading(true);
-    setAuthError('');
+    setError('');
+    if (!firstName.trim()) {
+      setError("Veuillez entrer votre prénom.");
+      return;
+    }
+    setLoading(true);
 
     try {
-      if (isSignUp) {
-        // Inscription: on laisse onAuthStateChange gérer l'état après confirmation d'email
-        const { error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
-        alert('Compte créé ! Vérifiez votre email pour confirmer, puis connectez-vous.');
-        
-      } else {
-        // Connexion: on laisse onAuthStateChange gérer l'état après connexion
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-      }
-    } catch (error) {
-      console.error('Auth error:', error);
-      setAuthError(error.message || 'Une erreur est survenue');
+      const { error: profileError } = await supabase
+        .from('user_profiles') 
+        .upsert({ 
+            id: user.id, 
+            first_name: firstName.trim(),
+            last_name: lastName.trim() || null,
+        }, { onConflict: 'id' });
+      
+      if (profileError) throw profileError;
+      
+      setProfileComplete(true); 
+      setIsProfileStep(false); 
+      
+    } catch (err) {
+      console.error("Erreur lors de la mise à jour du profil:", err);
+      setError(err.message || "Une erreur est survenue lors de l'enregistrement du profil.");
     } finally {
-      setAuthLoading(false);
+      setLoading(false);
     }
   };
 
-  const renderPage = () => {
-    if (!user) return null;
-
-    // ÉTAPE 1: Compléter le profil (Nom/Prénom)
-    if (!profileComplete) {
-      return (
-        <OnboardingPage 
-          user={user} 
-          setProfileComplete={setProfileComplete} 
-          setFamilyId={setFamilyId}
-          setFamilyName={setFamilyName}
-          initialView="profile" 
-        />
-      );
+  const handleCreateFamily = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!newFamilyName.trim()) {
+      setError("Veuillez donner un nom à votre Nest familial.");
+      return;
     }
+    setLoading(true);
 
-    // ÉTAPE 2: Créer/Rejoindre une famille
-    if (!familyId) {
-      return (
-        <OnboardingPage 
-          user={user} 
-          setProfileComplete={setProfileComplete} 
-          setFamilyId={setFamilyId} 
-          setFamilyName={setFamilyName}
-          initialView="family" 
-        />
-      );
-    }
+    try {
+      // CORRECTION APPLIQUÉE: Suppression de 'created_by'
+      const { data: familyData, error: familyError } = await supabase
+        .from('families')
+        .insert([{ 
+            family_name: newFamilyName.trim(), 
+            join_code: Math.random().toString(36).substring(2, 8).toUpperCase()
+        }])
+        .select('id, family_name')
+        .single();
+      
+      if (familyError) throw familyError;
+      
+      const newFamilyId = familyData.id;
+      const familyNameCreated = familyData.family_name;
 
-    // ÉTAPE 3: Application principale
-    switch (activeTab) {
-      case 'feed':
-        return (
-          <>
-            <FeedPage user={user} familyId={familyId} />
-            <CreatePost 
-              user={user} 
-              familyId={familyId} 
-              onPostCreated={handlePostCreated} 
-            />
-          </>
-        );
-      case 'agenda':
-        return <AgendaPage user={user} familyId={familyId} />;
-      case 'nest':
-        return <NestPage user={user} familyId={familyId} familyName={familyName} />;
-      case 'discover':
-        return <DiscoveriesPage user={user} familyId={familyId} />;
-      case 'chat':
-        return <ChatPage user={user} familyId={familyId} />;
-      default:
-        return <FeedPage user={user} familyId={familyId} />;
+      const { error: userError } = await supabase
+        .from('user_profiles')
+        .update({ family_id: newFamilyId })
+        .eq('id', user.id);
+
+      if (userError) throw userError;
+
+      setFamilyId(newFamilyId);
+      setFamilyName(familyNameCreated);
+      
+    } catch (err) {
+      console.error("Erreur lors de la création de la famille:", err);
+      setError(err.message || "Une erreur est survenue lors de la création du Nest.");
+    } finally {
+      setLoading(false);
     }
   };
-
-  // ... (Écran de chargement et Écran d'authentification inchangés) ...
   
-  if (loading) {
-    // ... (Rendu de l'écran de chargement) ...
-    return (
-      <div className="app">
-        <div className="loading-screen">
-          <div className="loading-logo">
-            <span>N</span>
-          </div>
-          <p className="loading-text">Chargement de votre espace familial...</p>
-          <button 
-            onClick={() => setLoading(false)} 
-            style={{
-              marginTop: '20px',
-              padding: '10px 20px',
-              background: 'rgba(255,255,255,0.2)',
-              border: 'none',
-              borderRadius: '10px',
-              color: 'white',
-              cursor: 'pointer'
-            }}
-          >
-            Passer au login
-          </button>
+  const handleJoinFamily = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!joinCode.trim()) {
+      setError("Veuillez entrer le code de votre Nest familial.");
+      return;
+    }
+    setLoading(true);
+    
+    try {
+      const { data: familyData, error: familyError } = await supabase
+        .from('families')
+        .select('id, family_name')
+        .eq('join_code', joinCode.toUpperCase()) 
+        .maybeSingle();
+        
+      if (familyError || !familyData) throw new Error("Code familial invalide ou Nest introuvable.");
+
+      const { error: userUpdateError } = await supabase
+        .from('user_profiles')
+        .update({ family_id: familyData.id })
+        .eq('id', user.id);
+
+      if (userUpdateError) throw userUpdateError;
+
+      setFamilyId(familyData.id);
+      setFamilyName(familyData.family_name);
+
+    } catch (err) {
+      console.error("Erreur lors de la jointure:", err);
+      setError(err.message || "Une erreur est survenue lors de la tentative de rejoindre le Nest.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderProfileContent = () => (
+    <form onSubmit={handleCompleteProfile} className="onboarding-form">
+        <p className="form-description">
+            Veuillez nous indiquer votre prénom et nom pour personnaliser votre espace.
+        </p>
+        <div className="input-group">
+            <label htmlFor="firstName">Prénom *</label>
+            <input
+              id="firstName"
+              type="text"
+              placeholder="Votre prénom"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              disabled={loading}
+              required
+            />
         </div>
-      </div>
-    );
-  }
+        <div className="input-group">
+            <label htmlFor="lastName">Nom (facultatif)</label>
+            <input
+              id="lastName"
+              type="text"
+              placeholder="Votre nom"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              disabled={loading}
+            />
+        </div>
+        <button type="submit" disabled={loading} className="main-action-btn">
+            {loading ? 'Enregistrement...' : '✨ Continuer'}
+        </button>
+    </form>
+  );
 
-  if (!user) {
-    // ... (Rendu de l'écran de connexion/inscription) ...
+  const renderFamilyContent = () => {
+    const isCreateTab = activeTab === 'create';
+
     return (
-      <div className="app">
-        <div className="auth-container">
-          <div className="auth-card">
-            <div className="auth-header">
-              <div className="auth-logo">
-                <span>N</span>
-              </div>
-              <h1>{isSignUp ? 'Créer un compte' : 'Bienvenue sur Nesti'}</h1>
-              <p>L'application qui rapproche votre famille</p>
-            </div>
-
-            <form onSubmit={handleAuth} className="auth-form">
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="votre@email.com"
-                  required
-                  disabled={authLoading}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Mot de passe</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  disabled={authLoading}
-                  minLength={6}
-                />
-              </div>
-
-              {authError && (
-                <div className="auth-error">
-                  {authError}
-                </div>
-              )}
-
+        <>
+            <div className="tabs">
               <button 
-                type="submit" 
-                className="auth-button"
-                disabled={authLoading}
-              >
-                {authLoading ? 'Chargement...' : (isSignUp ? 'Créer mon compte' : 'Se connecter')}
-              </button>
-            </form>
-
-            <div className="auth-switch">
-              <button 
+                className={`tab-btn ${isCreateTab ? 'active' : ''}`}
                 onClick={() => {
-                  setIsSignUp(!isSignUp);
-                  setAuthError('');
+                    setActiveTab('create');
+                    setError('');
                 }}
-                className="switch-button"
+                disabled={loading}
               >
-                {isSignUp ? 'Déjà un compte ? Se connecter' : 'Pas de compte ? S\'inscrire'}
+                Créer un Nest
+              </button>
+              <button 
+                className={`tab-btn ${!isCreateTab ? 'active' : ''}`}
+                onClick={() => {
+                    setActiveTab('join');
+                    setError('');
+                }}
+                disabled={loading}
+              >
+                Rejoindre un Nest
               </button>
             </div>
-          </div>
-        </div>
-      </div>
+
+            {isCreateTab ? (
+                <form onSubmit={handleCreateFamily} className="onboarding-form">
+                  <p className="form-description">Créez un espace privé pour votre famille.</p>
+                  <div className="input-group">
+                    <label htmlFor="familyName">Nom de votre Nest familial</label>
+                    <input
+                      id="familyName"
+                      type="text"
+                      placeholder="Ex: Les Aventures des Dupont"
+                      value={newFamilyName}
+                      onChange={(e) => setNewFamilyName(e.target.value)}
+                      disabled={loading}
+                      required
+                    />
+                  </div>
+                  <button type="submit" disabled={loading} className="main-action-btn">
+                    {loading ? 'Création en cours...' : '🏡 Créer mon Nest'}
+                  </button>
+                </form>
+            ) : (
+                <form onSubmit={handleJoinFamily} className="onboarding-form">
+                  <p className="form-description">Entrez le code de jointure transmis par un membre de votre famille.</p>
+                  <div className="input-group">
+                    <label htmlFor="joinCode">Code de jointure du Nest</label>
+                    <input
+                      id="joinCode"
+                      type="text"
+                      placeholder="Ex: TRIBEXYZ"
+                      value={joinCode}
+                      onChange={(e) => setJoinCode(e.target.value)}
+                      disabled={loading}
+                      required
+                    />
+                  </div>
+                  <button type="submit" disabled={loading} className="main-action-btn secondary-btn">
+                    {loading ? 'Connexion en cours...' : '🔑 Rejoindre le Nest'}
+                  </button>
+                </form>
+            )}
+        </>
     );
-  }
+  };
 
-
-  // Application principale (inclut l'Onboarding)
+  const currentStepTitle = isProfileStep ? "Complétez votre profil" : "Mise en route familiale";
+  
   return (
-    <div className="app">
-      <div className="app-container">
-        {/* Header et Navigation visibles UNIQUEMENT lorsque le profil ET la famille sont configurés */}
-        {familyId && profileComplete && (
-          <Header 
-            user={user} 
-            familyName={familyName}
-            onSettingsOpen={() => setShowSettings(true)} 
-          />
-        )}
+    <div className="onboarding-page-container">
+      <div className="onboarding-card">
         
-        <main className="main-content">
-          {renderPage()}
-        </main>
+        <div className="onboarding-header">
+            <div className="onboarding-logo">
+                <span>N</span>
+            </div>
+            <h1>{isProfileStep ? `Bienvenue !` : `Bonjour ${firstName || 'vous'} !`}</h1>
+            <p className="onboarding-greeting">
+                {currentStepTitle} : une étape essentielle pour démarrer Nesti.
+            </p>
+        </div>
+
+        {error && <div className="onboarding-error">{error}</div>}
+
+        <div className="onboarding-content">
+          {isProfileStep ? renderProfileContent() : renderFamilyContent()}
+        </div>
         
-        {familyId && profileComplete && (
-          <Navigation 
-            activeTab={activeTab} 
-            onTabChange={setActiveTab} 
-          />
-        )}
-        
-        {showSettings && familyId && profileComplete && (
-          <SettingsPage 
-            user={user} 
-            onClose={() => setShowSettings(false)} 
-          />
-        )}
       </div>
     </div>
   );
-}
+};
 
-export default App;
+export default OnboardingPage;
