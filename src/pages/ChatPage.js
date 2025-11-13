@@ -13,7 +13,7 @@ const ChatPage = ({ user, familyId }) => {
   const [isTyping, setIsTyping] = useState(false);
   const chatEndRef = useRef(null);
 
-  const firstName = user?.first_name || 'Utilisateur'; // Utilise le prénom du profil
+  const firstName = user?.first_name || 'Utilisateur'; 
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
