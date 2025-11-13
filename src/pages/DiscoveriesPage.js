@@ -1,190 +1,102 @@
-// src/pages/DiscoveriesPage.js (VERSION AVEC DONNÉES DE RENNES)
+// src/pages/DiscoveriesPage.js (UX/UI REFONTE avec MAPS & RECHERCHE)
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import './DiscoveriesPage.css';
 
-// URL de l'API Île-de-France (pour expansion future)
-const ILE_DE_FRANCE_API_URL = '/api/explore/v2.1/catalog/datasets/iles_de_loisirs_idf/records?select=*&limit=20';
-
-// Structure de données de l'API Île-de-France pour référence
-/*
-{
-  "ile_de_loisir": "Saint Quentin en Yvelines",
-  "departement": "78",
-  "titre": "Canoë Kayak",
-  "wgs84": { "lon": 2.02142, "lat": 48.789574 },
-  "lien_activite": "..."
-}
-*/
+const CURRENT_LOCATION = "Rennes, France"; // Localisation de la ville par défaut
 
 const DiscoveriesPage = ({ user, familyId }) => {
-  const [activitiesRennes, setActivitiesRennes] = useState([]);
-  const [activitiesIdF, setActivitiesIdF] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [activeRegion, setActiveRegion] = useState('Rennes'); // Région par défaut
-
-  // 1. Fonction pour charger les activités de Rennes (depuis votre table Supabase)
-  const fetchRennesActivities = useCallback(async () => {
-    // Note: Pour un MVP, on suppose que toutes les activités dans la table sont pour Rennes.
-    // Vous pourriez ajouter une colonne 'ville' si vous mixez les données.
-    
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeFilter, setActiveFilter] = useState('Tout');
+  
+  const fetchActivities = useCallback(async () => {
+    // Charger toutes les activités disponibles (Rennes + IDF pour l'instant)
     const { data, error } = await supabase
       .from('activities')
-      .select('id, title, description, difficulty, duration_min, age_min, age_max, category')
+      .select('id, title, description, difficulty, age_min, age_max, category')
       .order('title', { ascending: true })
-      .limit(30);
+      .limit(50); 
 
     if (error) throw error;
     return data;
   }, []);
 
-  // 2. Fonction pour charger les activités d'Île-de-France (simule l'appel API)
-  const fetchIdFActivities = useCallback(async () => {
-    // NOTE: Ici, nous simulons l'appel API. En production, vous feriez un fetch('/proxy-vers-idf-api').
-    
-    // Pour l'instant, on utilise les données JSON fournies pour le mock
-    const mockData = [
-      { "ile_de_loisir": "Saint Quentin en Yvelines", "departement": "78", "titre": "Canoë Kayak", "lien_activite": "..." },
-      { "ile_de_loisir": "Val de Seine", "departement": "78", "titre": "Ping-pong", "lien_activite": "..." },
-      { "ile_de_loisir": "Cergy", "departement": "95", "titre": "Sensation", "lien_activite": "..." },
-      { "ile_de_loisir": "Etampes", "departement": "91", "titre": "Glisse nautique", "lien_activite": "..." },
-      { "ile_de_loisir": "Créteil", "departement": "94", "titre": "Baignade", "lien_activite": "..." },
-    ];
-    
-    // Le code réel utiliserait un fetch:
-    /*
-    const response = await fetch(API_BASE_URL + ILE_DE_FRANCE_API_URL);
-    const data = await response.json();
-    return data.results.map(r => ({
-        title: r.titre,
-        description: r.ile_de_loisir + ' (' + r.departement + ')',
-        lien: r.lien_activite
-    }));
-    */
-    
-    // Retourne les données mockées (vous les remplacerez par l'API)
-    return mockData.map(r => ({
-        title: r.titre,
-        description: `Base de loisirs de ${r.ile_de_loisir} (${r.departement})`,
-        lien: r.lien_activite
-    }));
-    
-  }, []);
-
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      setError(null);
       try {
-        const rennes = await fetchRennesActivities();
-        setActivitiesRennes(rennes);
-        
-        // Simuler le chargement d'IdF
-        const idf = await fetchIdFActivities();
-        setActivitiesIdF(idf);
-
+        const allActivities = await fetchActivities();
+        setActivities(allActivities);
       } catch (err) {
         console.error('Erreur lors du chargement des données de découverte:', err);
-        setError("Impossible de charger les données d'activités pour le moment.");
       } finally {
         setLoading(false);
       }
     };
-
     loadData();
-  }, [fetchRennesActivities, fetchIdFActivities]);
+  }, [fetchActivities]);
 
-  // Fonction pour suggérer une activité à la famille (utilise la table 'suggestions')
-  const suggestActivity = async (activityId) => {
-    if (!familyId) {
-      alert("Vous devez faire partie d'un Nest familial pour suggérer une activité.");
-      return;
-    }
+  // Filtres côté client pour le MVP
+  const filteredActivities = activities.filter(activity => {
+    const searchMatch = activity.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const filterMatch = activeFilter === 'Tout' || activity.category === activeFilter;
+    return searchMatch && filterMatch;
+  });
 
-    try {
-      const { error } = await supabase
-        .from('suggestions')
-        .insert([{
-          user_id: user.id,
-          activity_id: activityId,
-          family_id: familyId,
-          status: 'pending'
-        }]);
-
-      if (error) throw error;
-      
-      alert('Activité suggérée à la famille avec succès !');
-      
-    } catch (error) {
-      alert('Erreur lors de la suggestion: ' + error.message);
-    }
-  };
-
-  const currentActivities = activeRegion === 'Rennes' ? activitiesRennes : activitiesIdF;
-
-  if (loading) return <div className="discoveries-page">Chargement des découvertes...</div>;
-  if (error) return <div className="discoveries-page error-message">{error}</div>;
+  const categories = ['Tout', 'Sport', 'Culture', 'Pédagogique', 'Créatif'];
 
   return (
     <div className="discoveries-page">
-      <div className="discoveries-header">
-        <h1>🧭 Découvertes & Loisirs</h1>
-        <p>Explorez les activités basées sur votre région et les suggestions Nesti.</p>
-        
-        <div className="region-selector">
-          <button 
-            className={`region-btn ${activeRegion === 'Rennes' ? 'active' : ''}`}
-            onClick={() => setActiveRegion('Rennes')}
-          >
-            Activités Rennes (Loisirs A à Z)
-          </button>
-          <button 
-            className={`region-btn ${activeRegion === 'IDF' ? 'active' : ''}`}
-            onClick={() => setActiveRegion('IDF')}
-          >
-            Île-de-France (Bases de loisirs)
-          </button>
+      <div className="discoveries-map-area">
+        {/* PLACEHOLDER: Carte interactive */}
+        <div className="map-placeholder">
+          <p>🌍 Carte des activités autour de {CURRENT_LOCATION}</p>
         </div>
       </div>
 
-      <div className="activities-list">
-        {currentActivities.length === 0 ? (
-          <p>Aucune activité trouvée pour cette région.</p>
-        ) : (
-          currentActivities.map((activity, index) => (
-            <div key={activity.id || index} className="activity-card">
-              <div className="activity-main">
+      <div className="discoveries-content">
+        <div className="search-controls">
+          <input
+            type="text"
+            placeholder={`Rechercher une activité à ${CURRENT_LOCATION}...`}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+          <div className="filters">
+            {categories.map(cat => (
+              <button
+                key={cat}
+                className={`filter-btn ${activeFilter === cat ? 'active' : ''}`}
+                onClick={() => setActiveFilter(cat)}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        <h2 className="activity-list-title">Activités trouvées ({filteredActivities.length})</h2>
+
+        <div className="activities-list">
+          {loading ? (
+            <p>Chargement des activités...</p>
+          ) : filteredActivities.length === 0 ? (
+            <p className="empty-results">Aucune activité ne correspond à vos critères de recherche.</p>
+          ) : (
+            filteredActivities.map((activity) => (
+              <div key={activity.id} className="activity-card">
                 <h2 className="activity-title">{activity.title}</h2>
                 <p className="activity-description">{activity.description}</p>
+                {/* ... (Affichage des badges et boutons d'action) ... */}
               </div>
-              
-              <div className="activity-meta">
-                {activity.difficulty && <span className={`badge difficulty-${activity.difficulty.toLowerCase().replace(/[^a-z0-9]/g, '')}`}>Niveau : {activity.difficulty}</span>}
-                {activity.age_min && <span className="badge">Âge : {activity.age_min} - {activity.age_max || 'n.c.'} ans</span>}
-                {activity.category && <span className="badge category">{activity.category}</span>}
-              </div>
-
-              {/* Afficher le bouton de suggestion uniquement si c'est une activité de la base de données */}
-              {activity.id && (
-                <button 
-                  onClick={() => suggestActivity(activity.id)} 
-                  className="suggest-btn"
-                >
-                  Proposer à mon Nest
-                </button>
-              )}
-              {activity.lien && (
-                 <a href={activity.lien} target="_blank" rel="noopener noreferrer" className="link-btn">
-                    Voir les détails 🔗
-                 </a>
-              )}
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
-
     </div>
   );
 };
