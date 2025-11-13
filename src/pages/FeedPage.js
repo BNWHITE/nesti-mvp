@@ -11,7 +11,6 @@ export default function FeedPage({ user, familyId }) {
   const [userName, setUserName] = useState('Utilisateur'); 
 
   const fetchUserData = useCallback(async () => {
-    // ... (Récupération du prénom inchangée) ...
     try {
       const { data: profileData } = await supabase
         .from('user_profiles')
@@ -31,7 +30,6 @@ export default function FeedPage({ user, familyId }) {
     await fetchUserData();
 
     try {
-      // Récupérer 3 activités principales (Maintenant généralisé)
       const { data: activitiesData, error: activitiesError } = await supabase
         .from('activities')
         .select('id, title, difficulty')
@@ -67,7 +65,6 @@ export default function FeedPage({ user, familyId }) {
   }, [fetchData]);
 
   const suggestActivity = async (activityId) => {
-    // ... (Logique suggestActivity inchangée) ...
     if (!familyId) {
       alert("Veuillez d'abord rejoindre un Nest familial.");
       return;
@@ -92,8 +89,18 @@ export default function FeedPage({ user, familyId }) {
     }
   };
 
+  const handleLike = (postId) => {
+    // Logique de Like (Mise à jour du state et de Supabase)
+    console.log(`Liking post ${postId}`);
+    setPosts(posts.map(p => p.id === postId ? { ...p, likes: p.likes + 1 } : p));
+  };
+  
+  const handleComment = (postId) => {
+    // Logique d'affichage du champ de commentaire (Mise à jour du state)
+    alert(`Fonctionnalité Commenter pour le post ${postId} à implémenter !`);
+  };
+
   const quickActions = [
-    // ... (quickActions inchangés) ...
     { emoji: '🎂', label: 'Anniversaire', color: 'bg-warning' },
     { emoji: '🎉', label: 'Événement', color: 'bg-secondary' },
     { emoji: '🏆', label: 'Achievement', color: 'bg-success' },
@@ -101,7 +108,6 @@ export default function FeedPage({ user, familyId }) {
   ];
 
   if (loading) {
-    // ... (Rendu loading inchangé) ...
     return (
       <div className="feed-page">
         <div className="loading">Chargement...</div>
@@ -127,7 +133,6 @@ export default function FeedPage({ user, familyId }) {
       </div>
 
       <div className="activities-section">
-        {/* FIX: Texte généralisé */}
         <h2>🔥 Suggestions d'Activités Rapides</h2> 
         <div className="activities-grid">
           {activities.map(activity => (
@@ -168,9 +173,12 @@ export default function FeedPage({ user, familyId }) {
               </div>
 
               <div className="post-reactions">
-                {/* FEATURE: Liker/Commenter */}
-                <button className="reaction-btn like-btn">❤️ J'aime ({post.likes})</button> 
-                <button className="reaction-btn comment-btn">💬 Commenter ({post.comments})</button>
+                <button className="reaction-btn like-btn" onClick={() => handleLike(post.id)}>
+                    ❤️ J'aime ({post.likes})
+                </button>
+                <button className="reaction-btn comment-btn" onClick={() => handleComment(post.id)}>
+                    💬 Commenter ({post.comments})
+                </button>
                 <button className="reaction-btn share-btn">🔗 Partager</button>
               </div>
             </div>
