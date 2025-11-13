@@ -355,3 +355,79 @@ body {
   color: #4A8B7A;
   text-decoration: underline;
 }
+/* src/App.css (MISE À JOUR GLOBALE POUR DARK MODE) */
+
+:root {
+  /* Light Mode */
+  --color-primary: #6200EE;
+  --color-secondary: #03DAC6;
+  --color-text: #333333;
+  --color-background: #f4f7f9;
+  --color-card-bg: white;
+  --color-border: #e0e0e0;
+  --color-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.dark-mode {
+  /* Dark Mode */
+  --color-primary: #BB86FC;
+  --color-secondary: #03DAC6;
+  --color-text: #E0E0E0;
+  --color-background: #121212;
+  --color-card-bg: #1E1E1E;
+  --color-border: #333333;
+  --color-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.app {
+  /* Assurez-vous que l'application utilise la couleur de fond globale */
+  background-color: var(--color-background);
+  color: var(--color-text);
+  min-height: 100vh;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 100vh;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: var(--color-card-bg); /* Le conteneur central peut être plus clair */
+  position: relative;
+}
+
+.main-content {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-bottom: 70px; /* Espace pour la navigation */
+}
+
+/* Styles pour les boutons et cartes généraux (à généraliser dans les fichiers CSS spécifiques) */
+button {
+  transition: background-color 0.2s;
+}
+
+/* Styles pour le modal de Settings (à copier dans src/pages/SettingsPage.css) */
+.settings-page-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.settings-panel {
+    background-color: var(--color-card-bg);
+    color: var(--color-text);
+    width: 90%;
+    max-width: 450px;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: var(--color-shadow);
+}
