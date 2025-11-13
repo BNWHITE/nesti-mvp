@@ -52,8 +52,8 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName }) => {
       if (userError) throw userError;
 
       // 3. Mise à jour de l'état global de l'application (Débloque l'interface principale)
-      setFamilyId(newFamilyId);
-      setFamilyName(newFamilyName);
+      setFamilyId(newFamilyId); // Doit être l'ID valide de la nouvelle famille
+      setFamilyName(newFamilyName); // Doit être le nom valide de la nouvelle famille
       
     } catch (err) {
       console.error("Erreur lors de la création de la famille:", err);
