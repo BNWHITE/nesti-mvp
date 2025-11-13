@@ -1,4 +1,4 @@
-// src/pages/DiscoveriesPage.js (UX/UI REFONTE avec MAPS & RECHERCHE)
+// src/pages/DiscoveriesPage.js (DESIGN AMÉLIORÉ)
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
@@ -13,7 +13,7 @@ const DiscoveriesPage = ({ user, familyId }) => {
   const [activeFilter, setActiveFilter] = useState('Tout');
   
   const fetchActivities = useCallback(async () => {
-    // Simule la fusion des données (Rennes + IDF pour l'instant)
+    // Charger toutes les activités disponibles (Rennes + IDF pour l'instant)
     const { data, error } = await supabase
       .from('activities')
       .select('id, title, description, difficulty, age_min, age_max, category')
@@ -89,9 +89,18 @@ const DiscoveriesPage = ({ user, familyId }) => {
           ) : (
             filteredActivities.map((activity) => (
               <div key={activity.id} className="activity-card">
-                <h2 className="activity-title">{activity.title}</h2>
+                <div className="activity-header">
+                    <h2 className="activity-title">{activity.title}</h2>
+                    <span className={`badge difficulty-${activity.difficulty ? activity.difficulty.toLowerCase() : 'nc'}`}>
+                        {activity.difficulty || 'N.C.'}
+                    </span>
+                </div>
                 <p className="activity-description">{activity.description}</p>
-                {/* ... (Affichage des badges et boutons d'action) ... */}
+                
+                <div className="activity-actions">
+                    <button className="suggest-btn">Proposer à mon Nest</button>
+                    <button className="details-btn">Voir détails</button>
+                </div>
               </div>
             ))
           )}
