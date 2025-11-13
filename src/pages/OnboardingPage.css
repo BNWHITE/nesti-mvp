@@ -1,0 +1,95 @@
+/* src/pages/Onboarding.css */
+
+.onboarding-page-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: #f0f2f5; /* Fond léger */
+}
+
+.onboarding-card {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+}
+
+.onboarding-card h1 {
+    color: #6200EE;
+    margin-bottom: 10px;
+}
+
+.onboarding-intro {
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.onboarding-options {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.option-card {
+    padding: 25px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    text-align: left;
+}
+
+.option-card h2 {
+    color: #333;
+    margin-top: 0;
+    font-size: 1.4em;
+}
+
+.option-card input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.option-card button {
+    width: 100%;
+    padding: 12px;
+    background-color: #6200EE;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.option-card button:hover:not(:disabled) {
+    background-color: #4b00c4;
+}
+
+.option-card button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.divider {
+    text-align: center;
+    color: #999;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.onboarding-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    border: 1px solid #f5c6cb;
+}
