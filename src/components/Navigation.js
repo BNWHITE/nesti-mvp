@@ -1,21 +1,23 @@
+// src/components/Navigation.js (Bottom Bar)
+
 import './Navigation.css';
 
-export default function Navigation({ activeTab, onTabChange }) {
+const Navigation = ({ activeTab, onTabChange }) => {
   const tabs = [
-    { id: 'feed', icon: '🏠', label: 'Accueil' },
-    { id: 'agenda', icon: '📅', label: 'Agenda' },
-    { id: 'nest', icon: '👨‍👩‍👧‍👦', label: 'Mon Nest' },
-    { id: 'discover', icon: '🎯', label: 'Découvertes' },
-    { id: 'chat', icon: '🤖', label: 'Nesti IA' }
+    { name: 'feed', icon: '🏠', label: 'Accueil' },
+    { name: 'agenda', icon: '📅', label: 'Agenda' },
+    { name: 'nest', icon: '👨‍👩‍👧', label: 'Mon Nest' },
+    { name: 'discover', icon: '🧭', label: 'Découvertes' },
+    { name: 'chat', icon: '🧠', label: 'Nesti IA' },
   ];
 
   return (
-    <nav className="bottom-nav">
+    <nav className="bottom-navigation">
       {tabs.map(tab => (
         <button
-          key={tab.id}
-          className={`nav-item ${activeTab === tab.id ? 'active' : ''}`}
-          onClick={() => onTabChange(tab.id)}
+          key={tab.name}
+          className={`nav-item ${activeTab === tab.name ? 'active' : ''}`}
+          onClick={() => onTabChange(tab.name)}
         >
           <span className="nav-icon">{tab.icon}</span>
           <span className="nav-label">{tab.label}</span>
@@ -23,4 +25,6 @@ export default function Navigation({ activeTab, onTabChange }) {
       ))}
     </nav>
   );
-}
+};
+
+export default Navigation;
