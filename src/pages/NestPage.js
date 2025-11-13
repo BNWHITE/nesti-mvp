@@ -1,92 +1,83 @@
-/* src/pages/NestPage.css */
+// src/pages/NestPage.js (MISE À JOUR)
 
-.nest-page {
-    padding: 20px;
-    background-color: var(--color-background);
-}
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabaseClient';
+import './NestPage.css'; 
 
-.nest-header {
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid var(--color-border);
-}
+const NestPage = ({ user, familyId, familyName }) => {
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-.nest-header h1 {
-    font-size: 1.8em;
-    color: var(--color-primary);
-    margin-bottom: 10px;
-}
+  const fetchFamilyDetails = useCallback(async () => {
+    if (!familyId) {
+      setError("Erreur : Nest familial non défini.");
+      setLoading(false);
+      return;
+    }
 
-.nest-actions {
-    display: flex;
-    gap: 10px;
-}
+    try {
+      // Récupérer les membres y compris le RÔLE
+      const { data, error } = await supabase
+        .from('user_profiles') 
+        .select('id, first_name, last_name, role') 
+        .eq('family_id', familyId);
 
-.invite-btn {
-    padding: 10px 15px;
-    border: 1px solid var(--color-primary);
-    border-radius: 6px;
-    background-color: white;
-    color: var(--color-primary);
-    font-weight: 600;
-}
+      if (error) throw error;
+      
+      setMembers(data || []);
+      setError(null);
 
-.invite-btn.primary {
-    background-color: var(--color-primary);
-    color: white;
-}
+    } catch (err) {
+      setError("Impossible de charger les membres du Nest.");
+    } finally {
+      setLoading(false);
+    }
+  }, [familyId]);
 
-/* Liste des membres */
-.member-list {
-    margin-top: 30px;
-}
+  useEffect(() => {
+    fetchFamilyDetails();
+  }, [fetchFamilyDetails]);
 
-.member-list h2 {
-    font-size: 1.4em;
-    margin-bottom: 15px;
-    color: var(--color-text);
-}
+  const handleInviteMember = () => {
+    const joinCode = "TRIBEXYZ"; 
+    alert(`Pour inviter un membre, partagez ce code : ${joinCode}. Il devra l'utiliser sur la page d'Onboarding.`);
+  };
 
-.member-card {
-    display: flex;
-    align-items: center;
-    background-color: var(--color-card-bg);
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: var(--color-shadow);
-    margin-bottom: 10px;
-    border-left: 5px solid transparent;
-}
+  const handleAddMember = () => {
+    alert("Fonctionnalité 'Ajouter un membre' : Formulaire pour créer un profil enfant ou adolescent sans email.");
+  };
 
-.member-card.is-me {
-    border-left-color: var(--color-primary);
-}
+  if (loading) return <div className="nest-page loading">Chargement du Nest...</div>;
 
-.member-avatar {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    background-color: var(--color-secondary);
-    color: var(--color-text-dark);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
-    font-size: 1.2em;
-    margin-right: 15px;
-}
+  return (
+    <div className="nest-page">
+      <div className="nest-header">
+        <h1>🏡 Mon Nest : {familyName || 'Ma Famille'}</h1>
+        <div className="nest-actions">
+          <button className="action-btn secondary" onClick={handleAddMember}>+ Ajouter un membre</button>
+          <button className="action-btn primary" onClick={handleInviteMember}>📧 Inviter un membre</button>
+        </div>
+      </div>
+      
+      {error && <div className="nest-error">{error}</div>}
 
-.member-info {
-    flex-grow: 1;
-}
+      <section className="member-list">
+        <h2>Membres du Nest</h2>
+        {members.map(member => (
+          <div key={member.id} className={`member-card ${member.id === user.id ? 'is-me' : ''}`}>
+            <span className="member-avatar">{member.first_name ? member.first_name[0] : '?'}</span>
+            <div className="member-info">
+              <p className="member-name">{member.first_name} {member.last_name} {member.id === user.id && '(Moi)'}</p>
+              <p className="member-role">{member.role === 'parent' ? 'Parent/Tuteur' : 'Enfant/Ado'}</p>
+            </div>
+            {member.id !== user.id && <button className="member-action">Gérer</button>}
+          </div>
+        ))}
+        {members.length === 0 && <p>Il n'y a pas encore d'autres membres dans votre Nest.</p>}
+      </section>
+    </div>
+  );
+};
 
-.member-name {
-    font-weight: 600;
-    margin: 0;
-}
-
-.member-role {
-    font-size: 0.85em;
-    color: var(--color-text-light);
-    margin: 0;
-}
+export default NestPage;
