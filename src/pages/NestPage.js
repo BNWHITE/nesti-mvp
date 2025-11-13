@@ -1,4 +1,4 @@
-// src/pages/NestPage.js
+// src/pages/NestPage.js (MISE À JOUR)
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
@@ -17,10 +17,10 @@ const NestPage = ({ user, familyId, familyName }) => {
     }
 
     try {
-      // Récupérer tous les membres de la famille
+      // Récupérer les membres y compris le RÔLE
       const { data, error } = await supabase
         .from('user_profiles') 
-        .select('id, first_name, last_name')
+        .select('id, first_name, last_name, role') 
         .eq('family_id', familyId);
 
       if (error) throw error;
@@ -29,7 +29,6 @@ const NestPage = ({ user, familyId, familyName }) => {
       setError(null);
 
     } catch (err) {
-      console.error("Erreur chargement des membres:", err);
       setError("Impossible de charger les membres du Nest.");
     } finally {
       setLoading(false);
@@ -40,13 +39,27 @@ const NestPage = ({ user, familyId, familyName }) => {
     fetchFamilyDetails();
   }, [fetchFamilyDetails]);
 
+  const handleInviteMember = () => {
+    // NOTE: Afficher le code de jointure (à récupérer de la table families)
+    const joinCode = "TRIBEXYZ"; // Remplacer par la récupération réelle
+    alert(`Pour inviter un membre, partagez ce code : ${joinCode}. Il devra l'utiliser sur la page d'Onboarding.`);
+  };
+
+  const handleAddMember = () => {
+    // NOTE: Fonction pour ajouter manuellement un profil Enfant (sans compte Supabase)
+    alert("Fonctionnalité 'Ajouter un membre' : Formulaire pour créer un profil enfant ou adolescent sans email.");
+  };
+
   if (loading) return <div className="nest-page loading">Chargement du Nest...</div>;
 
   return (
     <div className="nest-page">
       <div className="nest-header">
         <h1>🏡 Mon Nest : {familyName || 'Ma Famille'}</h1>
-        <button className="invite-btn">📧 Inviter un membre</button>
+        <div className="nest-actions">
+          <button className="invite-btn" onClick={handleAddMember}>+ Ajouter un membre</button>
+          <button className="invite-btn primary" onClick={handleInviteMember}>📧 Inviter un membre</button>
+        </div>
       </div>
       
       {error && <div className="nest-error">{error}</div>}
@@ -58,15 +71,14 @@ const NestPage = ({ user, familyId, familyName }) => {
             <span className="member-avatar">{member.first_name ? member.first_name[0] : '?'}</span>
             <div className="member-info">
               <p className="member-name">{member.first_name} {member.last_name} {member.id === user.id && '(Moi)'}</p>
-              <p className="member-role">Parent (à définir)</p>
+              {/* AFFICHAGE DU RÔLE */}
+              <p className="member-role">{member.role === 'parent' ? 'Parent/Tuteur' : 'Enfant/Ado'}</p>
             </div>
-            {member.id !== user.id && <button className="member-action">Voir le profil</button>}
+            {member.id !== user.id && <button className="member-action">Gérer</button>}
           </div>
         ))}
         {members.length === 0 && <p>Il n'y a pas encore d'autres membres dans votre Nest.</p>}
       </section>
-      
-      {/* Vous pouvez ajouter d'autres sections ici (enfants, règles, etc.) */}
     </div>
   );
 };
