@@ -1,261 +1,125 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import './ChatPage.css';
+// src/pages/ChatPage.js
 
-export default function ChatPage({ user }) {
-  const [messages, setMessages] = useState([]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef(null);
+import { useState, useRef, useEffect } from 'react';
+import './ChatPage.css'; 
 
-  const getWelcomeMessages = useCallback(() => {
-    return [
-      {
-        id: 1,
-        type: 'ai',
-        content: `Bonjour ${user?.user_metadata?.first_name || ''} ! 👋 Je suis Nesti, votre assistant familial bienveillant.`,
-        timestamp: new Date(),
-        suggestions: [
-          {
-            title: "Activités Paris",
-            description: "Sorties adaptées selon les âges", 
-            prompt: "Quelles activités à Paris pour des enfants ?",
-            emoji: "🎯"
-          },
-          {
-            title: "Organisation",
-            description: "Planning et routines familiales",
-            prompt: "Comment organiser notre semaine à Paris ?",
-            emoji: "📅"
-          }
-        ]
-      }
-    ];
-  }, [user]);
+// URL de votre fonction Vercel Serverless
+const AI_API_URL = '/api/nesti-ai';
+
+const ChatPage = ({ user, familyId }) => {
+  const [messages, setMessages] = useState([
+    { id: 1, sender: 'Nesti', text: "Bonjour ! Je suis Nesti, votre assistant familial expert en activités et organisation. Comment puis-je vous aider aujourd'hui ?", timestamp: new Date() }
+  ]);
+  const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const chatEndRef = useRef(null);
+
+  const firstName = user?.user_metadata?.first_name || 'Utilisateur'; // Récupéré de la session ou du mock
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(() => {
-    setMessages(getWelcomeMessages());
-  }, [getWelcomeMessages]);
+  useEffect(scrollToBottom, [messages]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  const handleSend = async (e) => {
+    e.preventDefault();
+    if (input.trim() === '' || isTyping) return;
 
-  // 🔥 VERSION TEMPORAIRE INTELLIGENTE
-  const callNestiAI = async (prompt) => {
-    setLoading(true);
-  
+    const userMessage = { id: Date.now(), sender: firstName, text: input.trim(), timestamp: new Date() };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsTyping(true);
+
     try {
-      // 🔥 VOTRE URL RAILWAY
-      const API_URL = 'https://nesti-ai-server-production.up.railway.app/api/nesti-ai';
-  
-      console.log('📤 Envoi à Nesti AI:', prompt);
-      
-      const response = await fetch(API_URL, {
+      // 1. Appel de l'API Nesti AI (Vercel Serverless)
+      const response = await fetch(AI_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: prompt,
+          message: userMessage.text,
           userContext: {
-            userName: user?.user_metadata?.first_name,
-            location: 'Paris'
+            userId: user.id,
+            familyId: familyId,
+            userName: firstName
           }
         }),
       });
-  
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Erreur HTTP: ${response.status}`);
+        throw new Error(`Erreur API: ${response.statusText}`);
       }
-  
+
       const data = await response.json();
-      console.log('✅ Réponse reçue de Nesti AI');
       
-      return data.response;
-  
+      const aiResponse = { 
+        id: Date.now() + 1, 
+        sender: 'Nesti', 
+        text: data.response || "Désolé, je n'ai pas pu générer de réponse.", 
+        timestamp: new Date() 
+      };
+
+      setMessages(prev => [...prev, aiResponse]);
+
     } catch (error) {
-      console.error('❌ Erreur Nesti AI:', error);
-      
-      // Fallback temporaire
-      return `Je rencontre une difficulté technique momentanée. 😔
-  
-  Mais voici ce que je peux vous proposer immédiatement :
-  
-  🎯 **Activités à Paris ce week-end :**
-  • Cité des Sciences - Nouvelle expo interactive
-  • Jardin des Plantes - Ménagerie rénovée  
-  • Parc de Bercy - Grands espaces verts
-  
-  📅 **Organisation de la semaine :**
-  Lundi : Devoirs 17h + Temps calme
-  Mardi : Sport 17h30 + Jeux créatifs
-  Mercredi : Sortie culturelle + Repos
-  Jeudi : Jeux société + Histoire
-  Vendredi : Temps libre en famille
-  
-  Pouvez-vous réessayer votre question ? ✨`;
+      console.error("Erreur lors de l'appel à l'IA:", error);
+      const errorMessage = { 
+        id: Date.now() + 1, 
+        sender: 'Nesti', 
+        text: "🚨 Oups ! Je rencontre un problème de connexion avec OpenAI. Veuillez réessayer plus tard.", 
+        timestamp: new Date() 
+      };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
-      setLoading(false);
+      setIsTyping(false);
     }
-  };  // ⚠️ N'OUBLIEZ PAS CETTE ACCOLADE FERMANTE
-
-  const handleSendMessage = async (text = inputMessage) => {
-    if (!text.trim()) return;
-
-    const userMessage = {
-      id: Date.now(),
-      type: 'user',
-      content: text.trim(),
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
-    
-    const aiResponse = await callNestiAI(text);
-    
-    const aiMessage = {
-      id: Date.now() + 1,
-      type: 'ai',
-      content: aiResponse,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, aiMessage]);
   };
-
-  const handleSuggestionClick = (suggestion) => {
-    handleSendMessage(suggestion.prompt);
-  };
-
-  const formatMessageContent = (content) => {
-    if (!content || typeof content !== 'string') {
-      return <div>Message non disponible</div>;
-    }
-
-    return content.split('\n').map((line, index) => {
-      const trimmedLine = line.trim();
-      if (!trimmedLine) return <br key={index} />;
-      if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-')) {
-        return <div key={index} className="message-bullet">• {trimmedLine.substring(1).trim()}</div>;
-      }
-      if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
-        return <div key={index} className="message-bold">{trimmedLine.replace(/\*\*/g, '')}</div>;
-      }
-      return <div key={index}>{line}</div>;
-    });
-  };
-
-  const quickActions = [
-    { emoji: '🏛️', label: 'Musées Paris', prompt: 'Quels musées à Paris pour enfants ?' },
-    { emoji: '🌳', label: 'Parcs Paris', prompt: 'Meilleurs parcs à Paris pour famille' },
-    { emoji: '📅', label: 'Organisation', prompt: 'Comment organiser notre semaine à Paris ?' },
-    { emoji: '🍽️', label: 'Repas équilibrés', prompt: 'Idées repas équilibrés pour enfants' }
-  ];
 
   return (
     <div className="chat-page">
       <div className="chat-header">
-        <div className="ai-avatar">
-          <span>✨</span>
-        </div>
-        <div className="ai-info">
-          <h1>Nesti IA</h1>
-          <p>Votre assistant familial bienveillant</p>
-        </div>
+        <h1>🧠 Nesti IA</h1>
+        <p>Expert en activités, organisation et éducation familiale.</p>
       </div>
 
-      <div className="chat-messages">
-        {messages.map((message) => (
-          <div key={message.id} className={`message ${message.type}-message`}>
-            <div className="message-avatar">
-              {message.type === 'ai' ? '✨' : '👤'}
-            </div>
-            <div className="message-content">
-              <div className="message-text">
-                {formatMessageContent(message.content)}
-              </div>
-              {message.suggestions && (
-                <div className="suggestion-cards">
-                  {message.suggestions.map((suggestion, index) => (
-                    <div 
-                      key={index}
-                      className="suggestion-card"
-                      onClick={() => handleSuggestionClick(suggestion)}
-                    >
-                      <span className="suggestion-emoji">{suggestion.emoji}</span>
-                      <div className="suggestion-text">
-                        <strong>{suggestion.title}</strong>
-                        <p>{suggestion.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="message-time">
-              {message.timestamp.toLocaleTimeString('fr-FR', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-              })}
+      <div className="chat-window">
+        {messages.map((msg) => (
+          <div key={msg.id} className={`message-row ${msg.sender === 'Nesti' ? 'nesti' : 'user'}`}>
+            <div className="message-bubble">
+              <span className="message-sender">{msg.sender === 'Nesti' ? 'Nesti' : firstName}</span>
+              <p>{msg.text}</p>
+              <span className="message-time">
+                {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
             </div>
           </div>
         ))}
-        
-        {loading && (
-          <div className="message ai-message">
-            <div className="message-avatar">✨</div>
-            <div className="message-content">
-              <div className="typing-indicator">
-                <span></span>
-                <span></span>
-                <span></span>
-                <span className="typing-text">Nesti réfléchit...</span>
-              </div>
+        {isTyping && (
+          <div className="message-row nesti">
+            <div className="message-bubble typing-indicator">
+              <p>Nesti est en train d'écrire...</p>
             </div>
           </div>
         )}
-        
-        <div ref={messagesEndRef} />
+        <div ref={chatEndRef} />
       </div>
 
-      <div className="quick-actions">
-        {quickActions.map((action, index) => (
-          <button 
-            key={index}
-            className="quick-btn"
-            onClick={() => handleSendMessage(action.prompt)}
-            disabled={loading}
-          >
-            <span className="quick-emoji">{action.emoji}</span>
-            <span className="quick-label">{action.label}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="chat-input">
-        <input 
-          type="text" 
-          value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
+      <form onSubmit={handleSend} className="chat-input-container">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
           placeholder="Posez une question à Nesti..."
-          className="message-input"
-          onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-          disabled={loading}
+          disabled={isTyping}
         />
-        <button 
-          className="send-btn"
-          onClick={() => handleSendMessage()}
-          disabled={!inputMessage.trim() || loading}
-        >
-          {loading ? <div className="send-loading"></div> : '➤'}
+        <button type="submit" disabled={isTyping}>
+          {isTyping ? '⏳' : 'Envoyer'}
         </button>
-      </div>
+      </form>
     </div>
   );
-}
+};
+
+export default ChatPage;
