@@ -1,4 +1,4 @@
-/* src/pages/DiscoveriesPage.css */
+/* src/pages/DiscoveriesPage.css (DESIGN AMÉLIORÉ) */
 
 .discoveries-page {
     padding: 0; 
@@ -8,11 +8,11 @@
 /* Zone Carte */
 .discoveries-map-area {
     height: 250px;
-    background-color: #A9D0F5; 
+    background: linear-gradient(135deg, #A9D0F5, #88B0EF); /* Gradient pour plus de style */
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 50px; 
     z-index: 5;
@@ -21,11 +21,12 @@
 .map-placeholder {
     color: white;
     font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    font-size: 1.1em;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 .discoveries-content {
-    padding: 20px;
+    padding: 20px 15px;
 }
 
 /* Recherche et Filtres */
@@ -33,7 +34,7 @@
     margin-bottom: 25px;
     background-color: var(--color-card-bg);
     padding: 15px;
-    border-radius: 8px;
+    border-radius: 12px;
     box-shadow: var(--color-shadow);
     margin-top: -50px; 
     position: relative;
@@ -45,7 +46,7 @@
     width: 100%;
     padding: 12px;
     border: 1px solid var(--color-border);
-    border-radius: 6px;
+    border-radius: 8px;
     margin-bottom: 15px;
     background-color: var(--color-background);
     color: var(--color-text);
@@ -58,12 +59,13 @@
 }
 
 .filter-btn {
-    padding: 8px 12px;
+    padding: 8px 15px;
     border: 1px solid var(--color-border);
     border-radius: 20px;
     background-color: var(--color-background);
     color: var(--color-text-light);
     font-size: 0.9em;
+    font-weight: 600;
 }
 
 .filter-btn.active {
@@ -87,13 +89,61 @@
 
 .activity-card {
     background: var(--color-card-bg);
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: var(--color-shadow);
+    padding: 18px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     border: 1px solid var(--color-border);
 }
-.empty-results {
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.activity-title {
+    font-size: 1.2em;
+    margin: 0;
+    color: var(--color-text);
+}
+
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: 700;
+}
+
+.difficulty-débutant, .difficulty-facile { background-color: #D4EDDA; color: #155724; }
+.difficulty-intermédiaire { background-color: #FFEEBA; color: #856404; }
+
+.activity-description {
+    font-size: 0.9em;
     color: var(--color-text-light);
-    text-align: center;
-    padding: 20px;
+    margin-bottom: 15px;
+}
+
+.activity-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.suggest-btn, .details-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.suggest-btn {
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+}
+
+.details-btn {
+    background-color: var(--color-background);
+    color: var(--color-primary);
+    border: 1px solid var(--color-primary);
 }
