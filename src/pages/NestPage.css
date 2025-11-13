@@ -1,92 +1,109 @@
-/* src/pages/DiscoveriesPage.css */
+/* src/pages/NestPage.css (DESIGN AMÉLIORÉ) */
 
-.discoveries-page {
-    padding: 0; /* Padding géré par les sections */
+.nest-page {
+    padding: 20px 15px;
     background-color: var(--color-background);
 }
 
-/* Zone Carte */
-.discoveries-map-area {
-    height: 250px;
-    background-color: #A9D0F5; /* Couleur de fond de la carte */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 50px; /* Sous le Header */
-}
-
-.map-placeholder {
-    color: white;
-    font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-.discoveries-content {
-    padding: 20px;
-}
-
-/* Recherche et Filtres */
-.search-controls {
+.nest-header {
     margin-bottom: 25px;
-    background-color: var(--color-card-bg);
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: var(--color-shadow);
-    margin-top: -50px; /* Remonte sur la carte */
-    position: relative;
-    z-index: 5;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--color-border);
 }
 
-.search-input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    margin-bottom: 15px;
-    background-color: var(--color-card-bg);
-    color: var(--color-text);
+.nest-header h1 {
+    font-size: 1.8em;
+    color: var(--color-primary);
+    margin-bottom: 10px;
 }
 
-.filters {
+.nest-actions {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
 }
 
-.filter-btn {
-    padding: 8px 12px;
-    border: 1px solid var(--color-border);
-    border-radius: 20px;
+.action-btn {
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.action-btn.secondary {
     background-color: var(--color-background);
-    color: var(--color-text-light);
-    font-size: 0.9em;
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary);
 }
 
-.filter-btn.active {
+.action-btn.primary {
     background-color: var(--color-primary);
     color: white;
-    border-color: var(--color-primary);
+    border: none;
 }
 
-/* Liste des activités */
-.activity-list-title {
+/* Liste des membres */
+.member-list {
+    margin-top: 30px;
+}
+
+.member-list h2 {
     font-size: 1.4em;
     margin-bottom: 15px;
     color: var(--color-text);
 }
 
-.activities-list {
-    display: grid;
-    gap: 15px;
-    grid-template-columns: 1fr; /* Liste simple */
+.member-card {
+    display: flex;
+    align-items: center;
+    background-color: var(--color-card-bg);
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 12px;
+    border: 1px solid var(--color-border);
+    transition: all 0.2s;
 }
 
-.activity-card {
-    background: var(--color-card-bg);
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: var(--color-shadow);
+.member-card.is-me {
+    border: 2px solid var(--color-primary);
+    background-color: var(--color-background); /* Pour mettre en évidence l'utilisateur */
 }
-/* ... (Styles des badges et boutons d'action) ... */
+
+.member-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--color-secondary);
+    color: var(--color-text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-right: 15px;
+}
+
+.member-info {
+    flex-grow: 1;
+}
+
+.member-name {
+    font-weight: 700;
+    margin: 0;
+}
+
+.member-role {
+    font-size: 0.85em;
+    color: var(--color-text-light);
+    margin: 0;
+    font-style: italic;
+}
+
+.member-action {
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: var(--color-primary);
+}
