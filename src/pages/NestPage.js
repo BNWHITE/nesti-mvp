@@ -1,97 +1,74 @@
+// src/pages/NestPage.js
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import './NestPage.css';
+import './NestPage.css'; 
 
-export default function NestPage({ user, familyId, familyName }) {
-  const [familyMembers, setFamilyMembers] = useState([]);
+const NestPage = ({ user, familyId, familyName }) => {
+  const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const fetchFamilyMembers = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('family_id', familyId)
-      .order('created_at', { ascending: true });
-
-    if (!error && data) {
-      setFamilyMembers(data);
+  const fetchFamilyDetails = useCallback(async () => {
+    if (!familyId) {
+      setError("Erreur : Nest familial non défini.");
+      setLoading(false);
+      return;
     }
-    setLoading(false);
+
+    try {
+      // Récupérer tous les membres de la famille
+      const { data, error } = await supabase
+        .from('user_profiles') 
+        .select('id, first_name, last_name')
+        .eq('family_id', familyId);
+
+      if (error) throw error;
+      
+      setMembers(data || []);
+      setError(null);
+
+    } catch (err) {
+      console.error("Erreur chargement des membres:", err);
+      setError("Impossible de charger les membres du Nest.");
+    } finally {
+      setLoading(false);
+    }
   }, [familyId]);
 
   useEffect(() => {
-    fetchFamilyMembers();
-  }, [fetchFamilyMembers]);
+    fetchFamilyDetails();
+  }, [fetchFamilyDetails]);
 
-  const getRoleEmoji = (role) => {
-    const emojis = {
-      parent: '👨‍👩‍👧',
-      teen: '👦',
-      child: '👶',
-      grandparent: '👴',
-      adult: '🧑'
-    };
-    return emojis[role] || '👤';
-  };
-
-  if (loading) {
-    return <div className="loading">Chargement des membres...</div>;
-  }
+  if (loading) return <div className="nest-page loading">Chargement du Nest...</div>;
 
   return (
     <div className="nest-page">
       <div className="nest-header">
-        <div className="family-card">
-          <div className="family-emoji">🏠</div>
-          <div className="family-info">
-            <h1>{familyName || 'Notre Famille'}</h1>
-            <p>{familyMembers.length} membre(s) • Créée récemment</p>
-          </div>
-        </div>
-        
-        <button className="invite-btn">
-          👋 Inviter un membre
-        </button>
+        <h1>🏡 Mon Nest : {familyName || 'Ma Famille'}</h1>
+        <button className="invite-btn">📧 Inviter un membre</button>
       </div>
+      
+      {error && <div className="nest-error">{error}</div>}
 
-      <div className="members-section">
-        <h2>👨‍👩‍👧‍👦 Membres de la famille</h2>
-        <div className="members-list">
-          {familyMembers.map(member => (
-            <div key={member.id} className="member-card">
-              <div className="member-avatar">
-                {getRoleEmoji(member.role)}
-              </div>
-              <div className="member-info">
-                <h3>{member.first_name}</h3>
-                <p className="member-role">{member.role}</p>
-                <p className="member-email">{member.email}</p>
-              </div>
-              <div className="member-actions">
-                {member.id === user.id && <span className="badge-you">Vous</span>}
-              </div>
+      <section className="member-list">
+        <h2>Membres du Nest</h2>
+        {members.map(member => (
+          <div key={member.id} className={`member-card ${member.id === user.id ? 'is-me' : ''}`}>
+            <span className="member-avatar">{member.first_name ? member.first_name[0] : '?'}</span>
+            <div className="member-info">
+              <p className="member-name">{member.first_name} {member.last_name} {member.id === user.id && '(Moi)'}</p>
+              <p className="member-role">Parent (à définir)</p>
             </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="family-stats">
-        <h2>📊 Statistiques du Nest</h2>
-        <div className="stats-grid">
-          <div className="stat-card">
-            <span className="stat-number">{familyMembers.length}</span>
-            <span className="stat-label">Membres</span>
+            {member.id !== user.id && <button className="member-action">Voir le profil</button>}
           </div>
-          <div className="stat-card">
-            <span className="stat-number">0</span>
-            <span className="stat-label">Activités cette semaine</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-number">0</span>
-            <span className="stat-label">Posts</span>
-          </div>
-        </div>
-      </div>
+        ))}
+        {members.length === 0 && <p>Il n'y a pas encore d'autres membres dans votre Nest.</p>}
+      </section>
+      
+      {/* Vous pouvez ajouter d'autres sections ici (enfants, règles, etc.) */}
     </div>
   );
-}
+};
+
+export default NestPage;
