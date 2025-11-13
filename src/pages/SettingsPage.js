@@ -1,108 +1,51 @@
-import { useState, useEffect, useCallback } from 'react';
+// src/pages/SettingsPage.js
+
 import { supabase } from '../lib/supabaseClient';
-import './SettingsPage.css';
+import './SettingsPage.css'; 
 
-export default function SettingsPage({ user, onClose }) {
-  const [profile, setProfile] = useState({
-    bio: '',
-    notifications_enabled: true,
-    theme: 'light'
-  });
-  const [loading, setLoading] = useState(false);
+const SettingsPage = ({ user, onClose }) => {
 
-  const fetchProfile = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-
-    if (!error && data) {
-      setProfile(data);
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      alert("Erreur lors de la déconnexion: " + error.message);
+    } else {
+      // Supabase onAuthStateChange gère la redirection vers l'écran de login
+      onClose(); 
     }
-  }, [user.id]);
-
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
-
-  const handleSave = async () => {
-    setLoading(true);
-    const { error } = await supabase
-      .from('user_profiles')
-      .upsert({
-        id: user.id,
-        ...profile,
-        updated_at: new Date().toISOString()
-      });
-
-    if (!error) {
-      alert('Paramètres sauvegardés !');
-    }
-    setLoading(false);
   };
 
   return (
-    <div className="settings-overlay">
-      <div className="settings-modal">
+    <div className="settings-page-overlay">
+      <div className="settings-panel">
         <div className="settings-header">
-          <h2>⚙️ Paramètres</h2>
-          <button onClick={onClose}>✕</button>
+          <h1>⚙️ Paramètres du compte</h1>
+          <button className="close-btn" onClick={onClose}>&times;</button>
         </div>
 
-        <div className="settings-content">
-          <section className="settings-section">
-            <h3>👤 Profil</h3>
-            <div className="setting-item">
-              <label>Email</label>
-              <input type="email" value={user.email} disabled />
-            </div>
-            <div className="setting-item">
-              <label>Bio</label>
-              <textarea
-                value={profile.bio}
-                onChange={(e) => setProfile({...profile, bio: e.target.value})}
-                placeholder="Décrivez-vous..."
-                rows="3"
-              />
-            </div>
-          </section>
+        <section className="profile-settings">
+          <h2>Profil</h2>
+          <p>Connecté en tant que: <strong>{user.email}</strong></p>
+          <button className="change-profile-btn">Modifier mes informations</button>
+        </section>
 
-          <section className="settings-section">
-            <h3>🔔 Notifications</h3>
-            <div className="setting-item toggle">
-              <label>Activer les notifications</label>
-              <input
-                type="checkbox"
-                checked={profile.notifications_enabled}
-                onChange={(e) => setProfile({...profile, notifications_enabled: e.target.checked})}
-              />
-            </div>
-          </section>
+        <section className="family-settings">
+          <h2>Nest & Famille</h2>
+          <button className="manage-nest-btn">Gérer les membres</button>
+          <button className="leave-nest-btn">Quitter le Nest</button>
+        </section>
+        
+        <section className="app-settings">
+          <h2>Général</h2>
+          <button className="app-version-btn">Version 1.0.0 (MVP)</button>
+        </section>
 
-          <section className="settings-section">
-            <h3>🎨 Apparence</h3>
-            <div className="setting-item">
-              <label>Thème</label>
-              <select
-                value={profile.theme}
-                onChange={(e) => setProfile({...profile, theme: e.target.value})}
-              >
-                <option value="light">☀️ Clair</option>
-                <option value="dark">🌙 Sombre</option>
-              </select>
-            </div>
-          </section>
-
-          <button 
-            onClick={handleSave}
-            disabled={loading}
-            className="save-btn"
-          >
-            {loading ? 'Sauvegarde...' : 'Sauvegarder'}
-          </button>
-        </div>
+        <button onClick={handleLogout} className="logout-btn">
+          Déconnexion
+        </button>
       </div>
     </div>
   );
-}
+};
+
+export default SettingsPage;
