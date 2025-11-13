@@ -1,4 +1,16 @@
-/* src/pages/Onboarding.css */
+/* src/pages/OnboardingPage.css */
+
+/* Variables de thème (A adapter à votre index.css si nécessaire) */
+:root {
+    --nesti-primary: #6200EE;
+    --nesti-secondary: #03DAC6;
+    --nesti-text-dark: #333333;
+    --nesti-bg-light: #f0f2f5;
+    --nesti-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    --nesti-radius: 12px;
+}
+
+/* ------------------- CONTENEUR GLOBAL ------------------- */
 
 .onboarding-page-container {
     display: flex;
@@ -6,90 +18,169 @@
     align-items: center;
     min-height: 100vh;
     padding: 20px;
-    background-color: #f0f2f5; /* Fond léger */
+    background-color: var(--nesti-bg-light); 
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif; /* Utilisez la police de votre application */
 }
 
 .onboarding-card {
     background: white;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    max-width: 500px;
+    padding: 30px;
+    border-radius: var(--nesti-radius);
+    box-shadow: var(--nesti-shadow);
+    max-width: 450px;
     width: 100%;
     text-align: center;
 }
 
-.onboarding-card h1 {
-    color: #6200EE;
-    margin-bottom: 10px;
-}
+/* ------------------- EN-TÊTE ------------------- */
 
-.onboarding-intro {
-    color: #666;
+.onboarding-header {
     margin-bottom: 30px;
 }
 
-.onboarding-options {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+.onboarding-logo {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 60px;
+    height: 60px;
+    background-color: var(--nesti-primary);
+    color: white;
+    font-size: 2.5em;
+    font-weight: bold;
+    border-radius: 50%;
+    margin-bottom: 15px;
 }
 
-.option-card {
-    padding: 25px;
+.onboarding-card h1 {
+    color: var(--nesti-text-dark);
+    font-size: 1.8em;
+    margin-bottom: 5px;
+}
+
+.onboarding-greeting {
+    color: #666;
+    font-size: 0.95em;
+    line-height: 1.4;
+}
+
+/* ------------------- ONGLET (TABS) ------------------- */
+
+.tabs {
+    display: flex;
+    width: 100%;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #eee;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px 0;
+    font-size: 1em;
+    font-weight: 600;
+    color: #999;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+    color: var(--nesti-primary);
+    border-bottom: 2px solid var(--nesti-primary);
+}
+
+.tab-btn:hover:not(.active) {
+    color: #555;
+}
+
+/* ------------------- FORMULAIRE ------------------- */
+
+.form-description {
+    color: #777;
+    font-size: 0.9em;
+    margin-bottom: 20px;
+}
+
+.input-group {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: var(--nesti-text-dark);
+    margin-bottom: 5px;
+}
+
+.onboarding-form input {
+    width: 100%;
+    padding: 12px;
     border: 1px solid #ddd;
     border-radius: 8px;
-    text-align: left;
-}
-
-.option-card h2 {
-    color: #333;
-    margin-top: 0;
-    font-size: 1.4em;
-}
-
-.option-card input {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
     box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.3s;
 }
 
-.option-card button {
+.onboarding-form input:focus {
+    border-color: var(--nesti-primary);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(98, 0, 238, 0.1);
+}
+
+/* ------------------- BOUTONS ET ERREURS ------------------- */
+
+.main-action-btn {
     width: 100%;
-    padding: 12px;
-    background-color: #6200EE;
+    padding: 15px;
+    background-color: var(--nesti-primary);
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 700;
+    font-size: 1.1em;
     transition: background-color 0.3s;
 }
 
-.option-card button:hover:not(:disabled) {
+.main-action-btn:hover:not(:disabled) {
     background-color: #4b00c4;
 }
 
-.option-card button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+.secondary-btn {
+    background-color: var(--nesti-secondary);
+    color: var(--nesti-text-dark);
 }
 
-.divider {
-    text-align: center;
-    color: #999;
-    font-weight: bold;
-    margin: 10px 0;
+.secondary-btn:hover:not(:disabled) {
+    background-color: #00bfa5;
+    color: white;
+}
+
+.main-action-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
 }
 
 .onboarding-error {
     background-color: #f8d7da;
     color: #721c24;
-    padding: 10px;
-    border-radius: 5px;
+    padding: 12px;
+    border-radius: 8px;
     margin-bottom: 20px;
     border: 1px solid #f5c6cb;
+    font-size: 0.9em;
+}
+
+/* Règle pour l'affichage mobile */
+@media (max-width: 600px) {
+    .onboarding-card {
+        padding: 20px;
+        margin: 20px;
+    }
 }
