@@ -1,63 +1,35 @@
-import { useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+// src/components/Header.js
+
 import './Header.css';
 
-export default function Header({ user, onSettingsOpen }) {
-  const [showMenu, setShowMenu] = useState(false);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
+const Header = ({ user, familyName, onSettingsOpen, isDarkMode, toggleDarkMode }) => {
+  // Supposons que user.first_name est disponible via App.js
+  const firstName = user?.first_name || user?.email.split('@')[0];
 
   return (
-    <header className="header">
-      <div className="header-content">
-        <div className="header-logo">
-          <div className="logo-icon">N</div>
-          <div className="logo-text">
-            <h1>NESTI</h1>
-            <span>Famille connectée</span>
-          </div>
-        </div>
+    <header className="app-header">
+      <div className="logo">
+        <span>Nesti</span>
+      </div>
+      <div className="family-info">
+        <span className="family-name">{familyName || 'Votre Nest'}</span>
+      </div>
+      <div className="user-controls">
+        
+        <button className="control-btn dark-mode-toggle" onClick={toggleDarkMode} title="Mode clair/sombre">
+          {isDarkMode ? '☀️' : '🌙'}
+        </button>
 
-        <div className="header-actions">
-          <button 
-            className="settings-btn"
-            onClick={() => onSettingsOpen()}
-          >
-            ⚙️
-          </button>
-          
-          <div className="user-menu">
-            <button 
-              className="user-avatar"
-              onClick={() => setShowMenu(!showMenu)}
-            >
-              {user?.user_metadata?.avatar_url ? (
-                <img src={user.user_metadata.avatar_url} alt="Profile" />
-              ) : (
-                <span>{user?.email?.charAt(0).toUpperCase()}</span>
-              )}
-            </button>
+        <button className="control-btn settings-btn" onClick={onSettingsOpen} title="Paramètres">
+          ⚙️
+        </button>
 
-            {showMenu && (
-              <div className="dropdown-menu">
-                <div className="user-info">
-                  <strong>{user?.user_metadata?.first_name || 'Utilisateur'}</strong>
-                  <span>{user?.email}</span>
-                </div>
-                <button onClick={handleLogout} className="menu-item">
-                  🚪 Déconnexion
-                </button>
-              </div>
-            )}
-          </div>
+        <div className="user-avatar">
+          {firstName ? firstName[0] : '?'}
         </div>
       </div>
-
-      {showMenu && (
-        <div className="overlay" onClick={() => setShowMenu(false)} />
-      )}
     </header>
   );
-}
+};
+
+export default Header;
