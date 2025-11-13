@@ -1,12 +1,12 @@
 /* src/pages/OnboardingPage.css */
 
-/* Variables de thème (A adapter à votre index.css si nécessaire) */
+/* Variables de thème */
 :root {
     --nesti-primary: #6200EE;
     --nesti-secondary: #03DAC6;
     --nesti-text-dark: #333333;
     --nesti-bg-light: #f0f2f5;
-    --nesti-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    --nesti-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     --nesti-radius: 12px;
 }
 
@@ -20,49 +20,52 @@
     padding: 20px;
     background-color: var(--nesti-bg-light); 
     box-sizing: border-box;
-    font-family: 'Arial', sans-serif; /* Utilisez la police de votre application */
+    font-family: 'Arial', sans-serif;
 }
 
 .onboarding-card {
     background: white;
-    padding: 30px;
+    padding: 40px;
     border-radius: var(--nesti-radius);
     box-shadow: var(--nesti-shadow);
-    max-width: 450px;
+    max-width: 480px;
     width: 100%;
     text-align: center;
+    transform: translateY(0); /* Sécurité anti-blocage */
+    transition: transform 0.3s ease;
 }
 
 /* ------------------- EN-TÊTE ------------------- */
 
 .onboarding-header {
-    margin-bottom: 30px;
+    margin-bottom: 25px;
 }
 
 .onboarding-logo {
     display: inline-flex;
     justify-content: center;
     align-items: center;
-    width: 60px;
-    height: 60px;
+    width: 65px;
+    height: 65px;
     background-color: var(--nesti-primary);
     color: white;
-    font-size: 2.5em;
-    font-weight: bold;
+    font-size: 3em;
+    font-weight: 700;
     border-radius: 50%;
     margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(98, 0, 238, 0.3);
 }
 
 .onboarding-card h1 {
     color: var(--nesti-text-dark);
-    font-size: 1.8em;
+    font-size: 2em;
     margin-bottom: 5px;
 }
 
 .onboarding-greeting {
-    color: #666;
-    font-size: 0.95em;
-    line-height: 1.4;
+    color: #777;
+    font-size: 1em;
+    font-style: italic;
 }
 
 /* ------------------- ONGLET (TABS) ------------------- */
@@ -70,38 +73,46 @@
 .tabs {
     display: flex;
     width: 100%;
-    margin-bottom: 25px;
-    border-bottom: 2px solid #eee;
+    margin-bottom: 30px;
+    border-radius: 8px;
+    background-color: #f8f8f8;
+    padding: 4px;
 }
 
 .tab-btn {
     flex: 1;
-    padding: 12px 0;
+    padding: 10px 0;
     font-size: 1em;
     font-weight: 600;
-    color: #999;
+    color: var(--nesti-text-dark);
     background: none;
     border: none;
-    border-bottom: 2px solid transparent;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .tab-btn.active {
-    color: var(--nesti-primary);
-    border-bottom: 2px solid var(--nesti-primary);
+    color: white;
+    background-color: var(--nesti-primary);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .tab-btn:hover:not(.active) {
-    color: #555;
+    background-color: #eeeeee;
 }
+.tab-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 
 /* ------------------- FORMULAIRE ------------------- */
 
 .form-description {
-    color: #777;
-    font-size: 0.9em;
-    margin-bottom: 20px;
+    color: #888;
+    font-size: 0.95em;
+    margin-bottom: 25px;
 }
 
 .input-group {
@@ -114,12 +125,12 @@
     font-size: 0.9em;
     font-weight: 600;
     color: var(--nesti-text-dark);
-    margin-bottom: 5px;
+    margin-bottom: 7px;
 }
 
 .onboarding-form input {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
     border: 1px solid #ddd;
     border-radius: 8px;
     box-sizing: border-box;
@@ -130,14 +141,14 @@
 .onboarding-form input:focus {
     border-color: var(--nesti-primary);
     outline: none;
-    box-shadow: 0 0 0 2px rgba(98, 0, 238, 0.1);
+    box-shadow: 0 0 0 3px rgba(98, 0, 238, 0.1);
 }
 
 /* ------------------- BOUTONS ET ERREURS ------------------- */
 
 .main-action-btn {
     width: 100%;
-    padding: 15px;
+    padding: 16px;
     background-color: var(--nesti-primary);
     color: white;
     border: none;
@@ -146,6 +157,7 @@
     font-weight: 700;
     font-size: 1.1em;
     transition: background-color 0.3s;
+    margin-top: 10px;
 }
 
 .main-action-btn:hover:not(:disabled) {
@@ -168,19 +180,12 @@
 }
 
 .onboarding-error {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 12px;
+    background-color: #fde6e9; /* Rouge très pâle */
+    color: #c0392b; /* Rouge foncé */
+    padding: 15px;
     border-radius: 8px;
-    margin-bottom: 20px;
-    border: 1px solid #f5c6cb;
-    font-size: 0.9em;
-}
-
-/* Règle pour l'affichage mobile */
-@media (max-width: 600px) {
-    .onboarding-card {
-        padding: 20px;
-        margin: 20px;
-    }
+    margin-bottom: 25px;
+    border: 1px solid #f9c7c7;
+    font-size: 0.95em;
+    font-weight: 600;
 }
