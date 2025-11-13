@@ -1,9 +1,3 @@
-// bnwhite/nesti-mvp/nesti-mvp-660c1dbb2ccb48e2c2fb34c1f4482ae22063e948/src/App.js
-import SettingsPage from './pages/SettingsPage';
-// ASSUREZ-VOUS QUE CE NOM DE FICHIER CORRESPOND À CELUI QUE VOUS AVEZ SAUVEGARDÉ
-import OnboardingPage from './pages/OnboardingPage'; 
-import CreatePost from './components/CreatePost';
-
 import './App.css';
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from './lib/supabaseClient';
@@ -16,6 +10,8 @@ import DiscoveriesPage from './pages/DiscoveriesPage';
 import ChatPage from './pages/ChatPage';
 import SettingsPage from './pages/SettingsPage';
 import CreatePost from './components/CreatePost';
+// NOUVEAU: Assurez-vous d'utiliser le bon nom de fichier (OnboardingPage ou Onboarding)
+import OnboardingPage from './pages/OnboardingPage';
 
 
 function App() {
