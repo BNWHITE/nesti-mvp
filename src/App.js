@@ -1,4 +1,8 @@
 // bnwhite/nesti-mvp/nesti-mvp-660c1dbb2ccb48e2c2fb34c1f4482ae22063e948/src/App.js
+import SettingsPage from './pages/SettingsPage';
+// ASSUREZ-VOUS QUE CE NOM DE FICHIER CORRESPOND À CELUI QUE VOUS AVEZ SAUVEGARDÉ
+import OnboardingPage from './pages/OnboardingPage'; 
+import CreatePost from './components/CreatePost';
 
 import './App.css';
 import { useState, useEffect, useCallback } from 'react';
@@ -12,45 +16,6 @@ import DiscoveriesPage from './pages/DiscoveriesPage';
 import ChatPage from './pages/ChatPage';
 import SettingsPage from './pages/SettingsPage';
 import CreatePost from './components/CreatePost';
-// Importez votre composant d'onboarding ici
-// Assurez-vous d'avoir un fichier OnboardingPage.js ou Onboarding.js dans src/pages/
-// Pour l'exemple, nous allons créer un composant placeholder directement dans App.js,
-// que vous remplacerez par votre fichier Onboarding.js importé.
-
-// COMPOSANT TEMPORAIRE DE MISE EN ROUTE (ONBOARDING)
-// Vous DEVEZ créer un fichier OnboardingPage.js (ou similaire) et l'importer
-function FamilyOnboarding({ user, setFamilyId, setFamilyName }) {
-  // NOTE: Ce composant doit permettre à l'utilisateur de créer sa famille (INSERT dans 'families' 
-  // puis UPDATE dans 'users') ou d'en rejoindre une (UPDATE dans 'users').
-  // Une fois l'action réussie, il doit appeler setFamilyId(newId) et setFamilyName(newName).
-  return (
-    <div className="onboarding-container" style={{ padding: '20px', textAlign: 'center', backgroundColor: '#f9f9f9', minHeight: '100vh' }}>
-      <h1>👋 Bienvenue sur Nesti, {user?.email} !</h1>
-      <p>Vous êtes connecté, mais vous devez encore créer ou rejoindre un Nest familial pour continuer.</p>
-      <div style={{ marginTop: '30px', padding: '20px', border: '1px solid #ccc', borderRadius: '10px' }}>
-        <h2>Écran d'Onboarding</h2>
-        <p>Ajouter ici les formulaires pour :</p>
-        <ul>
-          <li>1. Créer une nouvelle famille</li>
-          <li>2. Rejoindre une famille existante</li>
-        </ul>
-        {/* PLACEHOLDER: Ceci simule une réussite d'onboarding après développement */}
-        <button 
-          onClick={() => {
-            // Simuler l'ajout réussi à une famille pour tester
-            // Remplacer par votre logique réelle d'API/Supabase
-            // setFamilyId('TEST_FAMILY_ID'); 
-            // setFamilyName('Nom De Ma Famille'); 
-          }}
-          style={{ padding: '10px 20px', margin: '10px', backgroundColor: '#6200EE', color: 'white', border: 'none', borderRadius: '5px' }}
-        >
-          {/* Supprimer ce bouton après avoir implémenté la logique */}
-          (Action Onboarding)
-        </button>
-      </div>
-    </div>
-  );
-}
 
 
 function App() {
