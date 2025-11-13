@@ -1,18 +1,17 @@
-// bnwhite/nesti-mvp/.../src/pages/FeedPage.js (CORRECTION POUR LE NOM)
+// src/pages/FeedPage.js (VERSION FINALE)
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient'; // CORRECTION CHEMIN (depuis src/pages/)
 import './FeedPage.css';
 
-export default function FeedPage({ user }) { // familyId n'est pas utilisé dans fetchData
+export default function FeedPage({ user }) { 
   const [posts, setPosts] = useState([]);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [userName, setUserName] = useState('Utilisateur'); // Nouveau state pour le nom
+  const [userName, setUserName] = useState('Utilisateur'); 
 
   const fetchUserData = useCallback(async () => {
     try {
-      // Récupérer le prénom pour l'affichage des posts
       const { data: profileData } = await supabase
         .from('user_profiles')
         .select('first_name')
@@ -28,11 +27,9 @@ export default function FeedPage({ user }) { // familyId n'est pas utilisé dans
   }, [user.id]);
 
   const fetchData = useCallback(async () => {
-    // S'assurer que le nom est récupéré avant de créer les posts
-    await fetchUserData(); // On appelle d'abord la récupération du nom
+    await fetchUserData();
 
     try {
-      // Récupérer les activités depuis Supabase
       const { data: activitiesData, error: activitiesError } = await supabase
         .from('activities')
         .select('*')
@@ -42,11 +39,9 @@ export default function FeedPage({ user }) { // familyId n'est pas utilisé dans
       if (activitiesError) throw activitiesError;
       setActivities(activitiesData || []);
 
-      // Pour l'instant, on utilise des posts mockés
       const mockPosts = [
         {
           id: 1,
-          // CORRECTION APPLIQUÉE ICI: Utilise userName
           author: { name: userName || 'Utilisateur', role: 'parent', emoji: '👨‍👩‍👧' }, 
           content: "Bienvenue dans notre Nest familial ! 🏡",
           type: "welcome",
@@ -61,14 +56,14 @@ export default function FeedPage({ user }) { // familyId n'est pas utilisé dans
     } finally {
       setLoading(false);
     }
-  }, [userName, fetchUserData]); // userName et fetchUserData sont maintenant dans les dépendances
+  }, [userName, fetchUserData]); 
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // ... (Le reste du code de suggestActivity et du rendu FeedPage est inchangé)
-  
+  // ... (Reste du composant FeedPage inchangé, notamment le suggestActivity, quickActions et le rendu)
+
   const suggestActivity = async (activityId) => {
     try {
       const { error } = await supabase
