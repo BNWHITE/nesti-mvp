@@ -1,14 +1,15 @@
-// src/pages/OnboardingPage.js (Assurez-vous d'utiliser OnboardingPage.js)
+// src/pages/OnboardingPage.js (VERSION FINALE ET CORRIGÉE)
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient'; 
 import './OnboardingPage.css'; 
 
-// OnboardingPage PROPS AJOUTÉES: setProfileComplete, initialView
+// PROPS: setProfileComplete est essentiel pour informer le parent App.js
 const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, initialView = 'profile' }) => {
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState(initialView === 'profile' ? 'profile' : 'create'); 
-  
+  const [activeTab, setActiveTab] = useState('create'); // 'create' ou 'join'
+  const [isProfileStep, setIsProfileStep] = useState(initialView === 'profile');
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   
@@ -16,7 +17,29 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
   const [joinCode, setJoinCode] = useState('');
   
   const [error, setError] = useState('');
-  
+
+  // S'assurer que le prénom est mis à jour si l'utilisateur revient à cette page
+  const fetchCurrentProfile = useCallback(async () => {
+    const { data } = await supabase
+      .from('user_profiles')
+      .select('first_name, last_name')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (data && data.first_name) {
+      setFirstName(data.first_name);
+      setLastName(data.last_name || '');
+      // Si la vue initiale est 'family' (profil déjà fait), on passe
+      if (initialView === 'family') {
+        setIsProfileStep(false);
+      }
+    }
+  }, [user.id, initialView]);
+
+  useEffect(() => {
+    fetchCurrentProfile();
+  }, [fetchCurrentProfile]);
+
   // --- LOGIQUE SUPABASE ---
 
   // 0. Compléter le profil (Nom/Prénom)
@@ -30,20 +53,20 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
     setLoading(true);
 
     try {
-      // 1. Insérer les données dans la table 'user_profiles'
+      // 1. Insérer/Mettre à jour les données dans la table 'user_profiles'
       const { error: profileError } = await supabase
-        .from('user_profiles') // La table correcte
+        .from('user_profiles') 
         .upsert({ 
-            id: user.id, // L'ID de l'utilisateur Supabase
+            id: user.id, 
             first_name: firstName.trim(),
             last_name: lastName.trim() || null,
-        });
+        }, { onConflict: 'id' }); // upsert sur l'ID de l'utilisateur
       
       if (profileError) throw profileError;
       
-      // 2. Mise à jour de l'état global pour passer à l'étape Famille
-      setProfileComplete(true);
-      setActiveTab('create'); // Passer automatiquement à l'étape Famille
+      // 2. Mise à jour de l'état local et global pour passer à l'étape Famille (DÉBLOCAGE)
+      setProfileComplete(true); // Informe App.js que le profil est OK
+      setIsProfileStep(false); // Change la vue localement
       
     } catch (err) {
       console.error("Erreur lors de la mise à jour du profil:", err);
@@ -64,13 +87,13 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
     setLoading(true);
 
     try {
-      // 1. Créer la famille dans la table 'families'
+      // 1. Créer la famille
       const { data: familyData, error: familyError } = await supabase
         .from('families')
         .insert([{ 
-            family_name: newFamilyName, 
+            family_name: newFamilyName.trim(), 
             created_by: user.id,
-            join_code: Math.random().toString(36).substring(2, 8).toUpperCase() // Génération d'un code simple
+            join_code: Math.random().toString(36).substring(2, 8).toUpperCase()
         }])
         .select('id, family_name')
         .single();
@@ -79,7 +102,7 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
       
       const newFamilyId = familyData.id;
 
-      // 2. Mettre à jour la table 'user_profiles' avec le family_id créé
+      // 2. Mettre à jour la table 'user_profiles'
       const { error: userError } = await supabase
         .from('user_profiles')
         .update({ family_id: newFamilyId })
@@ -87,7 +110,7 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
 
       if (userError) throw userError;
 
-      // 3. Mise à jour de l'état global de l'application (DÉBLOCAGE)
+      // 3. Mise à jour de l'état global de l'application (DÉBLOCAGE FINAL)
       setFamilyId(newFamilyId);
       setFamilyName(familyData.family_name);
       
@@ -115,11 +138,11 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
         .from('families')
         .select('id, family_name')
         .eq('join_code', joinCode.toUpperCase()) 
-        .single();
+        .maybeSingle();
         
       if (familyError || !familyData) throw new Error("Code familial invalide ou Nest introuvable.");
 
-      // 2. Mettre à jour l'utilisateur dans 'user_profiles' avec le family_id
+      // 2. Mettre à jour l'utilisateur dans 'user_profiles'
       const { error: userUpdateError } = await supabase
         .from('user_profiles')
         .update({ family_id: familyData.id })
@@ -127,7 +150,7 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
 
       if (userUpdateError) throw userUpdateError;
 
-      // 3. Mise à jour de l'état global de l'application (DÉBLOCAGE)
+      // 3. Mise à jour de l'état global de l'application (DÉBLOCAGE FINAL)
       setFamilyId(familyData.id);
       setFamilyName(familyData.family_name);
 
@@ -139,7 +162,7 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
     }
   };
 
-  // --- RENDU : VUE PROFIL ---
+  // ... (Fonctions de rendu renderProfileContent et renderFamilyContent, voir code précédent) ...
   const renderProfileContent = () => (
     <form onSubmit={handleCompleteProfile} className="onboarding-form">
         <p className="form-description">
@@ -174,8 +197,6 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
     </form>
   );
 
-
-  // --- RENDU : VUE FAMILLE (Créer/Rejoindre) ---
   const renderFamilyContent = () => {
     const isCreateTab = activeTab === 'create';
 
@@ -204,12 +225,9 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
               </button>
             </div>
 
-            {/* Contenu du formulaire actif */}
             {isCreateTab ? (
                 <form onSubmit={handleCreateFamily} className="onboarding-form">
-                  <p className="form-description">
-                    Créez un espace privé pour votre famille.
-                  </p>
+                  <p className="form-description">Créez un espace privé pour votre famille.</p>
                   <div className="input-group">
                     <label htmlFor="familyName">Nom de votre Nest familial</label>
                     <input
@@ -228,9 +246,7 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
                 </form>
             ) : (
                 <form onSubmit={handleJoinFamily} className="onboarding-form">
-                  <p className="form-description">
-                    Entrez le code de jointure transmis par un membre de votre famille.
-                  </p>
+                  <p className="form-description">Entrez le code de jointure transmis par un membre de votre famille.</p>
                   <div className="input-group">
                     <label htmlFor="joinCode">Code de jointure du Nest</label>
                     <input
@@ -252,9 +268,7 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
     );
   };
 
-
-  // --- RENDER PRINCIPAL ---
-  const isProfileStep = !profileComplete && initialView === 'profile';
+  // RENDER PRINCIPAL
   const currentStepTitle = isProfileStep ? "Complétez votre profil" : "Mise en route familiale";
   
   return (
