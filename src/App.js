@@ -1,4 +1,4 @@
-// src/App.js (VERSION FINALE ET INTÉGRALE)
+// src/App.js (VERSION INTÉGRALE)
 
 import './App.css';
 import { useState, useEffect, useCallback } from 'react';
@@ -37,6 +37,7 @@ function App() {
       setFamilyName('');
       setProfileComplete(false); 
 
+      // Ajout de 'role'
       const { data: userData, error: userError } = await supabase
         .from('user_profiles') 
         .select('family_id, first_name, role') 
@@ -63,8 +64,6 @@ function App() {
             }
           }
       } 
-      // Si userData est null, l'utilisateur est connecté mais n'a pas de profil.
-      // profileComplete reste false, ce qui mène à l'Onboarding.
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
@@ -120,14 +119,14 @@ function App() {
   };
 
   const handlePostCreated = () => {
-    console.log('Nouveau post créé');
+    // Logique de rafraîchissement du feed après la création d'un post
+    console.log('Nouveau post créé, rafraîchissement du feed...');
   };
 
   const renderPage = () => {
     if (!user) return null;
 
     if (!profileComplete) {
-      // Etape 1: Profil (Nom/Rôle)
       return (
         <Onboarding 
           user={user} 
@@ -140,7 +139,6 @@ function App() {
     }
 
     if (!familyId) {
-      // Etape 2: Famille (Créer/Rejoindre)
       return (
         <Onboarding 
           user={user} 
@@ -158,6 +156,7 @@ function App() {
         return (
           <>
             <FeedPage user={user} familyId={familyId} />
+            {/* CreatePost est toujours en bas du feed */}
             <CreatePost user={user} familyId={familyId} onPostCreated={handlePostCreated} />
           </>
         );
@@ -183,7 +182,6 @@ function App() {
             <span>N</span>
           </div>
           <p className="loading-text">Chargement de votre espace familial...</p>
-          {/* Bouton de secours pour débloquer le chargement */}
           <button 
             onClick={() => setLoading(false)} 
             style={{
