@@ -76,6 +76,8 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
     }
   };
 
+// Extrait de src/pages/OnboardingPage.js
+
   // 1. Gérer la création d'une nouvelle famille
   const handleCreateFamily = async (e) => {
     e.preventDefault();
@@ -85,14 +87,16 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
       return;
     }
     setLoading(true);
-
+  
     try {
-      // 1. Créer la famille
+      // 1. Créer la famille dans la table 'families'
+      // CORRECTION APPLIQUÉE: Suppression de la colonne 'created_by' 
+      // qui causait l'erreur de schéma.
       const { data: familyData, error: familyError } = await supabase
         .from('families')
         .insert([{ 
             family_name: newFamilyName.trim(), 
-            created_by: user.id,
+            // created_by: user.id, <-- CETTE LIGNE EST SUPPRIMÉE
             join_code: Math.random().toString(36).substring(2, 8).toUpperCase()
         }])
         .select('id, family_name')
@@ -101,27 +105,29 @@ const OnboardingPage = ({ user, setFamilyId, setFamilyName, setProfileComplete, 
       if (familyError) throw familyError;
       
       const newFamilyId = familyData.id;
-
-      // 2. Mettre à jour la table 'user_profiles'
+      const familyNameCreated = familyData.family_name; 
+  
+      // 2. Mettre à jour la table 'user_profiles' avec le family_id créé
       const { error: userError } = await supabase
         .from('user_profiles')
         .update({ family_id: newFamilyId })
         .eq('id', user.id);
-
+  
       if (userError) throw userError;
-
+  
       // 3. Mise à jour de l'état global de l'application (DÉBLOCAGE FINAL)
       setFamilyId(newFamilyId);
-      setFamilyName(familyData.family_name);
+      setFamilyName(familyNameCreated);
       
     } catch (err) {
       console.error("Erreur lors de la création de la famille:", err);
+      // Afficher l'erreur pour le débogage, mais utiliser un message générique
       setError(err.message || "Une erreur est survenue lors de la création du Nest.");
     } finally {
       setLoading(false);
     }
   };
-  
+
   // 2. Gérer la jointure d'une famille existante
   const handleJoinFamily = async (e) => {
     e.preventDefault();
