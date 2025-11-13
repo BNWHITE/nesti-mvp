@@ -1,13 +1,36 @@
+// bnwhite/nesti-mvp/.../src/pages/FeedPage.js (CORRECTION POUR LE NOM)
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import './FeedPage.css';
 
-export default function FeedPage({ user }) {
+export default function FeedPage({ user }) { // familyId n'est pas utilisé dans fetchData
   const [posts, setPosts] = useState([]);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState('Utilisateur'); // Nouveau state pour le nom
+
+  const fetchUserData = useCallback(async () => {
+    try {
+      // Récupérer le prénom pour l'affichage des posts
+      const { data: profileData } = await supabase
+        .from('user_profiles')
+        .select('first_name')
+        .eq('id', user.id)
+        .single();
+        
+      if (profileData?.first_name) {
+        setUserName(profileData.first_name);
+      }
+    } catch (error) {
+      console.error('Error fetching profile name:', error);
+    }
+  }, [user.id]);
 
   const fetchData = useCallback(async () => {
+    // S'assurer que le nom est récupéré avant de créer les posts
+    await fetchUserData(); // On appelle d'abord la récupération du nom
+
     try {
       // Récupérer les activités depuis Supabase
       const { data: activitiesData, error: activitiesError } = await supabase
@@ -20,11 +43,11 @@ export default function FeedPage({ user }) {
       setActivities(activitiesData || []);
 
       // Pour l'instant, on utilise des posts mockés
-      // Plus tard, tu pourras créer une table 'posts'
       const mockPosts = [
         {
           id: 1,
-          author: { name: user?.user_metadata?.first_name || 'Utilisateur', role: 'parent', emoji: '👨‍👩‍👧' },
+          // CORRECTION APPLIQUÉE ICI: Utilise userName
+          author: { name: userName || 'Utilisateur', role: 'parent', emoji: '👨‍👩‍👧' }, 
           content: "Bienvenue dans notre Nest familial ! 🏡",
           type: "welcome",
           time: "Maintenant",
@@ -38,12 +61,14 @@ export default function FeedPage({ user }) {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [userName, fetchUserData]); // userName et fetchUserData sont maintenant dans les dépendances
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
+  // ... (Le reste du code de suggestActivity et du rendu FeedPage est inchangé)
+  
   const suggestActivity = async (activityId) => {
     try {
       const { error } = await supabase
