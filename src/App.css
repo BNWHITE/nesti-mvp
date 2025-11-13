@@ -3,26 +3,26 @@
 /* --- THÈME ET VARIABLES GLOBALES --- */
 :root {
   /* Light Mode */
-  --color-primary: #6200EE;
-  --color-secondary: #03DAC6;
-  --color-text: #333333;
-  --color-text-light: #666666;
-  --color-background: #f4f7f9;
+  --color-primary: #5A189A; /* Violet profond */
+  --color-secondary: #00BFA6; /* Cyan accent */
+  --color-text: #1A1A1A;
+  --color-text-light: #6A6A6A;
+  --color-background: #F4F7F9;
   --color-card-bg: white;
-  --color-border: #e0e0e0;
-  --color-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --color-border: #E8E8E8;
+  --color-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
 .dark-mode {
   /* Dark Mode */
-  --color-primary: #BB86FC;
-  --color-secondary: #03DAC6;
-  --color-text: #E0E0E0;
+  --color-primary: #C3A3FF;
+  --color-secondary: #00BFA6;
+  --color-text: #EAEAEA;
   --color-text-light: #AAAAAA;
   --color-background: #121212;
-  --color-card-bg: #1E1E1E;
-  --color-border: #333333;
-  --color-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --color-card-bg: #242424;
+  --color-border: #444444;
+  --color-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
 }
 
 /* --- STRUCTURE DE BASE --- */
@@ -31,7 +31,7 @@
   color: var(--color-text);
   min-height: 100vh;
   transition: background-color 0.3s, color 0.3s;
-  font-family: Arial, sans-serif;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
 }
 
 .app-container {
@@ -40,8 +40,8 @@
   max-width: 600px;
   margin: 0 auto;
   min-height: 100vh;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-  background-color: var(--color-card-bg); 
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
+  background-color: var(--color-card-bg); /* Le conteneur principal reste clair pour le contenu */
   position: relative;
 }
 
@@ -51,95 +51,26 @@
   padding-bottom: 70px; 
 }
 
-/* --- Styles Généraux --- */
-button {
-  cursor: pointer;
-  transition: background-color 0.2s, opacity 0.2s;
-}
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-/* Styles de l'écran d'authentification */
-.auth-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 20px;
+/* Styles pour le loading/auth (pour être beaux) */
+.loading-screen, .auth-container {
     background-color: var(--color-background);
 }
+
 .auth-card {
     background: var(--color-card-bg);
-    padding: 30px;
-    border-radius: 12px;
     box-shadow: var(--color-shadow);
-    max-width: 350px;
-    width: 100%;
-    text-align: center;
 }
-.auth-logo {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    width: 50px;
-    height: 50px;
-    background-color: var(--color-primary);
-    color: white;
-    font-size: 2em;
-    font-weight: bold;
-    border-radius: 50%;
-    margin-bottom: 10px;
-}
-.auth-card h1 {
-    color: var(--color-primary);
-    margin-bottom: 5px;
-}
-.auth-form {
-    text-align: left;
-}
-.form-group {
-    margin-bottom: 15px;
-}
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-}
-.auth-form input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    box-sizing: border-box;
+/* Ajoutez les styles des composants Auth.css pour une cohérence visuelle */
+
+/* Styles pour les boutons/inputs généraux */
+.app-container input, .app-container select, .app-container textarea {
     background-color: var(--color-background);
     color: var(--color-text);
+    border: 1px solid var(--color-border);
+    transition: all 0.2s;
 }
-.auth-button {
-    width: 100%;
-    padding: 12px;
-    background-color: var(--color-primary);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    margin-top: 10px;
-}
-.auth-switch {
-    margin-top: 20px;
-    font-size: 0.9em;
-}
-.switch-button {
-    background: none;
-    border: none;
-    color: var(--color-primary);
-    text-decoration: underline;
-}
-.auth-error {
-    background-color: #f8d7da;
-    color: #721c24;
-    padding: 10px;
-    border-radius: 6px;
-    margin-bottom: 15px;
-    border: 1px solid #f5c6cb;
+
+.app-container input:focus, .app-container select:focus, .app-container textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(90, 24, 154, 0.2);
 }
