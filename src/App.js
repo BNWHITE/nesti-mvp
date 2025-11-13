@@ -29,10 +29,12 @@ function App() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState('');
 
+// Extrait de src/App.js
+
   const fetchUserData = useCallback(async (userId) => {
     try {
-      // Réinitialiser au cas où l'utilisateur change de session/se déconnecte
-      setFamilyId(null);
+      // Réinitialisation des états
+      setFamilyId(null); 
       setFamilyName('');
       
       const { data: userData, error: userError } = await supabase
@@ -40,7 +42,15 @@ function App() {
         .select('family_id, first_name')
         .eq('id', userId)
         .single();
-
+      
+      // Gérer l'absence de l'utilisateur dans la table 'users'
+      // Cela peut arriver juste après un signup si vous n'avez pas de trigger
+      if (userError && userError.code === 'PGRST116') { // Code d'erreur 'No rows found'
+          console.warn('Utilisateur non trouvé dans la table users. Onboarding requis.');
+          // On laisse familyId à null, ce qui affichera l'OnboardingPage.
+          return;
+      }
+      
       if (userError) throw userError;
 
       if (userData?.family_id) {
@@ -52,16 +62,19 @@ function App() {
           .eq('id', userData.family_id)
           .single();
 
-        if (!familyError && familyData) {
+        if (familyError) throw familyError;
+
+        if (familyData) {
           setFamilyName(familyData.family_name);
         }
       }
-      // Si userData.family_id est null, familyId restera null. C'est le nouveau point de blocage pour l'Onboarding.
     } catch (error) {
       console.error('Error fetching user data:', error);
+      // En cas d'erreur critique, on force la fin du chargement pour ne pas bloquer l'interface
+      setLoading(false); 
     }
-  }, []);
-
+  }, []); // Note: setLoading n'est pas dans les dépendances de useCallback car il est un setter d'état React.
+  
   const checkUser = useCallback(async () => {
     try {
       console.log('🔍 Checking user...');
