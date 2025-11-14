@@ -1,192 +1,34 @@
-/* src/App.css */
+/* src/App.css - AJOUT POUR LE BOUTON GOOGLE */
 
-/* --- THÈME ET VARIABLES GLOBALES --- */
-:root {
-  /* Light Mode */
-  --color-primary: #5A189A; /* Violet profond */
-  --color-secondary: #00BFA6; /* Cyan accent */
-  --color-text: #1A1A1A;
-  --color-text-light: #6A6A6A;
-  --color-background: #F4F7F9;
-  --color-card-bg: white;
-  --color-border: #E8E8E8;
-  --color-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+.google-auth-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #4285F4; /* Couleur Google */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-top: 20px;
+    box-shadow: 0 2px 4px 0 rgba(0,0,0,0.25);
+    transition: background-color 0.2s;
 }
 
-.dark-mode {
-  /* Dark Mode */
-  --color-primary: #C3A3FF;
-  --color-secondary: #00BFA6;
-  --color-text: #EAEAEA;
-  --color-text-light: #AAAAAA;
-  --color-background: #121212;
-  --color-card-bg: #242424;
-  --color-border: #444444;
-  --color-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+.google-auth-button:hover {
+    background-color: #357ae8;
 }
 
-/* --- STRUCTURE DE BASE --- */
-.app {
-  background-color: var(--color-background);
-  color: var(--color-text);
-  min-height: 100vh;
-  transition: background-color 0.3s, color 0.3s;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
+.google-auth-button:disabled {
+    opacity: 0.8;
 }
 
-.app-container {
-  display: flex;
-  flex-direction: column;
-  max-width: 600px;
-  margin: 0 auto;
-  min-height: 100vh;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
-  background-color: var(--color-card-bg); /* Le conteneur principal reste clair pour le contenu */
-  position: relative;
+.auth-footer {
+    margin-top: 20px;
+    font-size: 0.85em;
+    color: var(--color-text-light);
 }
 
-.main-content {
-  flex-grow: 1;
-  overflow-y: auto;
-  padding-bottom: 70px; 
-}
-
-/* Styles pour le loading/auth (pour être beaux) */
-.loading-screen, .auth-container {
-    background-color: var(--color-background);
-}
-
+/* Assurez-vous que l'auth-card et les titres restent lisibles */
 .auth-card {
-    background: var(--color-card-bg);
-    box-shadow: var(--color-shadow);
-}
-/* Ajoutez les styles des composants Auth.css pour une cohérence visuelle */
-.auth-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.auth-card {
-  background: white;
-  border-radius: 24px;
-  padding: 32px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-}
-
-.auth-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.auth-logo {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #2D5F5D 0%, #4A8B7A 100%);
-  border-radius: 20px;
-  margin: 0 auto 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.auth-logo span {
-  color: white;
-  font-size: 32px;
-  font-weight: bold;
-}
-
-.auth-header h1 {
-  font-size: 24px;
-  font-weight: bold;
-  color: #1f2937;
-  margin: 0 0 8px 0;
-}
-
-.auth-header p {
-  color: #6b7280;
-  margin: 0;
-}
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.input-group label {
-  font-weight: 500;
-  color: #374151;
-  font-size: 14px;
-}
-
-.input-group input {
-  padding: 12px 16px;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  font-size: 16px;
-  transition: border-color 0.2s ease;
-}
-
-.input-group input:focus {
-  outline: none;
-  border-color: #2D5F5D;
-}
-
-.auth-button {
-  background: linear-gradient(135deg, #2D5F5D 0%, #4A8B7A 100%);
-  color: white;
-  border: none;
-  padding: 16px;
-  border-radius: 16px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 8px;
-}
-
-.auth-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(45, 95, 93, 0.3);
-}
-
-.auth-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.auth-switch {
-  background: none;
-  border: none;
-  color: #2D5F5D;
-  font-weight: 500;
-  cursor: pointer;
-  margin-top: 20px;
-  padding: 8px;
-  width: 100%;
-}
-/* Styles pour les boutons/inputs généraux */
-.app-container input, .app-container select, .app-container textarea {
-    background-color: var(--color-background);
-    color: var(--color-text);
     border: 1px solid var(--color-border);
-    transition: all 0.2s;
-}
-
-.app-container input:focus, .app-container select:focus, .app-container textarea:focus {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(90, 24, 154, 0.2);
 }
