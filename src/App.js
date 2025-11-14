@@ -1,4 +1,4 @@
-// src/App.js (VERSION INTÉGRALE)
+// src/App.js (VERSION FINALE AVEC CONNEXION GOOGLE SIMPLIFIÉE)
 
 import './App.css';
 import { useState, useEffect, useCallback } from 'react';
@@ -23,21 +23,18 @@ function App() {
   const [showSettings, setShowSettings] = useState(false); 
   const [loading, setLoading] = useState(true);
   const [profileComplete, setProfileComplete] = useState(false); 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authError, setAuthError] = useState('');
+  // Suppression des états email, password, isSignUp, authError, authLoading
+  const [authLoading, setAuthLoading] = useState(false); 
 
   const toggleDarkMode = () => setDarkMode(prev => !prev);
   
   const fetchUserData = useCallback(async (userId) => {
+    // ... (Logique inchangée) ...
     try {
       setFamilyId(null); 
       setFamilyName('');
       setProfileComplete(false); 
 
-      // Ajout de 'role'
       const { data: userData, error: userError } = await supabase
         .from('user_profiles') 
         .select('family_id, first_name, role') 
@@ -80,6 +77,7 @@ function App() {
       clearTimeout(timeoutId);
 
       if (authUser) {
+        // user.id et user.email sont disponibles
         await fetchUserData(authUser.id);
       } else {
         setFamilyId(null);
@@ -95,32 +93,31 @@ function App() {
     };
   }, [fetchUserData]); 
 
-  const handleAuth = async (e) => {
-    e.preventDefault();
+  // NOUVELLE FONCTION SIMPLIFIÉE POUR GOOGLE SIGN-IN
+  const handleGoogleSignIn = async () => {
     setAuthLoading(true);
-    setAuthError('');
-
     try {
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
-        alert('Compte créé ! Vérifiez votre email pour confirmer, puis connectez-vous.');
-        
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-      }
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          // L'URL de redirection doit pointer vers votre domaine Vercel ou localhost
+          redirectTo: window.location.origin, 
+        },
+      });
+
+      if (error) throw error;
+
     } catch (error) {
-      console.error('Auth error:', error);
-      setAuthError(error.message || 'Une erreur est survenue');
+      console.error('Erreur de connexion Google:', error);
+      alert('Erreur lors de la connexion via Google. Assurez-vous que Google est activé dans votre dashboard Supabase.');
     } finally {
       setAuthLoading(false);
     }
   };
 
+
   const handlePostCreated = () => {
-    // Logique de rafraîchissement du feed après la création d'un post
-    console.log('Nouveau post créé, rafraîchissement du feed...');
+    console.log('Nouveau post créé');
   };
 
   const renderPage = () => {
@@ -156,7 +153,6 @@ function App() {
         return (
           <>
             <FeedPage user={user} familyId={familyId} />
-            {/* CreatePost est toujours en bas du feed */}
             <CreatePost user={user} familyId={familyId} onPostCreated={handlePostCreated} />
           </>
         );
@@ -202,7 +198,7 @@ function App() {
   }
 
   if (!user) {
-    // Rendu Auth
+    // Rendu Auth SIMPLIFIÉ
     return (
       <div className="app">
         <div className="auth-container">
@@ -211,62 +207,23 @@ function App() {
               <div className="auth-logo">
                 <span>N</span>
               </div>
-              <h1>{isSignUp ? 'Créer un compte' : 'Bienvenue sur Nesti'}</h1>
-              <p>L'application qui rapproche votre famille</p>
+              <h1>Bienvenue sur Nesti</h1>
+              <p>Connectez-vous pour commencer l'organisation familiale.</p>
+            </div>
+            
+            {/* BOUTON GOOGLE */}
+            <button 
+              onClick={handleGoogleSignIn}
+              className="google-auth-button"
+              disabled={authLoading}
+            >
+              {authLoading ? 'Connexion en cours...' : 'G Continuer avec Google'}
+            </button>
+
+            <div className="auth-footer">
+                <p>Simple et sécurisé via votre compte Google.</p>
             </div>
 
-            <form onSubmit={handleAuth} className="auth-form">
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="votre@email.com"
-                  required
-                  disabled={authLoading}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Mot de passe</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  disabled={authLoading}
-                  minLength={6}
-                />
-              </div>
-
-              {authError && (
-                <div className="auth-error">
-                  {authError}
-                </div>
-              )}
-
-              <button 
-                type="submit" 
-                className="auth-button"
-                disabled={authLoading}
-              >
-                {authLoading ? 'Chargement...' : (isSignUp ? 'Créer mon compte' : 'Se connecter')}
-              </button>
-            </form>
-
-            <div className="auth-switch">
-              <button 
-                onClick={() => {
-                  setIsSignUp(!isSignUp);
-                  setAuthError('');
-                }}
-                className="switch-button"
-              >
-                {isSignUp ? 'Déjà un compte ? Se connecter' : 'Pas de compte ? S\'inscrire'}
-              </button>
-            </div>
           </div>
         </div>
       </div>
