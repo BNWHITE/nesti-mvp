@@ -1,70 +1,42 @@
-# Getting Started with Create React App
+# 👨‍👩‍👧‍👦 Nesti MVP - L'Assistant Familial 🧠
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+**Nesti** est une application web moderne conçue pour simplifier l'organisation familiale, la communication au sein du "Nest" et la découverte d'activités adaptées. Ce projet est développé comme un Minimum Viable Product (MVP) axé sur une expérience utilisateur fluide et l'intégration d'une intelligence artificielle experte.
 
-## Available Scripts
+## 🚀 Fonctionnalités Clés du MVP
 
-In the project directory, you can run:
+Le MVP inclut les fonctionnalités essentielles pour un lancement réussi, toutes conçues avec un design moderne basé sur les cartes (Card-based UI), conformément aux standards actuels.
 
-### `npm start`
+| Module | Description |
+| :--- | :--- |
+| **Accueil (Fil Familial)** | Fil d'actualité central pour les publications et les événements importants. Inclut des cartes d'action rapide et des suggestions d'activités mises en avant. |
+| **Mon Nest** | Gestion des membres de la famille (Parents/Enfants) et de leurs rôles. Fonctionnalités d'invitation/ajout de nouveaux membres via un code unique. |
+| **Agenda** | Visualisation d'un calendrier et d'une liste d'événements familiaux à venir, avec un design clair et un affichage scrollable. |
+| **Découvertes** | Moteur d'exploration pour trouver des activités et des loisirs (basé initialement sur les données de Rennes/Île-de-France). Inclut une barre de recherche et une simulation de carte interactive. |
+| **Nesti IA (Chat)** | Assistant basé sur l'IA (via une API Vercel Serverless) pour répondre aux questions d'organisation, d'éducation et proposer des idées d'activités personnalisées. |
+| **UX/UI** | Implémentation complète du **Dark Mode** et d'un système de style moderne et professionnel sur toutes les pages. |
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 💻 Stack Technique
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+| Catégorie | Technologie | Description |
+| :--- | :--- | :--- |
+| **Frontend** | **React (CRA)** | Bibliothèque JavaScript principale pour l'interface utilisateur. |
+| **Backend/BaaS** | **Supabase** | Base de données PostgreSQL, authentification (OAuth) et fonctions de sécurité (RLS). |
+| **API AI** | **Vercel Serverless** | Fonction Serverless déployée pour gérer les requêtes vers OpenAI/Gemini (API `nesti-ai`). |
+| **Déploiement** | **Vercel** | Plateforme de déploiement continu. |
+| **Design** | **CSS Modules / CSS natif** | Styles modulaires pour un design UI/UX de haute qualité et responsive. |
 
-### `npm test`
+## 🛠️ Configuration du Projet (Local)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Suivez ces étapes pour démarrer le projet Nesti MVP sur votre machine locale.
 
-### `npm run build`
+### Prérequis
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+* Node.js et npm (ou yarn)
+* Compte Supabase actif
+* Clés API OpenAI (ou équivalent pour l'IA)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 1. Cloner le dépôt
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```bash
+git clone [URL_DU_VOTRE_DEPOT]
+cd nesti-mvp
