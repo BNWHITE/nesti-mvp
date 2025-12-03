@@ -1,114 +1,55 @@
-// src/App.js (VERSION DE DÉVELOPPEMENT SANS AUTHENTIFICATION)
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import './App.css';
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from './lib/supabaseClient';
-import Header from './components/Header';
-import Navigation from './components/Navigation';
-import FeedPage from './pages/FeedPage';
-import AgendaPage from './pages/AgendaPage';
-import NestPage from './pages/NestPage';
-import DiscoveriesPage from './pages/DiscoveriesPage';
-import ChatPage from './pages/ChatPage';
-import SettingsPage from './pages/SettingsPage';
-import CreatePost from './components/CreatePost';
+// Pages
+import Feed from './pages/FeedPage';
+import Agenda from './pages/AgendaPage';
+import MonNest from './pages/NestPage';
+import Decouvertes from './pages/DiscoveriesPage';
+import NestiIA from './pages/ChatPage';
 import Onboarding from './pages/Onboarding';
+import Settings from './pages/SettingsPage';
+import SplashScreen from './pages/SplashScreen'; // Si existant
+import Layout from './components/Layout'; // Créer ce composant pour la navbar
+
+const queryClient = new QueryClient();
+
+// Composant Layout simple avec navigation
+const AppLayout = ({ children }) => {
+  return (
+    <div className="min-h-screen bg-gray-50 pb-20">
+      {children}
+      {/* Ajoutez ici votre BottomNav importée */}
+      <nav className="fixed bottom-0 w-full bg-white border-t border-gray-200 py-3 flex justify-around items-center z-50">
+         {/* Liens vers /feed, /agenda, /mon-nest, etc. */}
+         <a href="/feed" className="flex flex-col items-center text-xs text-gray-500">🏠 Feed</a>
+         <a href="/agenda" className="flex flex-col items-center text-xs text-gray-500">📅 Agenda</a>
+         <a href="/mon-nest" className="flex flex-col items-center text-xs text-gray-500">👨‍👩‍👧‍👦 Nest</a>
+         <a href="/decouvertes" className="flex flex-col items-center text-xs text-gray-500">🔍 Découvertes</a>
+         <a href="/nesti-ia" className="flex flex-col items-center text-xs text-gray-500">🤖 IA</a>
+      </nav>
+    </div>
+  );
+};
 
 function App() {
-  // --- VALEURS STATIQUES POUR BYPASSER L'AUTH ET L'ONBOARDING ---
-  const TEST_USER = { 
-    id: 'bypassed-user-id', 
-    email: 'test@nesti.app',
-    first_name: 'Dev'
-  };
-  const TEST_FAMILY_ID = 'bypassed-family-id'; // Doit être une chaîne de caractères
-  // --- FIN VALEURS STATIQUES ---
-
-  const [darkMode, setDarkMode] = useState(false);
-  
-  // Remplacer null par TEST_USER pour simuler l'authentification
-  const [user, setUser] = useState(TEST_USER); 
-  
-  // Remplacer null par TEST_FAMILY_ID pour simuler la jointure familiale
-  const [familyId, setFamilyId] = useState(TEST_FAMILY_ID);
-  
-  // Remplacer false par true pour simuler le profil complété
-  const [profileComplete, setProfileComplete] = useState(true); 
-
-  const [familyName, setFamilyName] = useState('Nest de Développement');
-  const [activeTab, setActiveTab] = useState('feed');
-  const [showSettings, setShowSettings] = useState(false); 
-  const [loading, setLoading] = useState(false); // Désactiver le chargement initial
-
-  // La logique fetchUserData et useEffect/onAuthStateChange est désactivée
-  // pour éviter tout blocage lié à la BDD / RLS / Auth.
-
-  const toggleDarkMode = () => setDarkMode(prev => !prev);
-  
-  const handlePostCreated = () => {
-    console.log('Nouveau post créé');
-  };
-
-  const renderPage = () => {
-    // Si l'utilisateur est simulé, rendre la page principale
-    if (!user) return null; // Ne devrait jamais arriver en mode dev
-
-    switch (activeTab) {
-      case 'feed':
-        return (
-          <>
-            <FeedPage user={user} familyId={familyId} />
-            <CreatePost user={user} familyId={familyId} onPostCreated={handlePostCreated} />
-          </>
-        );
-      case 'agenda':
-        return <AgendaPage user={user} familyId={familyId} />;
-      case 'nest':
-        return <NestPage user={user} familyId={familyId} familyName={familyName} />;
-      case 'discover':
-        return <DiscoveriesPage user={user} familyId={familyId} />;
-      case 'chat':
-        return <ChatPage user={user} familyId={familyId} />;
-      default:
-        return <FeedPage user={user} familyId={familyId} />;
-    }
-  };
-
-  // --- RENDU EN MODE BYPASS ---
-
-  // Afficher directement l'application si l'utilisateur est simulé
   return (
-    <div className={`app ${darkMode ? 'dark-mode' : 'light-mode'}`}>
-      <div className="app-container">
-        
-        {/* Header est affiché car user, familyId et profileComplete sont true */}
-        <Header 
-          user={user} 
-          familyName={familyName}
-          onSettingsOpen={() => setShowSettings(true)}
-          isDarkMode={darkMode}
-          toggleDarkMode={toggleDarkMode}
-        />
-        
-        <main className="main-content">
-          {renderPage()}
-        </main>
-        
-        <Navigation 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab} 
-        />
-        
-        {showSettings && (
-          <SettingsPage 
-            user={user} 
-            onClose={() => setShowSettings(false)} 
-            isDarkMode={darkMode}
-            toggleDarkMode={toggleDarkMode}
-          />
-        )}
-      </div>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Navigate to="/feed" />} />
+          <Route path="/onboarding" element={<Onboarding />} />
+          
+          <Route path="/feed" element={<AppLayout><Feed /></AppLayout>} />
+          <Route path="/agenda" element={<AppLayout><Agenda /></AppLayout>} />
+          <Route path="/mon-nest" element={<AppLayout><MonNest /></AppLayout>} />
+          <Route path="/decouvertes" element={<AppLayout><Decouvertes /></AppLayout>} />
+          <Route path="/nesti-ia" element={<AppLayout><NestiIA /></AppLayout>} />
+          <Route path="/reglages" element={<AppLayout><Settings /></AppLayout>} />
+        </Routes>
+      </Router>
+    </QueryClientProvider>
   );
 }
 
