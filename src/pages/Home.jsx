@@ -1,22 +1,23 @@
-import React from "react";
+import { useEffect, useState } from "react";
+import supabase from "../config/supabase";
+import Card from "../components/Card";
 
 export default function Home() {
-  return (
-    <div>
-      <section className="card">
-        <h2>Bienvenue sur Nesti</h2>
-        <p>Nesti simplifie la vie familiale : fil d’actualité, agenda, membres et assistant IA.</p>
-        <a href="/mon-nest">Créer mon Nest →</a>
-      </section>
+  const [posts, setPosts] = useState([]);
 
-      <section className="card">
-        <h3>Découvrir</h3>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
-          <div className="card">Fil familial</div>
-          <div className="card">Agenda</div>
-          <div className="card">Nesti IA</div>
-        </div>
-      </section>
+  useEffect(() => {
+    const fetchPosts = async () => {
+      let { data, error } = await supabase.from("family_feed").select("*").order("created_at", { ascending: false });
+      if (error) console.log(error);
+      else setPosts(data);
+    };
+    fetchPosts();
+  }, []);
+
+  return (
+    <div className="home-container">
+      <h1>Fil Familial</h1>
+      {posts.map((post) => <Card key={post.id} content={post} />)}
     </div>
   );
 }
