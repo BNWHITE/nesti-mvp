@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import MonNest from "./pages/MonNest";
@@ -14,7 +14,6 @@ import "./App.css";
 function AppContent() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [showOnboarding, setShowOnboarding] = useState(false);
   
   // Determine active tab based on current path
   const getActiveTab = () => {
@@ -55,10 +54,7 @@ function AppContent() {
             path="/onboarding" 
             element={
               <Onboarding 
-                onComplete={() => {
-                  setShowOnboarding(false);
-                  navigate('/');
-                }} 
+                onComplete={() => navigate('/')} 
               />
             } 
           />
