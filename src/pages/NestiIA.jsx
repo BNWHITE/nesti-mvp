@@ -1,57 +1,89 @@
 import React, { useState } from "react";
+import ChatMessage from "../components/ChatMessage";
+import "./NestiIA.css";
+
+// Mock messages
+const initialMessages = [
+  {
+    isUser: false,
+    content: "Bienvenue ! 👋\n\nJe suis Nesti, votre assistant familial intelligent. Je peux vous aider à organiser vos activités, trouver des idées et répondre à vos questions sur la vie familiale.",
+    time: '10:00',
+    suggestions: []
+  }
+];
+
+const mockSuggestions = [
+  {
+    icon: '⚽',
+    title: 'Stage de Football',
+    subtitle: '15-20 Juillet • 2.5 km'
+  },
+  {
+    icon: '🎨',
+    title: 'Atelier Peinture',
+    subtitle: 'Mercredis • 1.2 km'
+  }
+];
 
 export default function NestiIA() {
-  const [msg, setMsg] = useState("");
-  const [log, setLog] = useState([]);
+  const [messages, setMessages] = useState(initialMessages);
+  const [input, setInput] = useState('');
 
-  const send = async () => {
-    if (!msg) return;
+  const handleSend = () => {
+    if (!input.trim()) return;
 
-    setLog(l => [...l, { role: "user", content: msg }]);
+    const userMessage = {
+      isUser: true,
+      content: input,
+      time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    };
 
-    try {
-      const r = await fetch("/api/nesti-ai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: msg })
-      });
+    const nestiResponse = {
+      isUser: false,
+      content: "Voici quelques suggestions d'activités qui pourraient vous intéresser basées sur vos préférences :",
+      time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      suggestions: mockSuggestions
+    };
 
-      const data = await r.json();
-      
-      const reply =
-        data?.choices?.[0]?.message?.content ||
-        data?.result ||
-        "Réponse IA indisponible";
+    setMessages([...messages, userMessage, nestiResponse]);
+    setInput('');
+  };
 
-      setLog(l => [...l, { role: "assistant", content: reply }]);
-    } catch (err) {
-      setLog(l => [...l, { role: "assistant", content: "Erreur serveur" }]);
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
-
-    setMsg("");
   };
 
   return (
-    <div className="card">
-      <h2>Nesti IA</h2>
+    <div className="nesti-ia-page">
+      <div className="nesti-header">
+        <div className="nesti-icon-large">✨</div>
+        <div className="nesti-title-group">
+          <h1>Nesti IA</h1>
+          <span className="nesti-badge">Assistant familial</span>
+        </div>
+      </div>
 
-      <div style={{border:"1px solid #ddd", padding:12, marginBottom:12, minHeight:180}}>
-        {log.map((m,i) => (
-          <div key={i}>
-            <b>{m.role === "user" ? "Moi :" : "Nesti :"}</b>
-            <p>{m.content}</p>
-          </div>
+      <div className="chat-container">
+        {messages.map((message, idx) => (
+          <ChatMessage key={idx} message={message} isUser={message.isUser} />
         ))}
       </div>
 
-      <div style={{display:"flex", gap:10}}>
+      <div className="chat-input-container">
         <input
-          style={{flex:1, padding:8}}
-          value={msg}
-          placeholder="Demande quelque chose à Nesti…"
-          onChange={e => setMsg(e.target.value)}
+          type="text"
+          className="chat-input"
+          placeholder="Posez une question à Nesti..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyPress={handleKeyPress}
         />
-        <button onClick={send}>Envoyer</button>
+        <button className="send-btn" onClick={handleSend}>
+          <span>📤</span>
+        </button>
       </div>
     </div>
   );

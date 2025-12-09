@@ -1,0 +1,183 @@
+/* Mon Nest Page - Family Management */
+.mon-nest-page {
+  padding: var(--spacing-lg);
+  padding-bottom: 90px;
+}
+
+.family-card {
+  background: var(--color-card);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  margin-bottom: var(--spacing-xl);
+}
+
+.family-icon {
+  font-size: 64px;
+  margin-bottom: var(--spacing-md);
+}
+
+.family-name {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--color-text);
+}
+
+.family-description {
+  font-size: 15px;
+  color: var(--color-text-light);
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+.family-stats {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  font-size: 14px;
+  color: var(--color-text-light);
+  font-weight: 500;
+}
+
+.stat-divider {
+  color: var(--color-border);
+}
+
+.members-section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.members-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.members-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.member-card {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.member-avatar-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.member-initials {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  background: var(--color-primary);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-card);
+}
+
+.member-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.member-name-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.member-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.member-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.member-role-badge.role-admin {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.member-role-badge.role-parent {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.member-role-badge.role-child {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.role-icon {
+  font-size: 14px;
+}
+
+.member-email {
+  font-size: 13px;
+  color: var(--color-text-light);
+  margin: 0 0 2px 0;
+}
+
+.member-since {
+  font-size: 12px;
+  color: var(--color-text-lighter);
+  margin: 0;
+}
+
+.member-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.action-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-icon-btn:hover {
+  background: var(--color-bg);
+  border-color: var(--color-primary);
+}

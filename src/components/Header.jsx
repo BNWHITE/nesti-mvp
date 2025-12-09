@@ -1,17 +1,24 @@
+import React from 'react';
 import DarkModeToggle from "./DarkModeToggle";
+import './Header.css';
 
-export default function Header() {
+export default function Header({ familyName = "Famille Martin" }) {
   return (
-    <header className="header">
-      <h1>Nesti</h1>
-      <nav>
-        <a href="/">Accueil</a>
-        <a href="/monnest">Mon Nest</a>
-        <a href="/agenda">Agenda</a>
-        <a href="/discover">Découvertes</a>
-        <a href="/nesti-ia">Nesti IA</a>
-      </nav>
-      <DarkModeToggle />
+    <header className="nesti-header">
+      <div className="header-logo">
+        <div className="logo-icon">N</div>
+        <span className="header-family-name">{familyName}</span>
+      </div>
+      
+      <div className="header-actions">
+        <DarkModeToggle />
+        <button className="header-icon-btn" title="Notifications">
+          <span>🔔</span>
+        </button>
+        <button className="header-icon-btn avatar avatar-sm">
+          S
+        </button>
+      </div>
     </header>
   );
 }

@@ -1,0 +1,130 @@
+/* Activity Card Styles */
+.activity-card {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: var(--spacing-lg);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.activity-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.activity-image {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.activity-emoji {
+  font-size: 64px;
+}
+
+.activity-match-badge {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  background: var(--color-primary);
+  color: white;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.activity-content {
+  padding: var(--spacing-lg);
+}
+
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-sm);
+}
+
+.activity-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.activity-category {
+  font-size: 12px;
+  color: var(--color-text-light);
+  background: var(--color-bg);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+}
+
+.activity-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.rating-stars {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+.rating-reviews {
+  font-size: 13px;
+  color: var(--color-text-light);
+}
+
+.activity-description {
+  font-size: 14px;
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-md) 0;
+  line-height: 1.5;
+}
+
+.activity-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--color-text-light);
+}
+
+.activity-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.activity-tag {
+  font-size: 12px;
+  padding: 4px 10px;
+  background: var(--color-bg);
+  color: var(--color-text-light);
+  border-radius: var(--radius-full);
+}
+
+.activity-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.activity-actions .btn {
+  flex: 1;
+}

@@ -1,191 +1,340 @@
-/* src/pages/OnboardingPage.css */
-
-/* Variables de thème */
-:root {
-    --nesti-primary: #6200EE;
-    --nesti-secondary: #03DAC6;
-    --nesti-text-dark: #333333;
-    --nesti-bg-light: #f0f2f5;
-    --nesti-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    --nesti-radius: 12px;
+/* Onboarding Flow - 4 Steps */
+.onboarding-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg);
 }
 
-/* ------------------- CONTENEUR GLOBAL ------------------- */
-
-.onboarding-page-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 20px;
-    background-color: var(--nesti-bg-light); 
-    box-sizing: border-box;
-    font-family: 'Arial', sans-serif;
+.onboarding-container {
+  width: 100%;
+  max-width: 500px;
+  background: var(--color-card);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-xl);
+  position: relative;
 }
 
-.onboarding-card {
-    background: white;
-    padding: 40px;
-    border-radius: var(--nesti-radius);
-    box-shadow: var(--nesti-shadow);
-    max-width: 480px;
-    width: 100%;
-    text-align: center;
-    transform: translateY(0); /* Sécurité anti-blocage */
-    transition: transform 0.3s ease;
+/* Progress Bar */
+.onboarding-progress-bar {
+  height: 6px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--spacing-xl);
+  overflow: hidden;
 }
 
-/* ------------------- EN-TÊTE ------------------- */
-
-.onboarding-header {
-    margin-bottom: 25px;
+.progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.3s ease;
+  border-radius: var(--radius-full);
 }
 
-.onboarding-logo {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    width: 65px;
-    height: 65px;
-    background-color: var(--nesti-primary);
-    color: white;
-    font-size: 3em;
-    font-weight: 700;
-    border-radius: 50%;
-    margin-bottom: 15px;
-    box-shadow: 0 4px 10px rgba(98, 0, 238, 0.3);
+/* Skip Button */
+.skip-btn {
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  background: transparent;
+  border: none;
+  color: var(--color-text-light);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
 }
 
-.onboarding-card h1 {
-    color: var(--nesti-text-dark);
-    font-size: 2em;
-    margin-bottom: 5px;
+.skip-btn:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
-.onboarding-greeting {
-    color: #777;
-    font-size: 1em;
-    font-style: italic;
+/* Step Content */
+.onboarding-content {
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* ------------------- ONGLET (TABS) ------------------- */
-
-.tabs {
-    display: flex;
-    width: 100%;
-    margin-bottom: 30px;
-    border-radius: 8px;
-    background-color: #f8f8f8;
-    padding: 4px;
+.onboarding-step {
+  width: 100%;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
 }
 
-.tab-btn {
-    flex: 1;
-    padding: 10px 0;
-    font-size: 1em;
-    font-weight: 600;
-    color: var(--nesti-text-dark);
-    background: none;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.tab-btn.active {
-    color: white;
-    background-color: var(--nesti-primary);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+/* Step Icons */
+.step-icon-large {
+  margin: 0 auto var(--spacing-lg);
 }
 
-.tab-btn:hover:not(.active) {
-    background-color: #eeeeee;
-}
-.tab-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-
-/* ------------------- FORMULAIRE ------------------- */
-
-.form-description {
-    color: #888;
-    font-size: 0.95em;
-    margin-bottom: 25px;
+.family-icon {
+  width: 120px;
+  height: 120px;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  margin: 0 auto var(--spacing-md);
 }
 
-.input-group {
-    text-align: left;
-    margin-bottom: 20px;
+.family-circle {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-full);
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.input-group label {
-    display: block;
-    font-size: 0.9em;
-    font-weight: 600;
-    color: var(--nesti-text-dark);
-    margin-bottom: 7px;
+.family-icon-grey {
+  font-size: 80px;
+  color: #d1d5db;
+  margin: var(--spacing-lg) 0;
 }
 
-.onboarding-form input {
-    width: 100%;
-    padding: 14px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-sizing: border-box;
-    font-size: 1em;
-    transition: border-color 0.3s;
+.step-icon-medium {
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  font-size: 32px;
 }
 
-.onboarding-form input:focus {
-    border-color: var(--nesti-primary);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(98, 0, 238, 0.1);
+.heart-icon {
+  font-size: 28px;
 }
 
-/* ------------------- BOUTONS ET ERREURS ------------------- */
-
-.main-action-btn {
-    width: 100%;
-    padding: 16px;
-    background-color: var(--nesti-primary);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 700;
-    font-size: 1.1em;
-    transition: background-color 0.3s;
-    margin-top: 10px;
+.sparkles {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  margin: 0 auto var(--spacing-lg);
 }
 
-.main-action-btn:hover:not(:disabled) {
-    background-color: #4b00c4;
+.check-icon {
+  width: 100px;
+  height: 100px;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+  margin: 0 auto var(--spacing-md);
 }
 
-.secondary-btn {
-    background-color: var(--nesti-secondary);
-    color: var(--nesti-text-dark);
+.step-emoji {
+  font-size: 48px;
+  margin-bottom: var(--spacing-md);
 }
 
-.secondary-btn:hover:not(:disabled) {
-    background-color: #00bfa5;
-    color: white;
+/* Step Text */
+.step-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--color-text);
 }
 
-.main-action-btn:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+.step-subtitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--color-text-light);
 }
 
-.onboarding-error {
-    background-color: #fde6e9; /* Rouge très pâle */
-    color: #c0392b; /* Rouge foncé */
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 25px;
-    border: 1px solid #f9c7c7;
-    font-size: 0.95em;
-    font-weight: 600;
+.step-description {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-text-light);
+  margin: 0 auto var(--spacing-lg);
+  max-width: 400px;
+}
+
+/* Step 2: Nest Name Input */
+.nest-name-input {
+  width: 100%;
+  padding: 16px 20px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  font-size: 16px;
+  text-align: center;
+  margin-top: var(--spacing-lg);
+  transition: border-color 0.2s ease;
+}
+
+.nest-name-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Step 3: Preferences */
+.preferences-groups {
+  text-align: left;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: var(--spacing-sm);
+  margin: var(--spacing-lg) 0;
+}
+
+.preference-group {
+  margin-bottom: var(--spacing-xl);
+}
+
+.preference-group-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--color-text);
+}
+
+.tags-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: var(--spacing-sm);
+}
+
+.preferences-counter {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* Step 4: Summary */
+.summary-info {
+  margin-top: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  text-align: left;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+}
+
+.summary-icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-card);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.summary-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+/* Navigation Buttons */
+.onboarding-navigation {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.nav-btn {
+  flex: 1;
+  padding: 16px 24px;
+  border-radius: var(--radius-xl);
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.nav-btn-back {
+  background: transparent;
+  color: var(--color-text-light);
+  border: 2px solid var(--color-border);
+}
+
+.nav-btn-back:hover {
+  background: var(--color-bg);
+  border-color: var(--color-text-light);
+}
+
+.nav-btn-next {
+  background: var(--color-primary);
+  color: white;
+}
+
+.nav-btn-next:hover:not(:disabled) {
+  background: #245350;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.nav-btn-next:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Mobile Responsive */
+@media (max-width: 500px) {
+  .onboarding-page {
+    padding: var(--spacing-md);
+  }
+
+  .onboarding-container {
+    padding: var(--spacing-lg);
+  }
+
+  .step-title {
+    font-size: 24px;
+  }
+
+  .step-subtitle {
+    font-size: 16px;
+  }
+
+  .tags-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  }
 }
