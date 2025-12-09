@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { PlusIcon } from '@heroicons/react/24/outline';
 import PostCard from "../components/PostCard";
 import "./Home.css";
@@ -48,7 +48,7 @@ const mockPosts = [
 ];
 
 export default function Home() {
-  const [posts, setPosts] = useState(mockPosts);
+  const posts = mockPosts;
 
   return (
     <div className="home-page">
