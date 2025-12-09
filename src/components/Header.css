@@ -1,67 +1,80 @@
-/* src/components/Header.css (DESIGN AMÉLIORÉ) */
-
-.app-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 15px;
-  border-bottom: 1px solid var(--color-border);
-  background-color: var(--color-card-bg);
-  color: var(--color-text);
+/* Header Component Styles */
+.header-top {
   position: sticky;
   top: 0;
-  z-index: 10;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Ombre légère */
+  z-index: 100;
+  background: var(--color-card-bg);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-md) var(--space-lg);
 }
 
-.logo span {
-  font-size: 1.6em;
-  font-weight: 800;
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.logo-icon {
+  font-size: var(--text-2xl);
+}
+
+.logo-text {
+  font-size: var(--text-xl);
+  font-weight: 700;
   color: var(--color-primary);
 }
 
-.family-info {
-  flex-grow: 1;
-  text-align: center;
-}
-
 .family-name {
-  font-weight: 600;
-  font-size: 0.95em;
-  color: var(--color-text);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  padding-left: var(--space-sm);
+  border-left: 2px solid var(--color-border);
 }
 
-.user-controls {
+.header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-sm);
 }
 
-.control-btn {
-  background: none;
-  border: none;
-  font-size: 1.3em;
-  color: var(--color-text-light);
-  cursor: pointer;
-  padding: 5px;
-  border-radius: 5px;
-}
-
-.control-btn:hover {
-  background-color: var(--color-border);
-  color: var(--color-text);
-}
-
-.user-avatar {
+.header-icon-btn {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background-color: var(--color-secondary);
-  color: var(--color-text);
+  border-radius: var(--radius-full);
   display: flex;
-  justify-content: center;
   align-items: center;
-  font-weight: bold;
-  font-size: 1.1em;
-  border: 2px solid var(--color-primary); /* Bordure accentuée */
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--color-text-secondary);
+}
+
+.header-icon-btn:hover {
+  background: var(--color-input-bg);
+  color: var(--color-text);
+}
+
+.header-icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* Dark Mode Toggle in Header */
+.header-icon-btn button {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
