@@ -6,21 +6,25 @@ import Agenda from "./pages/Agenda";
 import Discover from "./pages/Discover";
 import NestiIA from "./pages/NestiIA";
 import Header from "./components/Header";
+import BottomNav from "./components/BottomNav";
 import "./App.css";
 
 function App() {
   return (
     <Router>
-      <Header />
-      <main className="main">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/mon-nest" element={<MonNest />} />
-          <Route path="/agenda" element={<Agenda />} />
-          <Route path="/decouvertes" element={<Discover />} />
-          <Route path="/nesti-ia" element={<NestiIA />} />
-        </Routes>
-      </main>
+      <div className="app">
+        <Header />
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/mon-nest" element={<MonNest />} />
+            <Route path="/agenda" element={<Agenda />} />
+            <Route path="/decouvertes" element={<Discover />} />
+            <Route path="/nesti-ia" element={<NestiIA />} />
+          </Routes>
+        </main>
+        <BottomNav />
+      </div>
     </Router>
   );
 }

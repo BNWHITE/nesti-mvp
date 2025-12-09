@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import supabase from "../config/supabase";
+import { supabase } from "../lib/supabaseClient";
 import Card from "../components/Card";
 
 export default function Home() {

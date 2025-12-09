@@ -1,3 +1,4 @@
+import { Link, useLocation } from 'react-router-dom';
 import { 
   HomeIcon, 
   CalendarIcon, 
@@ -8,26 +9,28 @@ import {
 import './BottomNav.css';
 
 const navItems = [
-  { id: 'feed', icon: HomeIcon, label: 'Accueil' },
-  { id: 'agenda', icon: CalendarIcon, label: 'Agenda' },
-  { id: 'nest', icon: UserGroupIcon, label: 'Mon Nest' },
-  { id: 'discover', icon: MapIcon, label: 'Découvertes' },
-  { id: 'chat', icon: ChatBubbleLeftRightIcon, label: 'Nesti IA' },
+  { id: 'feed', path: '/', icon: HomeIcon, label: 'Accueil' },
+  { id: 'agenda', path: '/agenda', icon: CalendarIcon, label: 'Agenda' },
+  { id: 'nest', path: '/mon-nest', icon: UserGroupIcon, label: 'Mon Nest' },
+  { id: 'discover', path: '/decouvertes', icon: MapIcon, label: 'Découvertes' },
+  { id: 'chat', path: '/nesti-ia', icon: ChatBubbleLeftRightIcon, label: 'Nesti IA' },
 ];
 
-export default function BottomNav({ activeTab, onTabChange }) {
+export default function BottomNav() {
+  const location = useLocation();
+  
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 safe-area-inset-bottom">
       <div className="max-w-mobile mx-auto px-4">
         <div className="flex justify-around items-center h-16">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeTab === item.id;
+            const isActive = location.pathname === item.path;
             
             return (
-              <button
+              <Link
                 key={item.id}
-                onClick={() => onTabChange(item.id)}
+                to={item.path}
                 className={`flex flex-col items-center justify-center transition-all duration-200 ${
                   isActive 
                     ? 'text-primary scale-110' 
@@ -44,7 +47,7 @@ export default function BottomNav({ activeTab, onTabChange }) {
                 }`}>
                   {item.label}
                 </span>
-              </button>
+              </Link>
             );
           })}
         </div>
