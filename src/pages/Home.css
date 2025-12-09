@@ -1,0 +1,60 @@
+/* Home Page Styles */
+.home-page {
+  background: var(--color-background);
+  min-height: 100vh;
+}
+
+.create-post-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  background: var(--color-card-bg);
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.create-input {
+  flex: 1;
+  border: none;
+  background: var(--color-input-bg);
+  padding: var(--space-md);
+  border-radius: var(--radius-full);
+  font-size: var(--text-base);
+  color: var(--color-text);
+}
+
+.create-input:focus {
+  outline: none;
+  background: var(--color-card-bg);
+  border: 2px solid var(--color-primary);
+}
+
+.create-input::placeholder {
+  color: var(--color-text-light);
+}
+
+.create-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.create-btn:hover {
+  background: var(--color-secondary);
+  transform: scale(1.05);
+}
+
+.posts-feed {
+  display: flex;
+  flex-direction: column;
+}

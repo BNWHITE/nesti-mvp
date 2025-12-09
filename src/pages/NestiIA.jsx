@@ -1,57 +1,114 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
+import ChatMessage from "../components/ChatMessage";
+import "./NestiIA.css";
+
+// Mock initial messages
+const initialMessages = [
+  {
+    id: 1,
+    content: "Bienvenue ! 👋\n\nJe suis Nesti, votre assistant familial intelligent. Je peux vous aider à organiser vos activités, trouver des suggestions personnalisées, et bien plus encore !\n\nQue puis-je faire pour vous aujourd'hui ?",
+    isUser: false,
+    time: "10:30",
+    suggestions: [
+      "Trouver une activité pour ce weekend",
+      "Organiser un événement familial",
+      "Suggestions d'activités sportives"
+    ]
+  }
+];
 
 export default function NestiIA() {
-  const [msg, setMsg] = useState("");
-  const [log, setLog] = useState([]);
+  const [messages, setMessages] = useState(initialMessages);
+  const [inputValue, setInputValue] = useState("");
+  const messagesEndRef = useRef(null);
 
-  const send = async () => {
-    if (!msg) return;
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
-    setLog(l => [...l, { role: "user", content: msg }]);
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
-    try {
-      const r = await fetch("/api/nesti-ai", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: msg })
-      });
+  const handleSend = () => {
+    if (!inputValue.trim()) return;
 
-      const data = await r.json();
-      
-      const reply =
-        data?.choices?.[0]?.message?.content ||
-        data?.result ||
-        "Réponse IA indisponible";
+    const newUserMessage = {
+      id: messages.length + 1,
+      content: inputValue,
+      isUser: true,
+      time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    };
 
-      setLog(l => [...l, { role: "assistant", content: reply }]);
-    } catch (err) {
-      setLog(l => [...l, { role: "assistant", content: "Erreur serveur" }]);
+    setMessages([...messages, newUserMessage]);
+    setInputValue("");
+
+    // Simulate AI response
+    setTimeout(() => {
+      const aiResponse = {
+        id: messages.length + 2,
+        content: "Je comprends votre demande. Voici quelques suggestions d'activités qui pourraient vous intéresser :\n\n• Stage de football pour Emma\n• Atelier de peinture familial\n• Randonnée en nature\n\nSouhaitez-vous plus de détails sur l'une de ces activités ?",
+        isUser: false,
+        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, aiResponse]);
+    }, 1000);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
-
-    setMsg("");
   };
 
   return (
-    <div className="card">
-      <h2>Nesti IA</h2>
-
-      <div style={{border:"1px solid #ddd", padding:12, marginBottom:12, minHeight:180}}>
-        {log.map((m,i) => (
-          <div key={i}>
-            <b>{m.role === "user" ? "Moi :" : "Nesti :"}</b>
-            <p>{m.content}</p>
+    <div className="nesti-ia-page">
+      {/* Header */}
+      <div className="chat-header">
+        <div className="chat-header-content">
+          <span className="ai-icon-large">✨</span>
+          <div className="chat-header-info">
+            <h2 className="chat-title">Nesti IA</h2>
+            <span className="chat-badge">Assistant familial</span>
           </div>
-        ))}
+        </div>
       </div>
 
-      <div style={{display:"flex", gap:10}}>
-        <input
-          style={{flex:1, padding:8}}
-          value={msg}
-          placeholder="Demande quelque chose à Nesti…"
-          onChange={e => setMsg(e.target.value)}
-        />
-        <button onClick={send}>Envoyer</button>
+      {/* Messages Container */}
+      <div className="chat-messages-container">
+        <div className="chat-messages">
+          {messages.map((message) => (
+            <ChatMessage 
+              key={message.id} 
+              message={message} 
+              isUser={message.isUser} 
+            />
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+
+      {/* Input Area */}
+      <div className="chat-input-area">
+        <div className="chat-input-container">
+          <input
+            type="text"
+            className="chat-input"
+            placeholder="Posez votre question à Nesti..."
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyPress={handleKeyPress}
+          />
+          <button 
+            className="send-btn" 
+            onClick={handleSend}
+            disabled={!inputValue.trim()}
+          >
+            <PaperAirplaneIcon className="icon-md" />
+          </button>
+        </div>
       </div>
     </div>
   );
