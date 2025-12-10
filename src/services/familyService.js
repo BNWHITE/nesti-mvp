@@ -5,6 +5,57 @@ import supabase from '../config/supabase';
  * Handles all family-related operations with privacy-by-design
  */
 
+// Helper function to get user profile
+export const getUserProfile = async (userId) => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error getting user profile:', error);
+    return null;
+  }
+};
+
+// Helper function to create family
+export const createFamily = async ({ family_name, user_id, user_email, user_first_name }) => {
+  try {
+    // Create family
+    const { data: family, error: familyError } = await supabase
+      .from('families')
+      .insert([{
+        family_name: family_name,
+        subscription_type: 'free',
+      }])
+      .select()
+      .single();
+
+    if (familyError) throw familyError;
+
+    // Update user with family_id
+    const { error: userError } = await supabase
+      .from('users')
+      .update({ 
+        family_id: family.id,
+        first_name: user_first_name,
+        role: 'parent'
+      })
+      .eq('id', user_id);
+
+    if (userError) throw userError;
+
+    return family;
+  } catch (error) {
+    console.error('Error creating family:', error);
+    throw error;
+  }
+};
+
 export const familyService = {
   /**
    * Create a new family

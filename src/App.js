@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Home from "./pages/Home";
@@ -7,15 +7,38 @@ import Agenda from "./pages/Agenda";
 import Discover from "./pages/Discover";
 import NestiIA from "./pages/NestiIA";
 import Auth from "./pages/Auth";
+import Onboarding from "./pages/Onboarding";
 import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
+import { getUserProfile } from "./services/familyService";
 import "./App.css";
 
-// Protected Route Component
+// Protected Route Component with Onboarding Check
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
+  const [needsOnboarding, setNeedsOnboarding] = useState(null);
+  const [checkingOnboarding, setCheckingOnboarding] = useState(true);
 
-  if (loading) {
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      if (user) {
+        try {
+          const profile = await getUserProfile(user.id);
+          // Check if user has completed onboarding (has family_id)
+          setNeedsOnboarding(!profile?.family_id);
+        } catch (error) {
+          console.error('Error checking onboarding status:', error);
+          // If no profile exists, needs onboarding
+          setNeedsOnboarding(true);
+        }
+      }
+      setCheckingOnboarding(false);
+    };
+
+    checkOnboardingStatus();
+  }, [user]);
+
+  if (loading || checkingOnboarding) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
@@ -26,6 +49,10 @@ function ProtectedRoute({ children }) {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  if (needsOnboarding) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return children;
@@ -49,6 +76,12 @@ function AppRoutes() {
       <Route 
         path="/auth" 
         element={user ? <Navigate to="/" replace /> : <Auth />} 
+      />
+      <Route 
+        path="/onboarding" 
+        element={
+          user ? <Onboarding /> : <Navigate to="/auth" replace />
+        } 
       />
       <Route
         path="/"
