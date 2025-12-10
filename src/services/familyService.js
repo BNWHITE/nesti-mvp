@@ -25,14 +25,18 @@ export const getUserProfile = async (userId) => {
 // Helper function to create family
 export const createFamily = async ({ family_name, user_id, user_email, user_first_name }) => {
   try {
-    // First check if user profile exists
+    console.log('Starting family creation for user:', user_id);
+    
+    // Step 1: Check if user profile already exists
     const { data: existingUser, error: checkError } = await supabase
       .from('users')
       .select('*')
       .eq('id', user_id)
-      .single();
+      .maybeSingle(); // Use maybeSingle() instead of single() to avoid error when no rows
 
-    // Create family
+    console.log('Existing user check:', { existingUser, checkError });
+
+    // Step 2: Create family first (this should work with RLS)
     const { data: family, error: familyError } = await supabase
       .from('families')
       .insert([{
@@ -44,47 +48,67 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
 
     if (familyError) {
       console.error('Family creation error:', familyError);
-      throw new Error('Impossible de créer la famille. Vérifiez votre connexion.');
+      throw new Error(`Impossible de créer la famille: ${familyError.message}`);
     }
 
-    // If user profile doesn't exist, create it; otherwise update it
-    if (!existingUser || checkError) {
-      // Create user profile
-      const { error: createUserError } = await supabase
+    console.log('Family created successfully:', family);
+
+    // Step 3: Create or update user profile with the family_id
+    if (!existingUser) {
+      // Create new user profile
+      console.log('Creating new user profile');
+      const { data: newUser, error: createUserError } = await supabase
         .from('users')
         .insert([{
           id: user_id,
           email: user_email,
           first_name: user_first_name || user_email.split('@')[0],
           family_id: family.id,
-          role: 'parent'
-        }]);
+          role: 'parent',
+          age: null
+        }])
+        .select()
+        .single();
 
       if (createUserError) {
         console.error('User creation error:', createUserError);
-        throw new Error('Erreur lors de la création du profil utilisateur.');
+        // Try to clean up the family if user creation fails
+        await supabase.from('families').delete().eq('id', family.id);
+        throw new Error(`Erreur lors de la création du profil: ${createUserError.message}`);
       }
+      console.log('User profile created:', newUser);
     } else {
       // Update existing user with family_id
-      const { error: userError } = await supabase
+      console.log('Updating existing user profile');
+      const { data: updatedUser, error: userError } = await supabase
         .from('users')
         .update({ 
           family_id: family.id,
           first_name: user_first_name || existingUser.first_name,
-          role: 'parent'
+          role: existingUser.role || 'parent'
         })
-        .eq('id', user_id);
+        .eq('id', user_id)
+        .select()
+        .single();
 
       if (userError) {
         console.error('User update error:', userError);
-        throw new Error('Erreur lors de la mise à jour du profil.');
+        // Try to clean up the family if user update fails
+        await supabase.from('families').delete().eq('id', family.id);
+        throw new Error(`Erreur lors de la mise à jour du profil: ${userError.message}`);
       }
+      console.log('User profile updated:', updatedUser);
     }
 
     return family;
   } catch (error) {
-    console.error('Error creating family:', error);
-    throw error;
+    console.error('Error in createFamily:', error);
+    // Return more specific error message
+    if (error.message) {
+      throw error;
+    } else {
+      throw new Error('Erreur lors de la création de votre famille. Vérifiez votre connexion.');
+    }
   }
 };
 

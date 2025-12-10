@@ -1,64 +1,23 @@
 import { useState, useEffect } from "react";
-import { SparklesIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon, AdjustmentsHorizontalIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { activityService } from '../services/activityService';
+import ileDeFranceService from '../services/ileDeFranceService';
 import ActivityCard from "../components/ActivityCard";
 import './Discover.css';
-
-// Mock data
-const mockActivities = [
-  {
-    id: 1,
-    title: 'Stage de Football',
-    category: 'Sport',
-    emoji: '⚽',
-    matchScore: 95,
-    rating: 4.5,
-    reviews: 23,
-    description: 'Stage de football pour enfants de 8 à 12 ans. Encadrement professionnel.',
-    location: '2.3 km',
-    date: 'Mer 15 Mars',
-    price: 45,
-    tags: ['Famille', 'Sport', 'Enfants']
-  },
-  {
-    id: 2,
-    title: 'Atelier Cuisine',
-    category: 'Cuisine',
-    emoji: '👨‍🍳',
-    matchScore: 92,
-    rating: 4.8,
-    reviews: 45,
-    description: 'Découvrez les secrets de la cuisine française en famille.',
-    location: '1.5 km',
-    date: 'Sam 18 Mars',
-    price: 35,
-    tags: ['Famille', 'Cuisine', 'Créatif']
-  },
-  {
-    id: 3,
-    title: 'Sortie au Parc',
-    category: 'Nature',
-    emoji: '🌳',
-    matchScore: 88,
-    rating: 4.3,
-    reviews: 67,
-    description: 'Journée découverte nature avec activités pour toute la famille.',
-    location: '3.8 km',
-    date: 'Dim 19 Mars',
-    price: 0,
-    tags: ['Famille', 'Nature', 'Gratuit']
-  }
-];
 
 const userPreferences = ['Football', 'Cuisine', 'Jardinage', 'Art'];
 
 export default function Discover() {
   const [activeTab, setActiveTab] = useState('activites');
-  const [activities, setActivities] = useState(mockActivities); // Fallback to mock
+  const [activities, setActivities] = useState([]);
+  const [idfActivities, setIdfActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingIDF, setLoadingIDF] = useState(false);
+  const [showIDFActivities, setShowIDFActivities] = useState(false);
 
   useEffect(() => {
     loadActivities();
+    loadIDFActivities();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -75,7 +34,7 @@ export default function Discover() {
           category: act.category,
           emoji: getCategoryEmoji(act.category),
           matchScore: calculateMatchScore(act),
-          rating: 4.5, // Could be calculated from reviews
+          rating: 4.5,
           reviews: 0,
           description: act.description,
           location: '2.5 km', // Would come from user location calculation
@@ -115,10 +74,55 @@ export default function Discover() {
     return Math.floor(Math.random() * 15) + 85; // 85-100%
   };
 
+  const loadIDFActivities = async () => {
+    try {
+      setLoadingIDF(true);
+      // Fetch real activities from Île-de-France API
+      const idfData = await ileDeFranceService.fetchIDFActivities({ limit: 30 });
+      
+      if (idfData && idfData.length > 0) {
+        // Transform IDF activities to Nesti format
+        const transformedIDF = idfData
+          .map(act => ileDeFranceService.convertIDFToNestiFormat(act))
+          .filter(Boolean)
+          .map((act, index) => ({
+            id: act.id,
+            title: act.title,
+            category: act.type,
+            emoji: getCategoryEmojiByType(act.type),
+            matchScore: 85 - (index % 20), // Simulated match score
+            rating: 4.2 + (Math.random() * 0.6),
+            reviews: Math.floor(Math.random() * 100),
+            description: act.description,
+            location: act.location.city ? `${act.location.city} (${act.location.postalCode})` : 'À proximité',
+            date: 'Disponible maintenant',
+            price: 0,
+            tags: [
+              act.accessibility.handicapAccess && 'Accessible PMR',
+              act.accessibility.publicTransport && 'Transports publics',
+              act.amenities.freeAccess && 'Accès libre'
+            ].filter(Boolean),
+            source: 'Île-de-France',
+            fullData: act
+          }));
+        
+        setIdfActivities(transformedIDF);
+      }
+    } catch (error) {
+      console.error('Error loading IDF activities:', error);
+    } finally {
+      setLoadingIDF(false);
+    }
+  };
+
   const tabs = [
-    { id: 'activites', label: 'Activités' },
+    { id: 'activites', label: 'Activités Nesti' },
+    { id: 'idf', label: '🗺️ Île-de-France' },
     { id: 'articles', label: 'Articles' }
   ];
+
+  const displayActivities = activeTab === 'idf' ? idfActivities : activities;
+  const isLoading = activeTab === 'idf' ? loadingIDF : loading;
 
   return (
     <div className="discover-page">
@@ -126,12 +130,21 @@ export default function Discover() {
       <div className="suggestions-box">
         <div className="suggestions-header">
           <div className="suggestions-icon">
-            <SparklesIcon className="sparkles-icon" />
+            {activeTab === 'idf' ? (
+              <MapPinIcon className="sparkles-icon" />
+            ) : (
+              <SparklesIcon className="sparkles-icon" />
+            )}
           </div>
           <div className="suggestions-content">
-            <h2 className="suggestions-title">Suggestions personnalisées</h2>
+            <h2 className="suggestions-title">
+              {activeTab === 'idf' ? 'Activités en Île-de-France' : 'Suggestions personnalisées'}
+            </h2>
             <p className="suggestions-subtitle">
-              Basées sur vos préférences : {userPreferences.join(', ')}
+              {activeTab === 'idf' 
+                ? 'Équipements sportifs et culturels près de chez vous'
+                : `Basées sur vos préférences : ${userPreferences.join(', ')}`
+              }
             </p>
           </div>
           <button className="filter-btn" aria-label="Filtrer">
@@ -155,18 +168,66 @@ export default function Discover() {
 
       {/* Activities List */}
       <div className="activities-list">
-        {loading ? (
-          <div className="loading-message">Chargement des activités...</div>
-        ) : activities.length > 0 ? (
-          activities.map((activity) => (
+        {isLoading ? (
+          <div className="loading-message">
+            {activeTab === 'idf' 
+              ? 'Chargement des activités Île-de-France...' 
+              : 'Chargement des activités...'}
+          </div>
+        ) : displayActivities.length > 0 ? (
+          displayActivities.map((activity) => (
             <ActivityCard key={activity.id} activity={activity} />
           ))
         ) : (
           <div className="empty-activities">
-            <p>Aucune activité disponible pour le moment.</p>
+            <p>
+              {activeTab === 'idf'
+                ? 'Aucune activité disponible en Île-de-France pour le moment.'
+                : 'Aucune activité disponible pour le moment.'}
+            </p>
+            {activeTab === 'idf' && (
+              <button 
+                onClick={loadIDFActivities}
+                style={{ marginTop: '1rem', padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+              >
+                Recharger
+              </button>
+            )}
           </div>
         )}
       </div>
     </div>
   );
+}
+
+// Helper to get emoji by activity type
+function getCategoryEmojiByType(type) {
+  const emojiMap = {
+    'Court de tennis': '🎾',
+    'Terrain de football': '⚽',
+    'Piscine': '🏊',
+    'Salle de sport': '🏋️',
+    'Gymnase': '🤸',
+    'Stade': '🏟️',
+    'Parc': '🌳',
+    'Jardin': '🌺',
+    'Bibliothèque': '📚',
+    'Médiathèque': '📖',
+    'Centre culturel': '🎭',
+    'Théâtre': '🎬',
+    'Cinéma': '🎞️',
+    'Musée': '🏛️',
+  };
+
+  // Try exact match first
+  if (emojiMap[type]) return emojiMap[type];
+  
+  // Try partial match
+  for (const [key, emoji] of Object.entries(emojiMap)) {
+    if (type && type.toLowerCase().includes(key.toLowerCase())) {
+      return emoji;
+    }
+  }
+  
+  return '🎯'; // Default
 }
