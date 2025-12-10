@@ -48,16 +48,22 @@ const Onboarding = () => {
       setLoading(true);
       setError('');
       try {
-        await createFamily({
+        const family = await createFamily({
           family_name: familyName.trim(),
           user_id: user.id,
           user_email: user.email,
           user_first_name: user.user_metadata?.first_name || user.email.split('@')[0],
         });
-        setStep(step + 1);
+        
+        if (family) {
+          setStep(step + 1);
+        } else {
+          setError('Erreur inattendue. Veuillez réessayer.');
+        }
       } catch (err) {
         console.error('Error creating family:', err);
-        setError('Erreur lors de la création de votre famille. Réessayez.');
+        const errorMessage = err.message || 'Erreur lors de la création de votre famille. Réessayez.';
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }

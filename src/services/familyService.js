@@ -25,6 +25,13 @@ export const getUserProfile = async (userId) => {
 // Helper function to create family
 export const createFamily = async ({ family_name, user_id, user_email, user_first_name }) => {
   try {
+    // First check if user profile exists
+    const { data: existingUser, error: checkError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user_id)
+      .single();
+
     // Create family
     const { data: family, error: familyError } = await supabase
       .from('families')
@@ -35,19 +42,44 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
       .select()
       .single();
 
-    if (familyError) throw familyError;
+    if (familyError) {
+      console.error('Family creation error:', familyError);
+      throw new Error('Impossible de créer la famille. Vérifiez votre connexion.');
+    }
 
-    // Update user with family_id
-    const { error: userError } = await supabase
-      .from('users')
-      .update({ 
-        family_id: family.id,
-        first_name: user_first_name,
-        role: 'parent'
-      })
-      .eq('id', user_id);
+    // If user profile doesn't exist, create it; otherwise update it
+    if (!existingUser || checkError) {
+      // Create user profile
+      const { error: createUserError } = await supabase
+        .from('users')
+        .insert([{
+          id: user_id,
+          email: user_email,
+          first_name: user_first_name || user_email.split('@')[0],
+          family_id: family.id,
+          role: 'parent'
+        }]);
 
-    if (userError) throw userError;
+      if (createUserError) {
+        console.error('User creation error:', createUserError);
+        throw new Error('Erreur lors de la création du profil utilisateur.');
+      }
+    } else {
+      // Update existing user with family_id
+      const { error: userError } = await supabase
+        .from('users')
+        .update({ 
+          family_id: family.id,
+          first_name: user_first_name || existingUser.first_name,
+          role: 'parent'
+        })
+        .eq('id', user_id);
+
+      if (userError) {
+        console.error('User update error:', userError);
+        throw new Error('Erreur lors de la mise à jour du profil.');
+      }
+    }
 
     return family;
   } catch (error) {
