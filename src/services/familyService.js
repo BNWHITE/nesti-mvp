@@ -41,7 +41,7 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
       .from('families')
       .insert([{
         family_name: family_name,
-        subscription_type: 'free',
+        // subscription_type removed - not in the actual database schema
       }])
       .select()
       .single();
