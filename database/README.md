@@ -23,7 +23,7 @@ Go to your Supabase project: https://app.supabase.com/project/ozlbjohbzaommmtbwu
 
 ### Tables
 
-#### `profiles`
+#### `users`
 - User profile information
 - Automatically created when a user signs up
 - Stores: name, email, avatar

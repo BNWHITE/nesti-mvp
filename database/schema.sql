@@ -5,9 +5,9 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================
--- PROFILES TABLE
+-- USERS TABLE
 -- ============================================
-CREATE TABLE IF NOT EXISTS profiles (
+CREATE TABLE IF NOT EXISTS users (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   first_name TEXT,
@@ -19,16 +19,16 @@ CREATE TABLE IF NOT EXISTS profiles (
 );
 
 -- Enable RLS
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
--- Profiles policies
-CREATE POLICY "Users can view own profile" ON profiles
+-- Users policies
+CREATE POLICY "Users can view own profile" ON users
   FOR SELECT USING (auth.uid() = id);
 
-CREATE POLICY "Users can update own profile" ON profiles
+CREATE POLICY "Users can update own profile" ON users
   FOR UPDATE USING (auth.uid() = id);
 
-CREATE POLICY "Users can insert own profile" ON profiles
+CREATE POLICY "Users can insert own profile" ON users
   FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- ============================================
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS families (
   name TEXT NOT NULL,
   description TEXT,
   emoji TEXT DEFAULT '👨‍👩‍👧‍👦',
-  created_by UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -67,7 +67,7 @@ CREATE POLICY "Users can create families" ON families
 CREATE TABLE IF NOT EXISTS family_members (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   family_id UUID REFERENCES families(id) ON DELETE CASCADE NOT NULL,
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('admin', 'parent', 'ado', 'enfant')),
   joined_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(family_id, user_id)
@@ -98,7 +98,7 @@ CREATE POLICY "Admins can manage family members" ON family_members
 CREATE TABLE IF NOT EXISTS posts (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   family_id UUID REFERENCES families(id) ON DELETE CASCADE NOT NULL,
-  author_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  author_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
   content TEXT NOT NULL,
   emoji TEXT,
   type TEXT CHECK (type IN ('celebration', 'photo', 'milestone', 'memory', 'activity', 'food', 'default')),
@@ -137,7 +137,7 @@ CREATE POLICY "Users can delete their own posts" ON posts
 CREATE TABLE IF NOT EXISTS post_reactions (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   post_id UUID REFERENCES posts(id) ON DELETE CASCADE NOT NULL,
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
   reaction_type TEXT NOT NULL CHECK (reaction_type IN ('like', 'love', 'celebration', 'support')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(post_id, user_id, reaction_type)
@@ -168,7 +168,7 @@ CREATE POLICY "Users can remove their reactions" ON post_reactions
 CREATE TABLE IF NOT EXISTS comments (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   post_id UUID REFERENCES posts(id) ON DELETE CASCADE NOT NULL,
-  author_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  author_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
   content TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -202,7 +202,7 @@ CREATE POLICY "Users can delete their own comments" ON comments
 CREATE TABLE IF NOT EXISTS events (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   family_id UUID REFERENCES families(id) ON DELETE CASCADE NOT NULL,
-  created_by UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
   title TEXT NOT NULL,
   description TEXT,
   event_type TEXT CHECK (event_type IN ('medical', 'shopping', 'sport', 'school', 'appointment', 'birthday', 'other')),
@@ -248,7 +248,7 @@ CREATE POLICY "Event creators can delete their events" ON events
 CREATE TABLE IF NOT EXISTS event_participants (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   event_id UUID REFERENCES events(id) ON DELETE CASCADE NOT NULL,
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(event_id, user_id)
@@ -288,7 +288,7 @@ CREATE TABLE IF NOT EXISTS activities (
   reviews_count INTEGER DEFAULT 0,
   tags TEXT[],
   is_public BOOLEAN DEFAULT true,
-  created_by UUID REFERENCES profiles(id) ON DELETE SET NULL,
+  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -314,7 +314,7 @@ CREATE POLICY "Creators can update their activities" ON activities
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, first_name, last_name, full_name)
+  INSERT INTO public.users (id, email, first_name, last_name, full_name)
   VALUES (
     NEW.id,
     NEW.email,
@@ -342,7 +342,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Add triggers for updated_at
-CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_families_updated_at BEFORE UPDATE ON families

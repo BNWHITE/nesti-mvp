@@ -181,10 +181,12 @@ export const searchIDFActivities = async (query, limit = 20) => {
   }
 };
 
-export default {
+const ileDeFranceService = {
   fetchIDFActivities,
   convertIDFToNestiFormat,
   getNearbyActivities,
   getEquipmentTypes,
   searchIDFActivities
 };
+
+export default ileDeFranceService;
