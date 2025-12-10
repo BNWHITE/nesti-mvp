@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { PlusIcon, PencilIcon, Cog6ToothIcon, XMarkIcon, ShareIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 import { familyService } from '../services/familyService';
-import { getFamilyMembers, inviteMember } from '../services/memberService';
+import { inviteMember } from '../services/memberService';
 import './MonNest.css';
 
 export default function MonNest() {
@@ -12,6 +12,7 @@ export default function MonNest() {
   const [loading, setLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [inviteError, setInviteError] = useState(null);
   const [inviteCode] = useState(() => {
     // Use crypto API for secure random code generation
     if (window.crypto && window.crypto.randomUUID) {
@@ -50,8 +51,8 @@ export default function MonNest() {
           nestsConnected: 1
         });
 
-        // Get family members
-        const { data: familyMembers } = await getFamilyMembers(userFamily.id);
+        // Get family members - use familyService for consistency
+        const { data: familyMembers } = await familyService.getFamilyMembers(userFamily.id);
         
         if (familyMembers && familyMembers.length > 0) {
           const transformedMembers = familyMembers.map(member => ({
@@ -104,47 +105,44 @@ export default function MonNest() {
   };
 
   const handleInviteMember = async () => {
-    if (newMember.email && familyData?.id) {
-      try {
-        // Send invitation via Supabase
-        const { error } = await inviteMember({
-          family_id: familyData.id,
-          email: newMember.email,
-          role: newMember.roleType,
-          invited_by: user.id,
-          message: `Rejoignez ${familyData.name} sur Nesti !`
-        });
+    // Validate inputs
+    if (!newMember.email || !newMember.roleType || !familyData?.id) {
+      setInviteError('Veuillez remplir tous les champs requis');
+      return;
+    }
 
-        if (error) {
-          console.error('Error inviting member:', error);
-          alert('Erreur lors de l\'envoi de l\'invitation');
-          return;
-        }
+    try {
+      setInviteError(null);
+      
+      // Send invitation via Supabase
+      const { error } = await inviteMember({
+        family_id: familyData.id,
+        email: newMember.email,
+        role: newMember.roleType,
+        invited_by: user.id,
+        message: `Rejoignez ${familyData.name} sur Nesti !`
+      });
 
-        // For demo purposes, add to local state immediately
-        // In production, member would be added after they accept invitation
-        const createdMember = {
-          id: Date.now(),
-          name: newMember.name || newMember.email.split('@')[0],
-          initials: (newMember.name || newMember.email).substring(0, 2).toUpperCase(),
-          email: newMember.email,
-          role: newMember.role,
-          roleType: newMember.roleType,
-          memberSince: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
-        };
-        
-        setMembers([...members, createdMember]);
-        setShowInviteModal(false);
-        setNewMember({
-          name: '',
-          email: '',
-          role: 'Parent',
-          roleType: 'parent'
-        });
-      } catch (error) {
+      if (error) {
         console.error('Error inviting member:', error);
-        alert('Erreur lors de l\'envoi de l\'invitation');
+        setInviteError('Erreur lors de l\'envoi de l\'invitation. Veuillez réessayer.');
+        return;
       }
+
+      // Success - close modal and reset
+      setShowInviteModal(false);
+      setNewMember({
+        name: '',
+        email: '',
+        role: 'Parent',
+        roleType: 'parent'
+      });
+      
+      // Reload family data to show any updates
+      await loadFamilyData();
+    } catch (error) {
+      console.error('Error inviting member:', error);
+      setInviteError('Erreur lors de l\'envoi de l\'invitation. Veuillez réessayer.');
     }
   };
 
@@ -281,8 +279,20 @@ export default function MonNest() {
               </button>
             </div>
             <div className="modal-body">
+              {inviteError && (
+                <div className="error-message" style={{ 
+                  padding: '12px', 
+                  marginBottom: '16px', 
+                  backgroundColor: '#fee', 
+                  color: '#c00', 
+                  borderRadius: '8px',
+                  fontSize: 'var(--font-size-sm)'
+                }}>
+                  {inviteError}
+                </div>
+              )}
               <div className="form-group">
-                <label>Nom complet *</label>
+                <label>Nom (optionnel)</label>
                 <input
                   type="text"
                   value={newMember.name}
@@ -296,9 +306,13 @@ export default function MonNest() {
                 <input
                   type="email"
                   value={newMember.email}
-                  onChange={(e) => setNewMember({...newMember, email: e.target.value})}
+                  onChange={(e) => {
+                    setNewMember({...newMember, email: e.target.value});
+                    setInviteError(null); // Clear error on input change
+                  }}
                   placeholder="email@example.com"
                   className="form-input"
+                  required
                 />
               </div>
               <div className="form-group">
@@ -325,9 +339,9 @@ export default function MonNest() {
               <button 
                 onClick={handleInviteMember} 
                 className="btn-primary"
-                disabled={!newMember.name || !newMember.email}
+                disabled={!newMember.email}
               >
-                Inviter
+                Envoyer l'invitation
               </button>
             </div>
           </div>
