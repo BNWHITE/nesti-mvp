@@ -56,7 +56,10 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
     // Step 3: Create or update user profile with the family_id
     if (!existingUser) {
       // Create new user profile
+      // Note: RLS policy should allow authenticated users to insert their own profile
       console.log('Creating new user profile');
+      
+      // First, try to create with minimal required fields
       const { data: newUser, error: createUserError } = await supabase
         .from('users')
         .insert([{
@@ -64,16 +67,26 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
           email: user_email,
           first_name: user_first_name || user_email.split('@')[0],
           family_id: family.id,
-          role: 'parent',
-          age: null
+          role: 'parent'
+          // age is nullable, so we don't include it
         }])
         .select()
-        .single();
+        .maybeSingle(); // Use maybeSingle to handle potential RLS issues
 
       if (createUserError) {
         console.error('User creation error:', createUserError);
+        console.error('Error details:', JSON.stringify(createUserError, null, 2));
+        
+        // If RLS policy blocks the insert, the user might need to be created differently
+        // or the RLS policy needs to be adjusted in Supabase
         // Try to clean up the family if user creation fails
         await supabase.from('families').delete().eq('id', family.id);
+        
+        // Provide helpful error message
+        if (createUserError.message.includes('row-level security')) {
+          throw new Error(`Configuration de sécurité: Veuillez contacter le support. Les politiques de sécurité de la base de données empêchent la création du profil.`);
+        }
+        
         throw new Error(`Erreur lors de la création du profil: ${createUserError.message}`);
       }
       console.log('User profile created:', newUser);
