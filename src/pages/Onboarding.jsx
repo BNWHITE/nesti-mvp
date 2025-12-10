@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { createFamily } from '../services/familyService';
+import userPreferencesService from '../services/userPreferencesService';
 import './Onboarding.css';
 
 const Onboarding = () => {
@@ -100,8 +101,20 @@ const Onboarding = () => {
       setStep(step + 1);
     } else {
       // Complete onboarding - save all preferences
-      // TODO: Save accessibility needs and preferences to database
-      navigate('/');
+      setLoading(true);
+      try {
+        await userPreferencesService.completeOnboarding(user.id, {
+          accessibilityNeeds,
+          preferences
+        });
+        navigate('/');
+      } catch (error) {
+        console.error('Error saving onboarding data:', error);
+        // Continue to app even if preferences fail to save
+        navigate('/');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 

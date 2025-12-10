@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AccessibilityProvider } from "./contexts/AccessibilityContext";
 import Home from "./pages/Home";
 import MonNest from "./pages/MonNest";
 import Agenda from "./pages/Agenda";
@@ -12,6 +13,7 @@ import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
 import { getUserProfile } from "./services/familyService";
 import "./App.css";
+import "./styles/accessibility.css";
 
 // Protected Route Component with Onboarding Check
 function ProtectedRoute({ children }) {
@@ -171,7 +173,9 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppRoutes />
+        <AccessibilityProvider>
+          <AppRoutes />
+        </AccessibilityProvider>
       </AuthProvider>
     </Router>
   );
