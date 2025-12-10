@@ -4,8 +4,16 @@ import { MoonIcon, SunIcon } from '@heroicons/react/24/outline';
 export default function DarkModeToggle() {
   const [darkMode, setDarkMode] = useState(() => {
     // Check localStorage for saved preference
-    const saved = localStorage.getItem('darkMode');
-    return saved === 'true';
+    try {
+      const saved = localStorage.getItem('darkMode');
+      if (saved !== null) {
+        return saved === 'true';
+      }
+    } catch (error) {
+      console.warn('localStorage not available:', error);
+    }
+    // Fallback to system preference
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
   useEffect(() => {
@@ -15,8 +23,12 @@ export default function DarkModeToggle() {
     } else {
       document.body.classList.remove('dark-mode');
     }
-    // Save preference
-    localStorage.setItem('darkMode', darkMode);
+    // Save preference with error handling
+    try {
+      localStorage.setItem('darkMode', darkMode);
+    } catch (error) {
+      console.warn('Failed to save dark mode preference:', error);
+    }
   }, [darkMode]);
 
   return (

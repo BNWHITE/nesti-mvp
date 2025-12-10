@@ -30,9 +30,16 @@ button, a {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
 }
 
-/* Smooth transitions for theme changes */
+/* Smooth transitions for theme changes - applied to specific elements */
 body,
-body * {
+.app,
+.app-container,
+.header,
+.bottom-nav,
+.card,
+button,
+input,
+textarea {
   transition-property: background-color, border-color, color, fill, stroke;
   transition-duration: 0.2s;
   transition-timing-function: ease-in-out;
