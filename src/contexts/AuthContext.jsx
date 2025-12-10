@@ -44,6 +44,22 @@ export const AuthProvider = ({ children }) => {
         },
       });
       if (error) throw error;
+
+      // Create user profile in the users table
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('users')
+          .insert([{
+            id: data.user.id,
+            email: email,
+            first_name: metadata.first_name || '',
+            age: metadata.age || null,
+            role: metadata.role || 'parent',
+          }]);
+        
+        if (profileError) console.error('Profile creation error:', profileError);
+      }
+
       return { data, error: null };
     } catch (error) {
       return { data: null, error };

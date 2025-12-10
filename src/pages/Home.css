@@ -119,3 +119,29 @@
   display: flex;
   flex-direction: column;
 }
+
+.create-post-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.create-post-submit:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.loading-message,
+.empty-feed {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  color: var(--color-text-secondary);
+}
+
+.empty-feed p {
+  margin: var(--spacing-sm) 0;
+}
+
+.empty-feed p:first-child {
+  font-weight: 600;
+  color: var(--color-text);
+}

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SparklesIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
+import { activityService } from '../services/activityService';
 import ActivityCard from "../components/ActivityCard";
 import './Discover.css';
 
@@ -53,7 +54,66 @@ const userPreferences = ['Football', 'Cuisine', 'Jardinage', 'Art'];
 
 export default function Discover() {
   const [activeTab, setActiveTab] = useState('activites');
-  const [activities] = useState(mockActivities);
+  const [activities, setActivities] = useState(mockActivities); // Fallback to mock
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadActivities();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loadActivities = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await activityService.getActivities();
+      
+      if (!error && data && data.length > 0) {
+        // Transform database activities to match UI format
+        const transformedActivities = data.map(act => ({
+          id: act.id,
+          title: act.title,
+          category: act.category,
+          emoji: getCategoryEmoji(act.category),
+          matchScore: calculateMatchScore(act),
+          rating: 4.5, // Could be calculated from reviews
+          reviews: 0,
+          description: act.description,
+          location: '2.5 km', // Would come from user location calculation
+          date: 'Disponible',
+          price: 0,
+          duration: act.duration_min ? `${act.duration_min} min` : '',
+          difficulty: act.difficulty,
+          ageRange: `${act.age_min}-${act.age_max} ans`,
+          tags: [act.category, act.difficulty].filter(Boolean)
+        }));
+        setActivities(transformedActivities);
+      }
+    } catch (error) {
+      console.error('Error loading activities:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getCategoryEmoji = (category) => {
+    const emojiMap = {
+      'inclusion': '🤝',
+      'confiance': '💪',
+      'dialogue': '💬',
+      'decouverte': '🌍',
+      'sport': '⚽',
+      'cuisine': '👨‍🍳',
+      'art': '🎨',
+      'nature': '🌳'
+    };
+    return emojiMap[category?.toLowerCase()] || '✨';
+  };
+
+  const calculateMatchScore = (activity) => {
+    // Simple match score based on category and difficulty
+    // In a real app, this would be based on user preferences
+    return Math.floor(Math.random() * 15) + 85; // 85-100%
+  };
 
   const tabs = [
     { id: 'activites', label: 'Activités' },
@@ -95,9 +155,17 @@ export default function Discover() {
 
       {/* Activities List */}
       <div className="activities-list">
-        {activities.map((activity) => (
-          <ActivityCard key={activity.id} activity={activity} />
-        ))}
+        {loading ? (
+          <div className="loading-message">Chargement des activités...</div>
+        ) : activities.length > 0 ? (
+          activities.map((activity) => (
+            <ActivityCard key={activity.id} activity={activity} />
+          ))
+        ) : (
+          <div className="empty-activities">
+            <p>Aucune activité disponible pour le moment.</p>
+          </div>
+        )}
       </div>
     </div>
   );

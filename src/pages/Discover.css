@@ -119,3 +119,14 @@
   display: flex;
   flex-direction: column;
 }
+
+.loading-message,
+.empty-activities {
+  text-align: center;
+  padding: var(--spacing-2xl);
+  color: var(--color-text-secondary);
+}
+
+.empty-activities p {
+  margin: 0;
+}
