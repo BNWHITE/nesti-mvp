@@ -2,20 +2,47 @@ import { useState, useRef, useEffect } from "react";
 import { PaperAirplaneIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import './NestiIA.css';
 
-// Mock responses for demo
-const mockResponses = [
-  "Bien sûr ! Je peux vous aider avec ça. Que voulez-vous savoir ?",
-  "Excellente question ! Voici quelques suggestions...",
-  "Je comprends. Laissez-moi vous proposer quelques idées.",
-  "C'est une bonne idée ! Voulez-vous que je vous aide à organiser ça ?",
-];
+// Intelligent responses based on context
+const getSmartResponse = (userMessage) => {
+  const lowerMsg = userMessage.toLowerCase();
+  
+  // Activity suggestions
+  if (lowerMsg.includes('activit') || lowerMsg.includes('faire') || lowerMsg.includes('idée')) {
+    return "Je peux vous suggérer plusieurs activités familiales ! Que diriez-vous de :\n\n🎨 Atelier créatif en famille\n⚽ Sortie sportive au parc\n🍳 Cours de cuisine ensemble\n🎭 Visite culturelle\n\nQuelle tranche d'âge concerne votre recherche ?";
+  }
+  
+  // Organization help
+  if (lowerMsg.includes('organis') || lowerMsg.includes('planif') || lowerMsg.includes('agenda')) {
+    return "Pour mieux organiser votre vie familiale, je vous recommande de :\n\n1. Utiliser l'Agenda pour planifier vos événements\n2. Créer des rappels pour les tâches importantes\n3. Partager les responsabilités entre membres\n4. Prévoir des moments en famille réguliers\n\nSur quoi avez-vous besoin d'aide spécifiquement ?";
+  }
+  
+  // Education
+  if (lowerMsg.includes('éducat') || lowerMsg.includes('école') || lowerMsg.includes('devoirs') || lowerMsg.includes('apprend')) {
+    return "Pour accompagner l'éducation de vos enfants, voici quelques conseils :\n\n📚 Créez une routine de devoirs régulière\n⏰ Fixez des horaires d'étude adaptés\n🎯 Encouragez l'autonomie progressive\n👨‍👩‍👧 Restez impliqué et disponible\n\nQuel est votre principal défi éducatif ?";
+  }
+  
+  // Communication
+  if (lowerMsg.includes('communic') || lowerMsg.includes('parler') || lowerMsg.includes('dialog')) {
+    return "La communication familiale est essentielle ! Quelques astuces :\n\n💬 Organisez des moments d'échange réguliers\n👂 Pratiquez l'écoute active\n🤝 Respectez les opinions de chacun\n📱 Utilisez le Fil Familial pour partager\n\nQue souhaitez-vous améliorer dans votre communication ?";
+  }
+  
+  // Default responses
+  const defaultResponses = [
+    "Je suis là pour vous aider ! Posez-moi des questions sur l'organisation familiale, les activités, l'éducation ou la communication. 😊",
+    "Excellent ! Je peux vous conseiller sur de nombreux aspects de la vie familiale. Que voulez-vous savoir ?",
+    "Avec plaisir ! Je suis spécialisé dans l'aide aux familles. Comment puis-je vous accompagner ?",
+    "Je comprends. Donnez-moi plus de détails et je vous proposerai des solutions adaptées à votre famille."
+  ];
+  
+  return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+};
 
 export default function NestiIA() {
   const [msg, setMsg] = useState("");
   const [log, setLog] = useState([
     {
       role: "assistant",
-      content: "Bonjour ! Je suis Nesti IA, votre assistant familial. Comment puis-je vous aider aujourd'hui ? 😊"
+      content: "👋 Bonjour ! Je suis Nesti IA, votre assistant familial intelligent.\n\nJe peux vous aider avec :\n• 🎯 Suggestions d'activités personnalisées\n• 📅 Organisation et planification\n• 📚 Conseils éducatifs\n• 💬 Communication familiale\n\nComment puis-je vous aider aujourd'hui ?"
     }
   ]);
   const [isTyping, setIsTyping] = useState(false);
@@ -37,12 +64,12 @@ export default function NestiIA() {
     setLog(l => [...l, { role: "user", content: userMessage }]);
     setIsTyping(true);
 
-    // Simulate API call with mock response
+    // Simulate API call with smart response
     setTimeout(() => {
-      const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
-      setLog(l => [...l, { role: "assistant", content: randomResponse }]);
+      const smartResponse = getSmartResponse(userMessage);
+      setLog(l => [...l, { role: "assistant", content: smartResponse }]);
       setIsTyping(false);
-    }, 1000);
+    }, 1500);
 
     /* Real API call (uncommented when ready):
     try {
@@ -88,15 +115,15 @@ export default function NestiIA() {
           <div key={i} className={`message ${m.role === "user" ? "user-message" : "assistant-message"}`}>
             {m.role === "assistant" && (
               <div className="message-avatar assistant-avatar">
-                N
+                🤖
               </div>
             )}
             <div className="message-bubble">
-              <p className="message-content">{m.content}</p>
+              <p className="message-content" style={{ whiteSpace: 'pre-line' }}>{m.content}</p>
             </div>
             {m.role === "user" && (
               <div className="message-avatar user-avatar">
-                M
+                👤
               </div>
             )}
           </div>
@@ -104,7 +131,7 @@ export default function NestiIA() {
         
         {isTyping && (
           <div className="message assistant-message">
-            <div className="message-avatar assistant-avatar">N</div>
+            <div className="message-avatar assistant-avatar">🤖</div>
             <div className="message-bubble typing-indicator">
               <span></span>
               <span></span>
