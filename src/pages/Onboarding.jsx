@@ -10,6 +10,14 @@ const Onboarding = () => {
   const [step, setStep] = useState(1);
   const [familyName, setFamilyName] = useState('');
   const [preferences, setPreferences] = useState([]);
+  const [accessibilityNeeds, setAccessibilityNeeds] = useState({
+    mobility: false,
+    visual: false,
+    hearing: false,
+    dyslexia: false,
+    cognitive: false,
+    other: ''
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -26,7 +34,25 @@ const Onboarding = () => {
     { id: 'bricolage', label: '🔨 Bricolage', category: 'loisir' },
     { id: 'theatre', label: '🎭 Théâtre', category: 'culture' },
     { id: 'danse', label: '💃 Danse', category: 'sport' },
+    { id: 'cinema', label: '🎬 Cinéma', category: 'culture' },
+    { id: 'cyclisme', label: '🚴 Cyclisme', category: 'sport' },
+    { id: 'yoga', label: '🧘 Yoga', category: 'sport' },
   ];
+
+  const accessibilityOptions = [
+    { id: 'mobility', label: '♿ Handicap moteur', description: 'Difficultés de déplacement' },
+    { id: 'visual', label: '👁️ Handicap visuel', description: 'Malvoyance ou cécité' },
+    { id: 'hearing', label: '👂 Handicap auditif', description: 'Malentendance ou surdité' },
+    { id: 'dyslexia', label: '📖 Dyslexie', description: 'Difficultés de lecture' },
+    { id: 'cognitive', label: '🧠 Troubles cognitifs', description: 'Autisme, TDAH, etc.' },
+  ];
+
+  const toggleAccessibility = (key) => {
+    setAccessibilityNeeds(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
 
   const togglePreference = (prefId) => {
     setPreferences(prev => 
@@ -70,17 +96,18 @@ const Onboarding = () => {
       return;
     }
 
-    if (step < 4) {
+    if (step < 5) {
       setStep(step + 1);
     } else {
-      // Complete onboarding
+      // Complete onboarding - save all preferences
+      // TODO: Save accessibility needs and preferences to database
       navigate('/');
     }
   };
 
   const handleSkip = () => {
-    if (step === 3) {
-      setStep(4);
+    if (step === 3 || step === 4) {
+      setStep(step + 1);
     }
   };
 
@@ -105,7 +132,7 @@ const Onboarding = () => {
       {/* Step 2: Create Nest */}
       {step === 2 && (
         <div className="onboarding-step">
-          <div className="onboarding-progress">Étape 2 / 4</div>
+          <div className="onboarding-progress">Étape 2 / 5</div>
           <div className="onboarding-icon">👨‍👩‍👧‍👦</div>
           <h2 className="onboarding-title">Créez votre Nest</h2>
           <p className="onboarding-subtitle">Donnez un nom à votre famille</p>
@@ -136,10 +163,56 @@ const Onboarding = () => {
         </div>
       )}
 
-      {/* Step 3: Preferences */}
+      {/* Step 3: Accessibility */}
       {step === 3 && (
         <div className="onboarding-step">
-          <div className="onboarding-progress">Étape 3 / 4</div>
+          <div className="onboarding-progress">Étape 3 / 5</div>
+          <div className="onboarding-icon">♿</div>
+          <h2 className="onboarding-title">Accessibilité</h2>
+          <p className="onboarding-subtitle">Adaptez Nesti à vos besoins</p>
+          <p className="onboarding-description">
+            Sélectionnez les adaptations qui vous concernent pour une meilleure expérience.
+          </p>
+          
+          <div className="onboarding-accessibility-grid">
+            {accessibilityOptions.map(option => (
+              <button
+                key={option.id}
+                className={`onboarding-accessibility-btn ${accessibilityNeeds[option.id] ? 'selected' : ''}`}
+                onClick={() => toggleAccessibility(option.id)}
+              >
+                <div className="accessibility-label">{option.label}</div>
+                <div className="accessibility-description">{option.description}</div>
+              </button>
+            ))}
+          </div>
+
+          <div className="onboarding-form" style={{marginTop: '1rem'}}>
+            <input
+              type="text"
+              className="onboarding-input"
+              placeholder="Autres besoins spécifiques... (optionnel)"
+              value={accessibilityNeeds.other}
+              onChange={(e) => setAccessibilityNeeds(prev => ({...prev, other: e.target.value}))}
+              maxLength={200}
+            />
+          </div>
+
+          <div className="onboarding-actions">
+            <button className="onboarding-btn-secondary" onClick={handleSkip}>
+              Passer
+            </button>
+            <button className="onboarding-btn-primary" onClick={handleNext}>
+              Continuer
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: Preferences */}
+      {step === 4 && (
+        <div className="onboarding-step">
+          <div className="onboarding-progress">Étape 4 / 5</div>
           <div className="onboarding-icon">✨</div>
           <h2 className="onboarding-title">Personnalisez vos préférences</h2>
           <p className="onboarding-subtitle">Aidez Nesti à vous connaître</p>
@@ -174,10 +247,10 @@ const Onboarding = () => {
         </div>
       )}
 
-      {/* Step 4: Completion */}
-      {step === 4 && (
+      {/* Step 5: Completion */}
+      {step === 5 && (
         <div className="onboarding-step onboarding-completion">
-          <div className="onboarding-progress">Étape 4 / 4</div>
+          <div className="onboarding-progress">Étape 5 / 5</div>
           <div className="onboarding-summary">
             <div className="onboarding-summary-item">
               <strong>Nest:</strong> {familyName}
@@ -185,6 +258,11 @@ const Onboarding = () => {
             <div className="onboarding-summary-item">
               {preferences.length} préférence{preferences.length !== 1 ? 's' : ''} configurée{preferences.length !== 1 ? 's' : ''}
             </div>
+            {Object.values(accessibilityNeeds).some(v => v) && (
+              <div className="onboarding-summary-item">
+                Adaptations d'accessibilité activées
+              </div>
+            )}
           </div>
           <div className="onboarding-icon">🎉</div>
           <h2 className="onboarding-title">Tout est prêt !</h2>
