@@ -27,21 +27,64 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
   try {
     console.log('Starting family creation for user:', user_id);
     
+    // SOLUTION 2: Try to use the database function first (most robust)
+    // This bypasses RLS policies entirely
+    console.log('Attempting to use database function...');
+    
+    try {
+      const { data: funcResult, error: funcError } = await supabase
+        .rpc('create_user_profile_with_family', {
+          p_user_id: user_id,
+          p_email: user_email,
+          p_first_name: user_first_name || user_email.split('@')[0],
+          p_family_name: family_name
+        });
+
+      // If function exists and succeeds
+      if (funcResult && funcResult.success) {
+        console.log('Family created successfully via database function:', funcResult);
+        return {
+          id: funcResult.family_id,
+          family_name: funcResult.family_name,
+          created_at: new Date().toISOString()
+        };
+      }
+      
+      // If function exists but returned error
+      if (funcResult && !funcResult.success) {
+        console.error('Database function returned error:', funcResult.error);
+        throw new Error(`Erreur: ${funcResult.error}`);
+      }
+      
+      // If we get here, function might not exist, fall through to manual method
+      console.log('Database function not available, using manual method...');
+    } catch (funcError) {
+      // Function doesn't exist (42883) or other RPC error - fall through to manual method
+      if (funcError.code === '42883') {
+        console.log('Database function not found, using manual method...');
+      } else {
+        console.warn('Function call error, falling back to manual method:', funcError);
+      }
+    }
+    
+    // FALLBACK: Manual method (if function doesn't exist)
+    // This requires proper RLS policies to be set up
+    console.log('Using manual family creation method...');
+    
     // Step 1: Check if user profile already exists
     const { data: existingUser, error: checkError } = await supabase
       .from('users')
       .select('*')
       .eq('id', user_id)
-      .maybeSingle(); // Use maybeSingle() instead of single() to avoid error when no rows
+      .maybeSingle();
 
     console.log('Existing user check:', { existingUser, checkError });
 
-    // Step 2: Create family first (this should work with RLS)
+    // Step 2: Create family first
     const { data: family, error: familyError } = await supabase
       .from('families')
       .insert([{
         family_name: family_name,
-        // subscription_type removed - not in the actual database schema
       }])
       .select()
       .single();
@@ -55,11 +98,8 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
 
     // Step 3: Create or update user profile with the family_id
     if (!existingUser) {
-      // Create new user profile
-      // Note: RLS policy should allow authenticated users to insert their own profile
-      console.log('Creating new user profile');
+      console.log('Creating new user profile...');
       
-      // First, try to create with minimal required fields
       const { data: newUser, error: createUserError } = await supabase
         .from('users')
         .insert([{
@@ -68,31 +108,32 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
           first_name: user_first_name || user_email.split('@')[0],
           family_id: family.id,
           role: 'parent'
-          // age is nullable, so we don't include it
         }])
         .select()
-        .maybeSingle(); // Use maybeSingle to handle potential RLS issues
+        .maybeSingle();
 
       if (createUserError) {
         console.error('User creation error:', createUserError);
         console.error('Error details:', JSON.stringify(createUserError, null, 2));
         
-        // If RLS policy blocks the insert, the user might need to be created differently
-        // or the RLS policy needs to be adjusted in Supabase
-        // Try to clean up the family if user creation fails
+        // Clean up the family
         await supabase.from('families').delete().eq('id', family.id);
         
-        // Provide helpful error message
-        if (createUserError.message.includes('row-level security')) {
-          throw new Error(`Configuration de sécurité: Veuillez contacter le support. Les politiques de sécurité de la base de données empêchent la création du profil.`);
+        // Provide helpful error messages
+        if (createUserError.message.includes('row-level security') || 
+            createUserError.message.includes('infinite recursion')) {
+          throw new Error(
+            `Erreur de configuration de la base de données. ` +
+            `Veuillez appliquer la Solution 2 (fonction de base de données) ` +
+            `du fichier RLS_POLICY_FIX.md pour résoudre ce problème définitivement.`
+          );
         }
         
         throw new Error(`Erreur lors de la création du profil: ${createUserError.message}`);
       }
       console.log('User profile created:', newUser);
     } else {
-      // Update existing user with family_id
-      console.log('Updating existing user profile');
+      console.log('Updating existing user profile...');
       const { data: updatedUser, error: userError } = await supabase
         .from('users')
         .update({ 
@@ -106,7 +147,6 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
 
       if (userError) {
         console.error('User update error:', userError);
-        // Try to clean up the family if user update fails
         await supabase.from('families').delete().eq('id', family.id);
         throw new Error(`Erreur lors de la mise à jour du profil: ${userError.message}`);
       }
@@ -116,7 +156,6 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
     return family;
   } catch (error) {
     console.error('Error in createFamily:', error);
-    // Return more specific error message
     if (error.message) {
       throw error;
     } else {
