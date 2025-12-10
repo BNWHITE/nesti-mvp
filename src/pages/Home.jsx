@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { familyService } from '../services/familyService';
 import { messageService } from '../services/messageService';
 import PostCard from "../components/PostCard";
+import WelcomeTips from "../components/WelcomeTips";
 import './Home.css';
 
 // Empty initial state for new accounts
@@ -16,6 +17,15 @@ export default function Home() {
   const [family, setFamily] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
+  const [showTips, setShowTips] = useState(false);
+
+  useEffect(() => {
+    // Check if tips have been shown before
+    const tipsShown = localStorage.getItem('nesti_tips_shown');
+    if (!tipsShown) {
+      setShowTips(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -122,6 +132,8 @@ export default function Home() {
 
   return (
     <div className="home-page">
+      {showTips && <WelcomeTips onClose={() => setShowTips(false)} />}
+      
       {/* Create Post Section */}
       <div className="create-post-section">
         <div className="create-post-card">

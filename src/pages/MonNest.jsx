@@ -12,7 +12,7 @@ const initialFamilyData = {
 };
 
 export default function MonNest() {
-  const [familyData, setFamilyData] = useState(initialFamilyData);
+  const [familyData] = useState(initialFamilyData);
   const [members, setMembers] = useState([]);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);

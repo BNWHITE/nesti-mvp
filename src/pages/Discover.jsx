@@ -13,7 +13,6 @@ export default function Discover() {
   const [idfActivities, setIdfActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingIDF, setLoadingIDF] = useState(false);
-  const [showIDFActivities, setShowIDFActivities] = useState(false);
 
   useEffect(() => {
     loadActivities();

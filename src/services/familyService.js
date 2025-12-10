@@ -32,7 +32,7 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
     console.log('Attempting to use database function...');
     
     try {
-      const { data: funcResult, error: funcError } = await supabase
+      const { data: funcResult } = await supabase
         .rpc('create_user_profile_with_family', {
           p_user_id: user_id,
           p_email: user_email,
