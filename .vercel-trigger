@@ -1,0 +1,14 @@
+# Vercel Deployment Trigger
+# This file forces Vercel to redeploy the application
+# Last trigger: 2025-12-10T21:57:18.228Z
+
+All features have been pushed to the branch:
+- Enhanced onboarding with accessibility
+- Database persistence of preferences
+- Dynamic UI adaptations
+- Interactive map with geolocation
+- Photo upload and event management
+- Île-de-France API integration
+- All mock data removed
+
+Ready for production deployment.
