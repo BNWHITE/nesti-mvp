@@ -4,6 +4,31 @@
  */
 
 const IDF_API_BASE_URL = 'https://data.iledefrance.fr/api/explore/v2.1/catalog/datasets/recensement-des-equipements-sportifs-loisirs-socio-culturels-en-ile-de-france/records';
+const IDF_LEISURE_ISLANDS_URL = 'https://data.iledefrance.fr/api/explore/v2.1/catalog/datasets/iles_de_loisirs_itineraires/records';
+
+/**
+ * Fetch leisure islands and itineraries from Île-de-France API
+ * @param {Object} options - Query options
+ * @param {number} options.limit - Number of results (default: 20)
+ * @param {number} options.offset - Offset for pagination (default: 0)
+ * @returns {Promise<Array>} Array of leisure islands
+ */
+export const fetchLeisureIslands = async ({ limit = 20, offset = 0 } = {}) => {
+  try {
+    const url = `${IDF_LEISURE_ISLANDS_URL}?limit=${limit}&offset=${offset}`;
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch leisure islands');
+    }
+
+    const data = await response.json();
+    return data.results || [];
+  } catch (error) {
+    console.error('Error fetching leisure islands:', error);
+    return [];
+  }
+};
 
 /**
  * Fetch activities from Île-de-France API
@@ -181,9 +206,52 @@ export const searchIDFActivities = async (query, limit = 20) => {
   }
 };
 
+/**
+ * Convert leisure island data to Nesti format
+ * @param {Object} island - Leisure island from IDF API
+ * @returns {Object} Activity in Nesti format
+ */
+export const convertLeisureIslandToNestiFormat = (island) => {
+  try {
+    return {
+      id: `island_${island.recordid || Math.random()}`,
+      title: island.nom || 'Île de loisirs',
+      description: island.description || 'Espace de loisirs en plein air',
+      location: {
+        address: island.adresse || '',
+        city: island.commune || '',
+        postalCode: island.code_postal || '',
+        coordinates: island.geo_point_2d ? {
+          lat: island.geo_point_2d.lat,
+          lon: island.geo_point_2d.lon
+        } : null
+      },
+      category: 'loisirs',
+      type: 'Île de loisirs',
+      accessibility: {
+        handicapAccess: true, // Default for leisure islands
+        publicTransport: true,
+      },
+      amenities: {
+        publicAccess: true,
+        freeAccess: island.acces_libre === 'true',
+        activities: island.activites || []
+      },
+      source: 'Île-de-France - Îles de loisirs',
+      sourceUrl: 'https://data.iledefrance.fr',
+      geoShape: island.geo_shape || null
+    };
+  } catch (error) {
+    console.error('Error converting leisure island:', error);
+    return null;
+  }
+};
+
 const ileDeFranceService = {
   fetchIDFActivities,
+  fetchLeisureIslands,
   convertIDFToNestiFormat,
+  convertLeisureIslandToNestiFormat,
   getNearbyActivities,
   getEquipmentTypes,
   searchIDFActivities

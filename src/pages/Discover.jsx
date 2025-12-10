@@ -11,12 +11,15 @@ export default function Discover() {
   const [activeTab, setActiveTab] = useState('activites');
   const [activities, setActivities] = useState([]);
   const [idfActivities, setIdfActivities] = useState([]);
+  const [leisureIslands, setLeisureIslands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingIDF, setLoadingIDF] = useState(false);
+  const [loadingIslands, setLoadingIslands] = useState(false);
 
   useEffect(() => {
     loadActivities();
     loadIDFActivities();
+    loadLeisureIslands();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -114,14 +117,56 @@ export default function Discover() {
     }
   };
 
+  const loadLeisureIslands = async () => {
+    try {
+      setLoadingIslands(true);
+      // Fetch leisure islands from Île-de-France API
+      const islandsData = await ileDeFranceService.fetchLeisureIslands({ limit: 20 });
+      
+      if (islandsData && islandsData.length > 0) {
+        // Transform leisure islands to Nesti format
+        const transformedIslands = islandsData
+          .map(island => ileDeFranceService.convertLeisureIslandToNestiFormat(island))
+          .filter(Boolean)
+          .map((island, index) => ({
+            id: island.id,
+            title: island.title,
+            category: 'Loisirs',
+            emoji: '🏝️',
+            matchScore: 88 - (index % 15),
+            rating: 4.5 + (Math.random() * 0.4),
+            reviews: Math.floor(Math.random() * 200),
+            description: island.description,
+            location: island.location.city || 'Île-de-France',
+            date: 'Toute l\'année',
+            price: island.amenities.freeAccess ? 0 : null,
+            tags: [
+              'Île de loisirs',
+              island.amenities.freeAccess && 'Accès libre',
+              'Nature'
+            ].filter(Boolean),
+            source: 'Îles de loisirs IDF',
+            fullData: island
+          }));
+        
+        setLeisureIslands(transformedIslands);
+      }
+    } catch (error) {
+      console.error('Error loading leisure islands:', error);
+    } finally {
+      setLoadingIslands(false);
+    }
+  };
+
   const tabs = [
     { id: 'activites', label: 'Activités Nesti' },
-    { id: 'idf', label: '🗺️ Île-de-France' },
+    { id: 'idf', label: '🗺️ Équipements' },
+    { id: 'islands', label: '🏝️ Îles de loisirs' },
     { id: 'articles', label: 'Articles' }
   ];
 
-  const displayActivities = activeTab === 'idf' ? idfActivities : activities;
-  const isLoading = activeTab === 'idf' ? loadingIDF : loading;
+  const displayActivities = activeTab === 'idf' ? idfActivities : activeTab === 'islands' ? leisureIslands : activities;
+  const isLoading = activeTab === 'idf' ? loadingIDF : activeTab === 'islands' ? loadingIslands : loading;
 
   return (
     <div className="discover-page">

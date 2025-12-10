@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BellIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import DarkModeToggle from "./DarkModeToggle";
@@ -49,10 +49,6 @@ export default function Header() {
         
         <div className="header-right">
           <DarkModeToggle />
-          <button className="header-icon-btn" aria-label="Notifications">
-            <BellIcon className="header-icon" />
-            <span className="notification-badge">3</span>
-          </button>
           <div className="user-menu">
             <button 
               className="header-icon-btn user-avatar-btn" 
