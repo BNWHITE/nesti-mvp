@@ -1,7 +1,7 @@
-import { MapPinIcon, UserGroupIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { MapPinIcon, UserGroupIcon, ClockIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import './EventCard.css';
 
-export default function EventCard({ event }) {
+export default function EventCard({ event, onEdit, onDelete }) {
   const getEventIcon = (type) => {
     const icons = {
       medical: '🏥',
@@ -46,6 +46,29 @@ export default function EventCard({ event }) {
               </div>
             )}
           </div>
+          {/* Action buttons */}
+          {(onEdit || onDelete) && (
+            <div className="event-actions">
+              {onEdit && (
+                <button 
+                  onClick={() => onEdit(event)} 
+                  className="event-action-btn"
+                  title="Modifier"
+                >
+                  <PencilIcon className="action-icon-small" />
+                </button>
+              )}
+              {onDelete && (
+                <button 
+                  onClick={() => onDelete(event.id)} 
+                  className="event-action-btn event-delete-btn"
+                  title="Supprimer"
+                >
+                  <TrashIcon className="action-icon-small" />
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Event Details */}

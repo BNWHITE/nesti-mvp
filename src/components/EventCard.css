@@ -183,3 +183,37 @@
   color: var(--color-text-secondary);
   line-height: 1;
 }
+
+/* Event Actions */
+.event-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  margin-left: auto;
+}
+
+.event-action-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.event-action-btn:hover {
+  background: var(--color-border);
+}
+
+.event-delete-btn:hover {
+  background: #fee;
+  color: #c00;
+}
+
+.action-icon-small {
+  width: 16px;
+  height: 16px;
+}

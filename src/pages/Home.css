@@ -114,6 +114,43 @@
   height: 24px;
 }
 
+/* Image Preview */
+.image-preview-container {
+  position: relative;
+  margin: var(--spacing-md) 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.image-preview {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+.remove-image-btn {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.remove-image-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
 /* Posts Feed */
 .posts-feed {
   display: flex;
