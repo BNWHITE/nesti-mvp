@@ -239,7 +239,7 @@ export const acceptInvitation = async (invitation_id, user_id) => {
   }
 };
 
-export default {
+const memberService = {
   getFamilyMembers,
   inviteMember,
   getPendingInvitations,
@@ -250,3 +250,5 @@ export default {
   cancelInvitation,
   acceptInvitation
 };
+
+export default memberService;

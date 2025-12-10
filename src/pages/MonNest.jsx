@@ -1,19 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PlusIcon, PencilIcon, Cog6ToothIcon, XMarkIcon, ShareIcon } from '@heroicons/react/24/outline';
+import { useAuth } from '../contexts/AuthContext';
+import { familyService } from '../services/familyService';
+import { getFamilyMembers, inviteMember } from '../services/memberService';
 import './MonNest.css';
 
-// Initial empty state for new accounts - will be populated from database
-const initialFamilyData = {
-  name: 'Mon Nest',
-  description: 'Bienvenue dans votre espace familial ! 🏡',
-  memberCount: 0,
-  nestsConnected: 1,
-  members: []
-};
-
 export default function MonNest() {
-  const [familyData] = useState(initialFamilyData);
+  const { user } = useAuth();
+  const [familyData, setFamilyData] = useState(null);
   const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [inviteCode] = useState(() => {
@@ -31,6 +27,75 @@ export default function MonNest() {
   });
   const [copySuccess, setCopySuccess] = useState(false);
 
+  useEffect(() => {
+    if (user) {
+      loadFamilyData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const loadFamilyData = async () => {
+    try {
+      setLoading(true);
+
+      // Get user's family
+      const { data: userFamily } = await familyService.getUserFamily();
+      
+      if (userFamily) {
+        setFamilyData({
+          id: userFamily.id,
+          name: userFamily.family_name || 'Mon Nest',
+          description: 'Bienvenue dans votre espace familial ! 🏡',
+          memberCount: 0,
+          nestsConnected: 1
+        });
+
+        // Get family members
+        const { data: familyMembers } = await getFamilyMembers(userFamily.id);
+        
+        if (familyMembers && familyMembers.length > 0) {
+          const transformedMembers = familyMembers.map(member => ({
+            id: member.id,
+            name: member.first_name || 'Membre',
+            initials: (member.first_name || member.email.substring(0, 2)).substring(0, 2).toUpperCase(),
+            email: member.email,
+            role: getRoleLabel(member.role),
+            roleType: member.role || 'parent',
+            memberSince: new Date(member.created_at).toLocaleDateString('fr-FR', { 
+              month: 'long', 
+              year: 'numeric' 
+            })
+          }));
+          
+          setMembers(transformedMembers);
+          setFamilyData(prev => ({
+            ...prev,
+            memberCount: transformedMembers.length
+          }));
+        }
+      } else {
+        // No family yet - show empty state
+        setFamilyData({
+          name: 'Mon Nest',
+          description: 'Créez votre premier Nest familial ! 🏡',
+          memberCount: 0,
+          nestsConnected: 0
+        });
+      }
+    } catch (error) {
+      console.error('Error loading family data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getRoleLabel = (roleType) => {
+    if (roleType === 'admin') return 'Admin';
+    if (roleType === 'parent') return 'Parent';
+    if (roleType === 'ado' || roleType === 'child') return 'Ado';
+    return 'Parent';
+  };
+
   const getRoleBadgeClass = (roleType) => {
     if (roleType === 'admin') return 'badge-admin';
     if (roleType === 'parent') return 'badge-parent';
@@ -38,25 +103,48 @@ export default function MonNest() {
     return '';
   };
 
-  const handleInviteMember = () => {
-    if (newMember.name && newMember.email) {
-      const createdMember = {
-        id: Date.now(), // Use timestamp for unique ID
-        name: newMember.name,
-        initials: newMember.name.split(' ').map(n => n[0]).join('').toUpperCase(),
-        email: newMember.email,
-        role: newMember.role,
-        roleType: newMember.roleType,
-        memberSince: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
-      };
-      setMembers([...members, createdMember]);
-      setShowInviteModal(false);
-      setNewMember({
-        name: '',
-        email: '',
-        role: 'Parent',
-        roleType: 'parent'
-      });
+  const handleInviteMember = async () => {
+    if (newMember.email && familyData?.id) {
+      try {
+        // Send invitation via Supabase
+        const { error } = await inviteMember({
+          family_id: familyData.id,
+          email: newMember.email,
+          role: newMember.roleType,
+          invited_by: user.id,
+          message: `Rejoignez ${familyData.name} sur Nesti !`
+        });
+
+        if (error) {
+          console.error('Error inviting member:', error);
+          alert('Erreur lors de l\'envoi de l\'invitation');
+          return;
+        }
+
+        // For demo purposes, add to local state immediately
+        // In production, member would be added after they accept invitation
+        const createdMember = {
+          id: Date.now(),
+          name: newMember.name || newMember.email.split('@')[0],
+          initials: (newMember.name || newMember.email).substring(0, 2).toUpperCase(),
+          email: newMember.email,
+          role: newMember.role,
+          roleType: newMember.roleType,
+          memberSince: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+        };
+        
+        setMembers([...members, createdMember]);
+        setShowInviteModal(false);
+        setNewMember({
+          name: '',
+          email: '',
+          role: 'Parent',
+          roleType: 'parent'
+        });
+      } catch (error) {
+        console.error('Error inviting member:', error);
+        alert('Erreur lors de l\'envoi de l\'invitation');
+      }
     }
   };
 
@@ -66,6 +154,29 @@ export default function MonNest() {
     setTimeout(() => setCopySuccess(false), 2000);
   };
 
+  if (loading) {
+    return (
+      <div className="monnest-page">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!familyData) {
+    return (
+      <div className="monnest-page">
+        <div className="empty-state">
+          <div className="empty-icon">🏡</div>
+          <h3>Aucun Nest trouvé</h3>
+          <p>Vous devez compléter l'onboarding pour créer votre Nest familial.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="monnest-page">
       {/* Family Card */}
@@ -74,17 +185,23 @@ export default function MonNest() {
         <h1 className="family-name">{familyData.name}</h1>
         <p className="family-description">{familyData.description}</p>
         <div className="family-stats">
-          <span>{members.length} membres</span>
-          <span>•</span>
-          <span>{familyData.nestsConnected} nests connectés</span>
+          <span>{members.length} {members.length > 1 ? 'membres' : 'membre'}</span>
+          {familyData.nestsConnected > 0 && (
+            <>
+              <span>•</span>
+              <span>{familyData.nestsConnected} nest{familyData.nestsConnected > 1 ? 's' : ''} connecté{familyData.nestsConnected > 1 ? 's' : ''}</span>
+            </>
+          )}
         </div>
-        <button 
-          className="share-code-btn"
-          onClick={() => setShowShareModal(true)}
-        >
-          <ShareIcon className="share-icon" />
-          Partager le code
-        </button>
+        {familyData.id && (
+          <button 
+            className="share-code-btn"
+            onClick={() => setShowShareModal(true)}
+          >
+            <ShareIcon className="share-icon" />
+            Partager le code
+          </button>
+        )}
       </div>
 
       {/* Members Section */}
