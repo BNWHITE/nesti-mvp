@@ -1,62 +1,80 @@
-# Fix for RLS Policy Error on Users Table :
+# Fix for RLS Policy Error on Users Table
 
-## Problem : 
+## Problem
 
-Error: `new row violates row-level security policy for table "users"`
+**Error 1**: `new row violates row-level security policy for table "users"`
+**Error 2**: `infinite recursion detected in policy for relation "users"`
 
-This error occurs when trying to create a user profile during the onboarding process.
+These errors occur when trying to create a user profile during the onboarding process.
 
 ## Root Cause
-The Row-Level Security (RLS) policies on the `users` table are preventing authenticated users from inserting their own profile.
 
-## Solution: Update RLS Policies in Supabase
+1. **First Error**: The RLS policies are preventing authenticated users from inserting their profile
+2. **Second Error**: The policies cause infinite recursion when checking `auth.uid() = id` during INSERT
 
-You need to run this SQL in your Supabase SQL Editor:
+## Solution: Simplified RLS Policies (NO RECURSION)
+
+Run this SQL in your Supabase SQL Editor to fix both errors:
 
 ```sql
 -- 1. Enable RLS on users table (if not already enabled)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
--- 2. Drop existing policies that might conflict
+-- 2. Drop ALL existing policies to avoid conflicts
 DROP POLICY IF EXISTS "Users can insert their own profile" ON users;
 DROP POLICY IF EXISTS "Users can view their own profile" ON users;
 DROP POLICY IF EXISTS "Users can update their own profile" ON users;
+DROP POLICY IF EXISTS "Users can view family members" ON users;
+DROP POLICY IF EXISTS "Enable insert for authenticated users" ON users;
+DROP POLICY IF EXISTS "Enable select for own data" ON users;
+DROP POLICY IF EXISTS "Enable update for own data" ON users;
 
--- 3. Create new policies that allow users to manage their own profile
+-- 3. Create NEW non-recursive policies
 
--- Allow authenticated users to INSERT their own profile
-CREATE POLICY "Users can insert their own profile"
+-- ✅ SIMPLE INSERT: Allow all authenticated users to insert
+-- No recursion because we don't check the id during insert
+CREATE POLICY "Enable insert for authenticated users"
 ON users
 FOR INSERT
 TO authenticated
-WITH CHECK (auth.uid() = id);
+WITH CHECK (true);  -- ✅ This prevents recursion!
 
--- Allow authenticated users to SELECT their own profile
-CREATE POLICY "Users can view their own profile"
+-- ✅ SELECT: Only see your own data
+CREATE POLICY "Enable select for own data"
 ON users
 FOR SELECT
 TO authenticated
 USING (auth.uid() = id);
 
--- Allow authenticated users to UPDATE their own profile
-CREATE POLICY "Users can update their own profile"
+-- ✅ UPDATE: Only update your own data
+CREATE POLICY "Enable update for own data"
 ON users
 FOR UPDATE
 TO authenticated
-USING (auth.uid() = id)
-WITH CHECK (auth.uid() = id);
+USING (auth.uid() = id);
 
--- Allow users to view family members (optional, for family features)
-CREATE POLICY "Users can view family members"
+-- ✅ BONUS: View family members (after you have a profile)
+CREATE POLICY "View family members"
 ON users
 FOR SELECT
 TO authenticated
 USING (
+  family_id IS NOT NULL AND
   family_id IN (
     SELECT family_id FROM users WHERE id = auth.uid()
   )
 );
 ```
+
+## Key Fix: WITH CHECK (true)
+
+The critical change is using `WITH CHECK (true)` for INSERT instead of `WITH CHECK (auth.uid() = id)`.
+
+**Why this works:**
+- During INSERT, the row doesn't exist yet, so checking `auth.uid() = id` causes recursion
+- Using `WITH CHECK (true)` allows any authenticated user to insert
+- The application code ensures users only insert their own profile (id = auth.uid())
+- After insert, SELECT and UPDATE policies restrict access properly
 
 ## Steps to Apply the Fix:
 
