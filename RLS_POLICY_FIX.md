@@ -1,6 +1,7 @@
-# Fix for RLS Policy Error on Users Table
+# Fix for RLS Policy Error on Users Table :
 
-## Problem
+## Problem : 
+
 Error: `new row violates row-level security policy for table "users"`
 
 This error occurs when trying to create a user profile during the onboarding process.
