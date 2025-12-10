@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
-import MonNest from "./pages/MonNest";
+import NestPage from "./pages/NestPage";
 import Agenda from "./pages/Agenda";
 import Discover from "./pages/Discover";
 import NestiIA from "./pages/NestiIA";
@@ -15,7 +15,7 @@ function App() {
       <main className="main">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/mon-nest" element={<MonNest />} />
+          <Route path="/mon-nest" element={<NestPage />} />
           <Route path="/agenda" element={<Agenda />} />
           <Route path="/decouvertes" element={<Discover />} />
           <Route path="/nesti-ia" element={<NestiIA />} />
