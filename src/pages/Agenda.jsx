@@ -44,7 +44,7 @@ export default function Agenda() {
   const handleCreateEvent = () => {
     if (newEvent.title && newEvent.time) {
       const createdEvent = {
-        id: events.length + 1,
+        id: Date.now(), // Use timestamp for unique ID
         ...newEvent,
         distance: '0 km',
         participants: [],

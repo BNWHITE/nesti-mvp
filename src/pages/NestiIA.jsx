@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { PaperAirplaneIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import './NestiIA.css';
 
+// AI response delay constant for maintainability
+const AI_RESPONSE_DELAY_MS = 1500;
 // Intelligent responses based on context
 const getSmartResponse = (userMessage) => {
   const lowerMsg = userMessage.toLowerCase();
@@ -69,7 +71,7 @@ export default function NestiIA() {
       const smartResponse = getSmartResponse(userMessage);
       setLog(l => [...l, { role: "assistant", content: smartResponse }]);
       setIsTyping(false);
-    }, 1500);
+    }, AI_RESPONSE_DELAY_MS);
 
     /* Real API call (uncommented when ready):
     try {

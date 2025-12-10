@@ -16,13 +16,20 @@ export default function MonNest() {
   const [members, setMembers] = useState([]);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [inviteCode] = useState('NEST-' + Math.random().toString(36).substring(2, 8).toUpperCase());
+  const [inviteCode] = useState(() => {
+    // Use crypto API for secure random code generation
+    if (window.crypto && window.crypto.randomUUID) {
+      return 'NEST-' + window.crypto.randomUUID().substring(0, 8).toUpperCase();
+    }
+    return 'NEST-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+  });
   const [newMember, setNewMember] = useState({
     name: '',
     email: '',
     role: 'Parent',
     roleType: 'parent'
   });
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const getRoleBadgeClass = (roleType) => {
     if (roleType === 'admin') return 'badge-admin';
@@ -34,7 +41,7 @@ export default function MonNest() {
   const handleInviteMember = () => {
     if (newMember.name && newMember.email) {
       const createdMember = {
-        id: members.length + 1,
+        id: Date.now(), // Use timestamp for unique ID
         name: newMember.name,
         initials: newMember.name.split(' ').map(n => n[0]).join('').toUpperCase(),
         email: newMember.email,
@@ -55,7 +62,8 @@ export default function MonNest() {
 
   const copyInviteCode = () => {
     navigator.clipboard.writeText(inviteCode);
-    alert('Code d\'invitation copié !');
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
   };
 
   return (
@@ -226,9 +234,14 @@ export default function MonNest() {
               <div className="invite-code-box">
                 <span className="invite-code">{inviteCode}</span>
                 <button onClick={copyInviteCode} className="copy-btn">
-                  Copier
+                  {copySuccess ? '✓ Copié !' : 'Copier'}
                 </button>
               </div>
+              {copySuccess && (
+                <p style={{ marginTop: '0.5rem', color: 'var(--color-primary)', fontSize: 'var(--font-size-sm)', textAlign: 'center' }}>
+                  Code copié dans le presse-papiers !
+                </p>
+              )}
             </div>
             <div className="modal-footer">
               <button onClick={() => setShowShareModal(false)} className="btn-primary" style={{ width: '100%' }}>
