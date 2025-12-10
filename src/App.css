@@ -1,226 +1,207 @@
-.auth-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
+/* Nesti MVP - Main App Styles */
+@import './styles/theme.css';
 
-.auth-card {
-  background: white;
-  border-radius: 24px;
-  padding: 32px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-}
-
-.auth-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.auth-logo {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, #2D5F5D 0%, #4A8B7A 100%);
-  border-radius: 20px;
-  margin: 0 auto 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.auth-logo span {
-  color: white;
-  font-size: 32px;
-  font-weight: bold;
-}
-
-.auth-header h1 {
-  font-size: 24px;
-  font-weight: bold;
-  color: #1f2937;
-  margin: 0 0 8px 0;
-}
-
-.auth-header p {
-  color: #6b7280;
-  margin: 0;
-}
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.input-group label {
-  font-weight: 500;
-  color: #374151;
-  font-size: 14px;
-}
-
-.input-group input {
-  padding: 12px 16px;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  font-size: 16px;
-  transition: border-color 0.2s ease;
-}
-
-.input-group input:focus {
-  outline: none;
-  border-color: #2D5F5D;
-}
-
-.auth-button {
-  background: linear-gradient(135deg, #2D5F5D 0%, #4A8B7A 100%);
-  color: white;
-  border: none;
-  padding: 16px;
-  border-radius: 16px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 8px;
-}
-
-.auth-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(45, 95, 93, 0.3);
-}
-
-.auth-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.auth-switch {
-  background: none;
-  border: none;
-  color: #2D5F5D;
-  font-weight: 500;
-  cursor: pointer;
-  margin-top: 20px;
-  padding: 8px;
-  width: 100%;
-}/* src/App.css */
-
-/* --- THÈME ET VARIABLES GLOBALES --- */
-:root {
-  /* Light Mode */
-  --color-primary: #5A189A; /* Violet profond */
-  --color-secondary: #00BFA6; /* Cyan accent */
-  --color-text: #1A1A1A;
-  --color-text-light: #6A6A6A;
-  --color-background: #F4F7F9;
-  --color-card-bg: white;
-  --color-border: #E8E8E8;
-  --color-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-}
-
-.dark-mode {
-  /* Dark Mode */
-  --color-primary: #C3A3FF;
-  --color-secondary: #00BFA6;
-  --color-text: #EAEAEA;
-  --color-text-light: #AAAAAA;
-  --color-background: #121212;
-  --color-card-bg: #242424;
-  --color-border: #444444;
-  --color-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
-}
-
-/* --- STRUCTURE DE BASE --- */
+/* App Container - Mobile First */
 .app {
-  background-color: var(--color-background);
-  color: var(--color-text);
   min-height: 100vh;
-  transition: background-color 0.3s, color 0.3s;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.3s ease;
 }
 
 .app-container {
-  display: flex;
-  flex-direction: column;
   max-width: 600px;
   margin: 0 auto;
+  width: 100%;
   min-height: 100vh;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
-  background-color: var(--color-card-bg); /* Le conteneur principal reste clair pour le contenu */
+  background-color: var(--color-bg);
   position: relative;
+  transition: background-color 0.3s ease;
 }
 
-.main-content {
-  flex-grow: 1;
+/* Main Content Area */
+.main {
+  flex: 1;
+  padding-bottom: 80px; /* Space for bottom navigation */
   overflow-y: auto;
-  padding-bottom: 70px; 
+  animation: fadeIn 0.3s ease-in;
 }
 
-/* Styles pour le loading/auth (pour être beaux) */
-.loading-screen, .auth-container {
-    background-color: var(--color-background);
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.auth-card {
-    background: var(--color-card-bg);
-    box-shadow: var(--color-shadow);
-}
-/* Ajoutez les styles des composants Auth.css pour une cohérence visuelle */
-
-/* Styles pour les boutons/inputs généraux */
-.app-container input, .app-container select, .app-container textarea {
-    background-color: var(--color-background);
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-    transition: all 0.2s;
+/* Page Containers */
+.page-container {
+  padding: var(--spacing-md);
+  min-height: calc(100vh - 80px);
 }
 
-.app-container input:focus, .app-container select:focus, .app-container textarea:focus {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(90, 24, 154, 0.2);
-}
-/* src/App.css - AJOUT POUR LE BOUTON GOOGLE */
-
-.google-auth-button {
-    width: 100%;
-    padding: 12px;
-    background-color: #4285F4; /* Couleur Google */
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    font-size: 1.1em;
-    margin-top: 20px;
-    box-shadow: 0 2px 4px 0 rgba(0,0,0,0.25);
-    transition: background-color 0.2s;
+/* Card Styles */
+.card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow);
+  margin-bottom: var(--spacing-md);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.google-auth-button:hover {
-    background-color: #357ae8;
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
-.google-auth-button:disabled {
-    opacity: 0.8;
+/* Button Styles */
+.btn {
+  padding: 10px 20px;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
 }
 
-.auth-footer {
-    margin-top: 20px;
-    font-size: 0.85em;
-    color: var(--color-text-light);
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
 }
 
-/* Assurez-vous que l'auth-card et les titres restent lisibles */
-.auth-card {
-    border: 1px solid var(--color-border);
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.btn-secondary {
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+}
+
+.btn-secondary:hover {
+  background: var(--color-border);
+}
+
+/* Input Styles */
+input, textarea, select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: var(--font-size-base);
+  background: var(--color-bg-card);
+  color: var(--color-text);
+  transition: border-color 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Avatar Styles */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-light);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: var(--font-size-base);
+}
+
+.avatar-sm {
+  width: 32px;
+  height: 32px;
+  font-size: var(--font-size-sm);
+}
+
+.avatar-lg {
+  width: 50px;
+  height: 50px;
+  font-size: var(--font-size-lg);
+}
+
+/* Badge Styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.badge-admin {
+  background: #10b981;
+  color: white;
+}
+
+.badge-parent {
+  background: #10b981;
+  color: white;
+}
+
+.badge-ado {
+  background: #fbbf24;
+  color: #78350f;
+}
+
+.badge-urgent {
+  background: #ef4444;
+  color: white;
+}
+
+/* Loading Container */
+.loading-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  gap: var(--spacing-md);
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container p {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .page-container {
+    padding: var(--spacing);
+  }
 }

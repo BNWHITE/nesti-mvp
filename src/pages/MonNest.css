@@ -1,0 +1,213 @@
+/* MonNest Page */
+.monnest-page {
+  background: var(--color-bg);
+  min-height: 100vh;
+  padding: var(--spacing-md);
+}
+
+/* Family Card */
+.family-card {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-2xl);
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+  color: white;
+  box-shadow: var(--shadow-md);
+}
+
+.family-icon {
+  font-size: 64px;
+  margin-bottom: var(--spacing);
+}
+
+.family-name {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.family-description {
+  font-size: var(--font-size-md);
+  opacity: 0.95;
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+.family-stats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--spacing);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+/* Members Section */
+.members-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.section-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.invite-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.invite-btn:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.invite-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Members List */
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+}
+
+/* Member Card */
+.member-card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow);
+  display: flex;
+  gap: var(--spacing-md);
+  transition: all 0.2s ease;
+}
+
+.member-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.member-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+
+.member-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.member-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing);
+}
+
+.member-name {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0 0 4px 0;
+}
+
+.member-email {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.member-badge {
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.badge-admin {
+  background: #10b981;
+  color: white;
+}
+
+.badge-parent {
+  background: #10b981;
+  color: white;
+}
+
+.badge-ado {
+  background: #fbbf24;
+  color: #78350f;
+}
+
+.member-since {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  margin: 0;
+}
+
+.member-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.member-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--color-bg-secondary);
+  border: none;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.member-action-btn:hover {
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+.action-icon {
+  width: 14px;
+  height: 14px;
+}
