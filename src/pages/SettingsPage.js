@@ -24,7 +24,7 @@ const SettingsPage = ({ user, onClose, isDarkMode, toggleDarkMode }) => {
   const [preferencesSaving, setPreferencesSaving] = useState(false);
   
   // Accessibility State
-  const { accessibilityNeeds, updateAccessibilityNeeds } = useContext(AccessibilityContext);
+  const { updateAccessibilityNeeds } = useContext(AccessibilityContext);
   const [localAccessibility, setLocalAccessibility] = useState({
     mobility: false,
     visual: false,
@@ -103,7 +103,7 @@ const SettingsPage = ({ user, onClose, isDarkMode, toggleDarkMode }) => {
     setMessage('');
     try {
       await userPreferencesService.saveActivityPreferences(user.id, activityPreferences);
-      setMessage('✅ Préférences d\'activités sauvegardées !');
+      setMessage('✅ Préférences d'activités sauvegardées !');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       setMessage(`❌ Erreur: ${error.message}`);
@@ -118,7 +118,7 @@ const SettingsPage = ({ user, onClose, isDarkMode, toggleDarkMode }) => {
     try {
       await userPreferencesService.saveAccessibilityNeeds(user.id, localAccessibility);
       updateAccessibilityNeeds(localAccessibility); // Update context
-      setMessage('✅ Besoins d\'accessibilité sauvegardés !');
+      setMessage('✅ Besoins d'accessibilité sauvegardés !');
       setTimeout(() => setMessage(''), 3000);
     } catch (error) {
       setMessage(`❌ Erreur: ${error.message}`);
@@ -307,7 +307,7 @@ const SettingsPage = ({ user, onClose, isDarkMode, toggleDarkMode }) => {
                 disabled={accessibilitySaving}
                 className="save-btn-primary"
               >
-                {accessibilitySaving ? 'Sauvegarde...' : '💾 Sauvegarder l\'accessibilité'}
+                {accessibilitySaving ? 'Sauvegarde...' : '💾 Sauvegarder l'accessibilité'}
               </button>
             </section>
           )}
