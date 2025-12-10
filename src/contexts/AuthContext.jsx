@@ -41,6 +41,7 @@ export const AuthProvider = ({ children }) => {
         password,
         options: {
           data: metadata,
+          emailRedirectTo: `${window.location.origin}/auth`,
         },
       });
       if (error) throw error;
@@ -57,7 +58,11 @@ export const AuthProvider = ({ children }) => {
             role: metadata.role || 'parent',
           }]);
         
-        if (profileError) console.error('Profile creation error:', profileError);
+        if (profileError) {
+          console.error('Profile creation error:', profileError);
+          // Don't fail the signup if profile creation fails
+          // The profile can be created later or manually
+        }
       }
 
       return { data, error: null };
@@ -72,7 +77,37 @@ export const AuthProvider = ({ children }) => {
         email,
         password,
       });
-      if (error) throw error;
+      if (error) {
+        // Provide more helpful error messages
+        if (error.message === 'Invalid login credentials') {
+          error.message = 'Email ou mot de passe incorrect. Vérifiez vos identifiants ou créez un compte si vous êtes nouveau.';
+        } else if (error.message.includes('Email not confirmed')) {
+          error.message = 'Veuillez confirmer votre email avant de vous connecter. Vérifiez votre boîte de réception.';
+        }
+        throw error;
+      }
+      
+      // Ensure user profile exists in users table
+      if (data.user) {
+        const { data: existingProfile } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', data.user.id)
+          .single();
+        
+        // If profile doesn't exist, create it
+        if (!existingProfile) {
+          await supabase
+            .from('users')
+            .insert([{
+              id: data.user.id,
+              email: data.user.email,
+              first_name: data.user.user_metadata?.first_name || data.user.email.split('@')[0],
+              role: 'parent',
+            }]);
+        }
+      }
+      
       return { data, error: null };
     } catch (error) {
       return { data: null, error };

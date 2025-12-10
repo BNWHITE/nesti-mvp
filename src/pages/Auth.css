@@ -162,6 +162,27 @@
   transform: none;
 }
 
+/* Forgot Password Link */
+.forgot-password-link {
+  text-align: right;
+  margin-top: var(--spacing-xs);
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-weight: 500;
+}
+
+.link-button:hover {
+  color: var(--color-primary-light);
+}
+
 /* Divider */
 .auth-divider {
   display: flex;

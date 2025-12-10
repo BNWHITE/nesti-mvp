@@ -6,6 +6,7 @@ import './Auth.css';
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -15,7 +16,7 @@ export default function Auth() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
-  const { signIn, signUp, signInWithOAuth } = useAuth();
+  const { signIn, signUp, signInWithOAuth, resetPassword } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -25,7 +26,21 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      if (isSignUp) {
+      if (isForgotPassword) {
+        // Handle password reset
+        const { error: resetError } = await resetPassword(email);
+        
+        if (resetError) {
+          setError(resetError.message);
+        } else {
+          setMessage('Un email de réinitialisation a été envoyé ! Vérifiez votre boîte de réception.');
+          setEmail('');
+          setTimeout(() => {
+            setIsForgotPassword(false);
+            setMessage('');
+          }, 3000);
+        }
+      } else if (isSignUp) {
         // Validation
         if (password !== confirmPassword) {
           setError('Les mots de passe ne correspondent pas');
@@ -45,7 +60,7 @@ export default function Auth() {
           return;
         }
 
-        const { error: signUpError } = await signUp(email, password, {
+        const { error: signUpError, data } = await signUp(email, password, {
           first_name: firstName,
           last_name: lastName,
           full_name: `${firstName} ${lastName}`,
@@ -54,7 +69,13 @@ export default function Auth() {
         if (signUpError) {
           setError(signUpError.message);
         } else {
-          setMessage('Compte créé ! Vérifiez votre email pour confirmer votre compte.');
+          // Check if email confirmation is required
+          if (data?.user && !data?.session) {
+            setMessage('✅ Compte créé ! Vérifiez votre email pour confirmer votre compte avant de vous connecter.');
+          } else {
+            setMessage('✅ Compte créé avec succès ! Connexion en cours...');
+            setTimeout(() => navigate('/'), 1500);
+          }
           // Reset form
           setEmail('');
           setPassword('');
@@ -68,7 +89,8 @@ export default function Auth() {
         if (signInError) {
           setError(signInError.message);
         } else {
-          navigate('/');
+          setMessage('✅ Connexion réussie !');
+          setTimeout(() => navigate('/'), 500);
         }
       }
     } catch (err) {
@@ -101,11 +123,19 @@ export default function Auth() {
 
           {/* Header */}
           <div className="auth-header">
-            <h1>{isSignUp ? 'Créer un compte' : 'Se connecter'}</h1>
+            <h1>
+              {isForgotPassword 
+                ? 'Réinitialiser le mot de passe' 
+                : isSignUp 
+                  ? 'Créer un compte' 
+                  : 'Se connecter'}
+            </h1>
             <p>
-              {isSignUp
-                ? 'Rejoignez Nesti pour organiser votre vie familiale'
-                : 'Bienvenue sur Nesti'}
+              {isForgotPassword
+                ? 'Entrez votre email pour recevoir un lien de réinitialisation'
+                : isSignUp
+                  ? 'Rejoignez Nesti pour organiser votre vie familiale'
+                  : 'Bienvenue sur Nesti'}
             </p>
           </div>
 
@@ -123,7 +153,7 @@ export default function Auth() {
 
           {/* Form */}
           <form className="auth-form" onSubmit={handleSubmit}>
-            {isSignUp && (
+            {isSignUp && !isForgotPassword && (
               <>
                 <div className="form-row">
                   <div className="input-group">
@@ -174,22 +204,24 @@ export default function Auth() {
               </div>
             </div>
 
-            <div className="input-group">
-              <label htmlFor="password">Mot de passe</label>
-              <div className="input-with-icon">
-                <LockClosedIcon className="input-icon" />
-                <input
-                  id="password"
-                  type="password"
-                  placeholder={isSignUp ? 'Minimum 6 caractères' : 'Votre mot de passe'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+            {!isForgotPassword && (
+              <div className="input-group">
+                <label htmlFor="password">Mot de passe</label>
+                <div className="input-with-icon">
+                  <LockClosedIcon className="input-icon" />
+                  <input
+                    id="password"
+                    type="password"
+                    placeholder={isSignUp ? 'Minimum 6 caractères' : 'Votre mot de passe'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
-            {isSignUp && (
+            {isSignUp && !isForgotPassword && (
               <div className="input-group">
                 <label htmlFor="confirmPassword">Confirmer le mot de passe</label>
                 <div className="input-with-icon">
@@ -206,52 +238,92 @@ export default function Auth() {
               </div>
             )}
 
+            {!isSignUp && !isForgotPassword && (
+              <div className="forgot-password-link">
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={() => {
+                    setIsForgotPassword(true);
+                    setError('');
+                    setMessage('');
+                  }}
+                >
+                  Mot de passe oublié ?
+                </button>
+              </div>
+            )}
+
             <button
               type="submit"
               className="auth-button"
               disabled={loading}
             >
-              {loading ? 'Chargement...' : isSignUp ? 'Créer mon compte' : 'Se connecter'}
+              {loading 
+                ? 'Chargement...' 
+                : isForgotPassword 
+                  ? 'Envoyer le lien de réinitialisation'
+                  : isSignUp 
+                    ? 'Créer mon compte' 
+                    : 'Se connecter'}
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="auth-divider">
-            <span>ou</span>
-          </div>
+          {!isForgotPassword && (
+            <>
+              {/* Divider */}
+              <div className="auth-divider">
+                <span>ou</span>
+              </div>
 
-          {/* OAuth Buttons */}
-          <div className="oauth-buttons">
-            <button
-              className="oauth-button google"
-              onClick={() => handleOAuthLogin('google')}
-              disabled={loading}
-            >
-              <svg className="oauth-icon" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              Continuer avec Google
-            </button>
-          </div>
+              {/* OAuth Buttons */}
+              <div className="oauth-buttons">
+                <button
+                  className="oauth-button google"
+                  onClick={() => handleOAuthLogin('google')}
+                  disabled={loading}
+                >
+                  <svg className="oauth-icon" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  Continuer avec Google
+                </button>
+              </div>
+            </>
+          )}
 
           {/* Toggle Sign In/Sign Up */}
           <div className="auth-toggle">
-            <button
-              type="button"
-              className="toggle-button"
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError('');
-                setMessage('');
-              }}
-            >
-              {isSignUp
-                ? 'Déjà un compte ? Se connecter'
-                : 'Pas encore de compte ? Créer un compte'}
-            </button>
+            {isForgotPassword ? (
+              <button
+                type="button"
+                className="toggle-button"
+                onClick={() => {
+                  setIsForgotPassword(false);
+                  setError('');
+                  setMessage('');
+                }}
+              >
+                Retour à la connexion
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="toggle-button"
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError('');
+                  setMessage('');
+                }}
+              >
+                {isSignUp
+                  ? 'Déjà un compte ? Se connecter'
+                  : 'Pas encore de compte ? Créer un compte'}
+              </button>
+            )}
           </div>
 
           {/* Privacy Notice */}
