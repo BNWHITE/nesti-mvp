@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabaseClient';
+import supabase from '../config/supabase';
 
 /**
  * Service pour gérer les commentaires sur les posts
