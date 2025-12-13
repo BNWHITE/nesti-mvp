@@ -1,0 +1,220 @@
+/* Welcome Tips Overlay */
+.tips-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: var(--spacing-md);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.tips-content {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-2xl);
+  max-width: 500px;
+  width: 100%;
+  position: relative;
+  animation: slideUp 0.4s ease;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tips-close {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: var(--radius);
+  transition: background 0.2s;
+}
+
+.tips-close:hover {
+  background: var(--color-bg-hover);
+}
+
+.tips-close-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--color-text-secondary);
+}
+
+.tips-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.tips-bulb-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-primary);
+  margin: 0 auto var(--spacing-md);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.tips-header h2 {
+  font-size: var(--font-size-2xl);
+  color: var(--color-text);
+  margin: 0;
+  font-weight: 700;
+}
+
+.tip-card {
+  text-align: center;
+  padding: var(--spacing-xl);
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-xl);
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  animation: tipSlide 0.3s ease;
+}
+
+@keyframes tipSlide {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.tip-icon {
+  font-size: 64px;
+  margin-bottom: var(--spacing-md);
+}
+
+.tip-title {
+  font-size: var(--font-size-xl);
+  color: var(--color-text);
+  margin: 0 0 var(--spacing-sm) 0;
+  font-weight: 700;
+}
+
+.tip-description {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.tips-progress {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: var(--spacing-lg);
+}
+
+.progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-border);
+  transition: all 0.3s ease;
+}
+
+.progress-dot.active {
+  width: 24px;
+  border-radius: 4px;
+  background: var(--color-primary);
+}
+
+.progress-dot.completed {
+  background: var(--color-primary);
+  opacity: 0.5;
+}
+
+.tips-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.tips-btn {
+  flex: 1;
+  padding: 14px 24px;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tips-btn-secondary {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.tips-btn-secondary:hover {
+  background: var(--color-bg-hover);
+}
+
+.tips-btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.tips-btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.tips-skip {
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  padding: var(--spacing-sm);
+  transition: color 0.2s;
+}
+
+.tips-skip:hover {
+  color: var(--color-text);
+}
