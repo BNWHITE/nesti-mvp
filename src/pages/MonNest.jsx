@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { PlusIcon, PencilIcon, Cog6ToothIcon, XMarkIcon, ShareIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, Cog6ToothIcon, XMarkIcon, ShareIcon, LinkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 import { familyService } from '../services/familyService';
 import { inviteMember } from '../services/memberService';
+import MemberEditModal from '../components/MemberEditModal';
+import InviteLinkModal from '../components/InviteLinkModal';
 import './MonNest.css';
 
 export default function MonNest() {
@@ -11,22 +13,33 @@ export default function MonNest() {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
+  const [showInviteLinkModal, setShowInviteLinkModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingMember, setEditingMember] = useState(null);
   const [inviteError, setInviteError] = useState(null);
-  const [inviteCode] = useState(() => {
-    // Use crypto API for secure random code generation
-    if (window.crypto && window.crypto.randomUUID) {
-      return 'NEST-' + window.crypto.randomUUID().substring(0, 8).toUpperCase();
-    }
-    return 'NEST-' + Math.random().toString(36).substring(2, 10).toUpperCase();
-  });
   const [newMember, setNewMember] = useState({
     name: '',
     email: '',
     role: 'Parent',
     roleType: 'parent'
   });
-  const [copySuccess, setCopySuccess] = useState(false);
+
+  const handleEditMember = (member) => {
+    setEditingMember(member);
+    setShowEditModal(true);
+  };
+
+  const handleUpdateMember = async (updatedMember) => {
+    // Reload family data to reflect changes
+    await loadFamilyData();
+    setShowEditModal(false);
+    setEditingMember(null);
+  };
+
+  const handleManageMember = (member) => {
+    // For now, open edit modal with focus on permissions/role
+    handleEditMember(member);
+  };
 
   useEffect(() => {
     if (user) {
@@ -146,12 +159,6 @@ export default function MonNest() {
     }
   };
 
-  const copyInviteCode = () => {
-    navigator.clipboard.writeText(inviteCode);
-    setCopySuccess(true);
-    setTimeout(() => setCopySuccess(false), 2000);
-  };
-
   if (loading) {
     return (
       <div className="monnest-page">
@@ -194,10 +201,10 @@ export default function MonNest() {
         {familyData.id && (
           <button 
             className="share-code-btn"
-            onClick={() => setShowShareModal(true)}
+            onClick={() => setShowInviteLinkModal(true)}
           >
-            <ShareIcon className="share-icon" />
-            Partager le code
+            <LinkIcon className="share-icon" />
+            Lien d'invitation
           </button>
         )}
       </div>
@@ -239,11 +246,19 @@ export default function MonNest() {
                   </p>
                   
                   <div className="member-actions">
-                    <button className="member-action-btn" aria-label="Éditer">
+                    <button 
+                      className="member-action-btn" 
+                      aria-label="Éditer"
+                      onClick={() => handleEditMember(member)}
+                    >
                       <PencilIcon className="action-icon" />
                       <span>Éditer</span>
                     </button>
-                    <button className="member-action-btn" aria-label="Gérer">
+                    <button 
+                      className="member-action-btn" 
+                      aria-label="Gérer"
+                      onClick={() => handleManageMember(member)}
+                    >
                       <Cog6ToothIcon className="action-icon" />
                       <span>Gérer</span>
                     </button>
@@ -348,39 +363,26 @@ export default function MonNest() {
         </div>
       )}
 
-      {/* Share Code Modal */}
-      {showShareModal && (
-        <div className="modal-overlay" onClick={() => setShowShareModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Code d'invitation</h2>
-              <button onClick={() => setShowShareModal(false)} className="close-btn">
-                <XMarkIcon className="close-icon" />
-              </button>
-            </div>
-            <div className="modal-body">
-              <p style={{ marginBottom: '1rem', color: 'var(--color-text-secondary)' }}>
-                Partagez ce code avec les personnes que vous souhaitez inviter à rejoindre votre Nest.
-              </p>
-              <div className="invite-code-box">
-                <span className="invite-code">{inviteCode}</span>
-                <button onClick={copyInviteCode} className="copy-btn">
-                  {copySuccess ? '✓ Copié !' : 'Copier'}
-                </button>
-              </div>
-              {copySuccess && (
-                <p style={{ marginTop: '0.5rem', color: 'var(--color-primary)', fontSize: 'var(--font-size-sm)', textAlign: 'center' }}>
-                  Code copié dans le presse-papiers !
-                </p>
-              )}
-            </div>
-            <div className="modal-footer">
-              <button onClick={() => setShowShareModal(false)} className="btn-primary" style={{ width: '100%' }}>
-                Fermer
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Invite Link Modal */}
+      {showInviteLinkModal && familyData && (
+        <InviteLinkModal
+          familyId={familyData.id}
+          familyName={familyData.name}
+          userId={user.id}
+          onClose={() => setShowInviteLinkModal(false)}
+        />
+      )}
+
+      {/* Member Edit Modal */}
+      {showEditModal && editingMember && (
+        <MemberEditModal
+          member={editingMember}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingMember(null);
+          }}
+          onUpdate={handleUpdateMember}
+        />
       )}
     </div>
   );

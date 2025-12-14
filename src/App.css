@@ -1,5 +1,6 @@
 /* Nesti MVP - Main App Styles */
 @import './styles/theme.css';
+@import './styles/animations.css';
 
 /* App Container - Mobile First */
 .app {
