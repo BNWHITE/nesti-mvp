@@ -13,7 +13,7 @@ export async function getComments(postId) {
       .from('comments')
       .select(`
         *,
-        user:users(id, name, email, avatar_url)
+        user:users(id, first_name, last_name, email, avatar_url)
       `)
       .eq('post_id', postId)
       .order('created_at', { ascending: true });
@@ -43,7 +43,7 @@ export async function addComment(postId, userId, content) {
       ])
       .select(`
         *,
-        user:users(id, name, email, avatar_url)
+        user:users(id, first_name, last_name, email, avatar_url)
       `)
       .single();
 

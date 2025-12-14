@@ -62,9 +62,19 @@ function CommentSection({ postId, currentUserId, currentUserName, currentUserAva
     return date.toLocaleDateString('fr-FR');
   };
 
-  const getInitials = (name) => {
-    if (!name) return '?';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const getInitials = (firstName, lastName) => {
+    if (!firstName) return '?';
+    const firstInitial = firstName[0] || '';
+    const lastInitial = lastName ? lastName[0] : '';
+    return (firstInitial + lastInitial).toUpperCase();
+  };
+
+  const getFullName = (user) => {
+    if (!user) return 'Utilisateur';
+    if (user.first_name && user.last_name) {
+      return `${user.first_name} ${user.last_name}`;
+    }
+    return user.first_name || user.email || 'Utilisateur';
   };
 
   return (
@@ -83,16 +93,16 @@ function CommentSection({ postId, currentUserId, currentUserName, currentUserAva
             <div key={comment.id} className="comment-item">
               <div className="comment-avatar">
                 {comment.user?.avatar_url ? (
-                  <img src={comment.user.avatar_url} alt={comment.user?.name || 'User'} />
+                  <img src={comment.user.avatar_url} alt={getFullName(comment.user)} />
                 ) : (
                   <div className="comment-avatar-placeholder">
-                    {getInitials(comment.user?.name || 'User')}
+                    {getInitials(comment.user?.first_name, comment.user?.last_name)}
                   </div>
                 )}
               </div>
               <div className="comment-content">
                 <div className="comment-meta">
-                  <span className="comment-author">{comment.user?.name || 'Utilisateur'}</span>
+                  <span className="comment-author">{getFullName(comment.user)}</span>
                   <span className="comment-time">{formatTimestamp(comment.created_at)}</span>
                 </div>
                 <p className="comment-text">{comment.content}</p>
@@ -118,7 +128,7 @@ function CommentSection({ postId, currentUserId, currentUserName, currentUserAva
               <img src={currentUserAvatar} alt={currentUserName} />
             ) : (
               <div className="comment-avatar-placeholder">
-                {getInitials(currentUserName)}
+                {getInitials(currentUserName, '')}
               </div>
             )}
           </div>

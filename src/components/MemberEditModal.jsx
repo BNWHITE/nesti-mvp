@@ -4,15 +4,21 @@ import './MemberEditModal.css';
 
 function MemberEditModal({ member, onClose, onUpdate }) {
   const [formData, setFormData] = useState({
-    name: member.name || '',
+    first_name: member.name ? member.name.split(' ')[0] : '',
+    last_name: member.name ? member.name.split(' ').slice(1).join(' ') : '',
     email: member.email || '',
-    role: member.role || 'Membre',
+    role: member.roleType || 'parent',
     phone: member.phone || ''
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  const roles = ['Admin', 'Parent', 'Ado', 'Enfant', 'Membre'];
+  const roles = [
+    { value: 'admin', label: 'Admin' },
+    { value: 'parent', label: 'Parent' },
+    { value: 'ado', label: 'Ado' },
+    { value: 'child', label: 'Enfant' }
+  ];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,18 +27,29 @@ function MemberEditModal({ member, onClose, onUpdate }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
-      setError('Le nom est requis');
+    if (!formData.first_name.trim()) {
+      setError('Le prénom est requis');
       return;
     }
 
     setSaving(true);
     setError(null);
 
-    const { data, error: updateError } = await updateFamilyMember(member.id, formData);
+    // Prepare updates with correct column names
+    const updates = {
+      first_name: formData.first_name.trim(),
+      last_name: formData.last_name.trim(),
+      role: formData.role
+    };
+
+    if (formData.phone) {
+      updates.phone = formData.phone;
+    }
+
+    const { data, error: updateError } = await updateFamilyMember(member.id, updates);
     
     if (updateError) {
-      setError(updateError.message);
+      setError(updateError.message || 'Erreur lors de la mise à jour');
       setSaving(false);
       return;
     }
@@ -55,14 +72,26 @@ function MemberEditModal({ member, onClose, onUpdate }) {
 
         <form onSubmit={handleSubmit} className="member-edit-form">
           <div className="form-group">
-            <label htmlFor="name">Nom complet *</label>
+            <label htmlFor="first_name">Prénom *</label>
             <input
               type="text"
-              id="name"
-              name="name"
-              value={formData.name}
+              id="first_name"
+              name="first_name"
+              value={formData.first_name}
               onChange={handleChange}
               required
+              disabled={saving}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="last_name">Nom de famille</label>
+            <input
+              type="text"
+              id="last_name"
+              name="last_name"
+              value={formData.last_name}
+              onChange={handleChange}
               disabled={saving}
             />
           </div>
@@ -75,7 +104,8 @@ function MemberEditModal({ member, onClose, onUpdate }) {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              disabled={saving}
+              disabled={true}
+              title="L'email ne peut pas être modifié"
             />
           </div>
 
@@ -101,7 +131,7 @@ function MemberEditModal({ member, onClose, onUpdate }) {
               disabled={saving}
             >
               {roles.map(role => (
-                <option key={role} value={role}>{role}</option>
+                <option key={role.value} value={role.value}>{role.label}</option>
               ))}
             </select>
           </div>

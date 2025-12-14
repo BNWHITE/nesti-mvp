@@ -2,13 +2,19 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import MediaUploader from '../components/MediaUploader';
+import CommentSection from '../components/CommentSection';
 import './FeedPage.css';
 
 export default function FeedPage({ user, familyId }) { 
   const [posts, setPosts] = useState([]);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [userName, setUserName] = useState('Utilisateur'); 
+  const [userName, setUserName] = useState('Utilisateur');
+  const [newPostContent, setNewPostContent] = useState('');
+  const [showMediaUploader, setShowMediaUploader] = useState(false);
+  const [postingMedia, setPostingMedia] = useState(false);
+  const [showComments, setShowComments] = useState({}); 
 
   const fetchUserData = useCallback(async () => {
     try {
@@ -96,8 +102,65 @@ export default function FeedPage({ user, familyId }) {
   };
   
   const handleComment = (postId) => {
-    // Logique d'affichage du champ de commentaire (Mise à jour du state)
-    alert(`Fonctionnalité Commenter pour le post ${postId} à implémenter !`);
+    // Toggle comment section for the post
+    setShowComments(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+  };
+
+  const handleShare = (postId) => {
+    // Share functionality
+    const post = posts.find(p => p.id === postId);
+    if (post) {
+      // Use Web Share API if available
+      if (navigator.share) {
+        navigator.share({
+          title: 'Partager le post',
+          text: post.content,
+          url: window.location.href
+        }).catch(err => console.log('Error sharing:', err));
+      } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(post.content)
+          .then(() => alert('Contenu copié dans le presse-papier !'))
+          .catch(() => alert('Impossible de copier le contenu'));
+      }
+    }
+  };
+
+  const handleMediaUploaded = async (mediaUrls) => {
+    // Create a post with media
+    if (!familyId) {
+      alert("Veuillez d'abord rejoindre un Nest familial.");
+      return;
+    }
+
+    setPostingMedia(true);
+    try {
+      // Here you would save the post with media to the database
+      // For now, we'll add it to the mock posts
+      const newPost = {
+        id: Date.now(),
+        author: { name: userName, role: 'parent', emoji: '👨‍👩‍👧' },
+        content: newPostContent || 'Nouveau post avec média',
+        type: 'media',
+        time: 'À l\'instant',
+        likes: 0,
+        comments: 0,
+        media: mediaUrls
+      };
+      
+      setPosts([newPost, ...posts]);
+      setNewPostContent('');
+      setShowMediaUploader(false);
+      alert('Post avec média publié !');
+    } catch (error) {
+      console.error('Error posting media:', error);
+      alert('Erreur lors de la publication');
+    } finally {
+      setPostingMedia(false);
+    }
   };
 
   const quickActions = [
@@ -130,6 +193,32 @@ export default function FeedPage({ user, familyId }) {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Media Upload Section */}
+      <div className="post-creation-section">
+        <textarea
+          value={newPostContent}
+          onChange={(e) => setNewPostContent(e.target.value)}
+          placeholder="Quoi de neuf dans votre Nest ?"
+          className="post-input"
+          rows="3"
+        />
+        <div className="post-actions">
+          <button 
+            onClick={() => setShowMediaUploader(!showMediaUploader)}
+            className="media-btn"
+          >
+            📷 Photo/Vidéo
+          </button>
+        </div>
+        {showMediaUploader && (
+          <MediaUploader
+            userId={user.id}
+            onMediaUploaded={handleMediaUploaded}
+            maxPhotos={5}
+          />
+        )}
       </div>
 
       <div className="activities-section">
@@ -172,6 +261,22 @@ export default function FeedPage({ user, familyId }) {
                 {post.content}
               </div>
 
+              {/* Display media if present */}
+              {post.media && (
+                <div className="post-media">
+                  {post.media.photos && post.media.photos.length > 0 && (
+                    <div className="post-photos">
+                      {post.media.photos.map((photoUrl, idx) => (
+                        <img key={idx} src={photoUrl} alt={`Photo ${idx + 1}`} />
+                      ))}
+                    </div>
+                  )}
+                  {post.media.video && (
+                    <video src={post.media.video} controls />
+                  )}
+                </div>
+              )}
+
               <div className="post-stats">
                 <span>{post.likes} J'aime</span>
                 <span>{post.comments} Commentaires</span>
@@ -184,7 +289,24 @@ export default function FeedPage({ user, familyId }) {
                 <button className="reaction-btn comment-btn" onClick={() => handleComment(post.id)}>
                     💬 Commenter
                 </button>
+                <button className="reaction-btn share-btn" onClick={() => handleShare(post.id)}>
+                    🔗 Partager
+                </button>
               </div>
+
+              {/* Comment Section */}
+              {showComments[post.id] && (
+                <CommentSection 
+                  postId={post.id} 
+                  userId={user.id}
+                  onCommentAdded={() => {
+                    // Update comment count
+                    setPosts(posts.map(p => 
+                      p.id === post.id ? { ...p, comments: p.comments + 1 } : p
+                    ));
+                  }}
+                />
+              )}
             </div>
           ))}
         </div>
