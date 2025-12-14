@@ -119,12 +119,16 @@ export default function FeedPage({ user, familyId }) {
           title: 'Partager le post',
           text: post.content,
           url: window.location.href
-        }).catch(err => console.log('Error sharing:', err));
+        }).catch(err => {
+          if (err.name !== 'AbortError') {
+            console.log('Error sharing:', err);
+          }
+        });
       } else {
         // Fallback: copy to clipboard
         navigator.clipboard.writeText(post.content)
-          .then(() => alert('Contenu copié dans le presse-papier !'))
-          .catch(() => alert('Impossible de copier le contenu'));
+          .then(() => alert('✅ Contenu copié dans le presse-papier ! Vous pouvez maintenant le partager via votre application préférée.'))
+          .catch(() => alert('❌ Impossible de copier le contenu. Veuillez essayer de le sélectionner manuellement.'));
       }
     }
   };
@@ -138,10 +142,13 @@ export default function FeedPage({ user, familyId }) {
 
     setPostingMedia(true);
     try {
+      // Generate a more unique ID using timestamp + random
+      const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
       // Here you would save the post with media to the database
       // For now, we'll add it to the mock posts
       const newPost = {
-        id: Date.now(),
+        id: uniqueId,
         author: { name: userName, role: 'parent', emoji: '👨‍👩‍👧' },
         content: newPostContent || 'Nouveau post avec média',
         type: 'media',

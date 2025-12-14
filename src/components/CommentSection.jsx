@@ -62,7 +62,7 @@ function CommentSection({ postId, currentUserId, currentUserName, currentUserAva
     return date.toLocaleDateString('fr-FR');
   };
 
-  const getInitials = (firstName, lastName) => {
+  const getInitials = (firstName, lastName = '') => {
     if (!firstName) return '?';
     const firstInitial = firstName[0] || '';
     const lastInitial = lastName ? lastName[0] : '';
@@ -128,7 +128,7 @@ function CommentSection({ postId, currentUserId, currentUserName, currentUserAva
               <img src={currentUserAvatar} alt={currentUserName} />
             ) : (
               <div className="comment-avatar-placeholder">
-                {getInitials(currentUserName, '')}
+                {getInitials(currentUserName)}
               </div>
             )}
           </div>

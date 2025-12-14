@@ -3,9 +3,21 @@ import { updateFamilyMember } from '../services/profileService';
 import './MemberEditModal.css';
 
 function MemberEditModal({ member, onClose, onUpdate }) {
+  // Safely parse the member name
+  const parseName = (fullName) => {
+    if (!fullName) return { firstName: '', lastName: '' };
+    const nameParts = fullName.trim().split(/\s+/);
+    return {
+      firstName: nameParts[0] || '',
+      lastName: nameParts.slice(1).join(' ') || ''
+    };
+  };
+
+  const { firstName, lastName } = parseName(member.name);
+
   const [formData, setFormData] = useState({
-    first_name: member.name ? member.name.split(' ')[0] : '',
-    last_name: member.name ? member.name.split(' ').slice(1).join(' ') : '',
+    first_name: firstName,
+    last_name: lastName,
     email: member.email || '',
     role: member.roleType || 'parent',
     phone: member.phone || ''
