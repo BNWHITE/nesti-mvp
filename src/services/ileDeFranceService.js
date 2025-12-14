@@ -7,6 +7,255 @@ const IDF_API_BASE_URL = 'https://data.iledefrance.fr/api/explore/v2.1/catalog/d
 const IDF_LEISURE_ISLANDS_URL = 'https://data.iledefrance.fr/api/explore/v2.1/catalog/datasets/iles_de_loisirs_itineraires/records';
 
 /**
+ * Fallback activities data for when API is unavailable
+ * Real activities in Île-de-France and Rennes
+ */
+const FALLBACK_ACTIVITIES = [
+  {
+    id: 'idf-1',
+    title: 'Cité des Sciences et de l\'Industrie',
+    category: 'culture',
+    description: 'Explorez les sciences en famille avec des expositions interactives',
+    location: 'Paris 19ème',
+    address: '30 Avenue Corentin Cariou, 75019 Paris',
+    ageRange: '3-99 ans',
+    price: 'Gratuit - 12€',
+    rating: 4.6,
+    image: 'https://example.com/cite-sciences.jpg',
+    coordinates: { lat: 48.8958, lng: 2.3878 },
+    tags: ['musée', 'sciences', 'enfants', 'intérieur']
+  },
+  {
+    id: 'idf-2',
+    title: 'Parc Astérix',
+    category: 'loisirs',
+    description: 'Parc d\'attractions sur le thème de la Gaule antique',
+    location: 'Plailly',
+    address: 'Parc Astérix, 60128 Plailly',
+    ageRange: '4-99 ans',
+    price: '45€ - 55€',
+    rating: 4.4,
+    tags: ['parc', 'attractions', 'famille', 'extérieur']
+  },
+  {
+    id: 'idf-3',
+    title: 'Jardin d\'Acclimatation',
+    category: 'nature',
+    description: 'Parc de loisirs et jardin botanique au cœur du Bois de Boulogne',
+    location: 'Paris 16ème',
+    address: 'Bois de Boulogne, 75016 Paris',
+    ageRange: '0-99 ans',
+    price: '6€ - 35€',
+    rating: 4.3,
+    tags: ['parc', 'nature', 'manèges', 'extérieur']
+  },
+  {
+    id: 'idf-4',
+    title: 'Musée du Louvre',
+    category: 'culture',
+    description: 'Le plus grand musée d\'art et d\'antiquités au monde',
+    location: 'Paris 1er',
+    address: 'Rue de Rivoli, 75001 Paris',
+    ageRange: '5-99 ans',
+    price: '15€ - 17€',
+    rating: 4.7,
+    tags: ['musée', 'art', 'histoire', 'intérieur']
+  },
+  {
+    id: 'idf-5',
+    title: 'Château de Versailles',
+    category: 'culture',
+    description: 'Visitez le célèbre château et ses magnifiques jardins',
+    location: 'Versailles',
+    address: 'Place d\'Armes, 78000 Versailles',
+    ageRange: '6-99 ans',
+    price: '18€ - 27€',
+    rating: 4.6,
+    tags: ['château', 'jardins', 'histoire', 'extérieur']
+  },
+  {
+    id: 'idf-6',
+    title: 'La Villette',
+    category: 'nature',
+    description: 'Grand parc urbain avec espaces verts et activités culturelles',
+    location: 'Paris 19ème',
+    address: '211 Avenue Jean Jaurès, 75019 Paris',
+    ageRange: '0-99 ans',
+    price: 'Gratuit',
+    rating: 4.5,
+    tags: ['parc', 'culture', 'pique-nique', 'extérieur']
+  },
+  {
+    id: 'idf-7',
+    title: 'Disneyland Paris',
+    category: 'loisirs',
+    description: 'Le parc d\'attractions magique de Disney',
+    location: 'Marne-la-Vallée',
+    address: 'Boulevard de Parc, 77700 Coupvray',
+    ageRange: '0-99 ans',
+    price: '56€ - 109€',
+    rating: 4.5,
+    tags: ['parc', 'attractions', 'Disney', 'famille']
+  },
+  {
+    id: 'idf-8',
+    title: 'Aquarium de Paris',
+    category: 'nature',
+    description: 'Découvrez le monde sous-marin avec 10000 poissons',
+    location: 'Paris 16ème',
+    address: '5 Avenue Albert de Mun, 75016 Paris',
+    ageRange: '2-99 ans',
+    price: '21€ - 24€',
+    rating: 4.2,
+    tags: ['aquarium', 'poissons', 'intérieur', 'éducatif']
+  },
+  {
+    id: 'idf-9',
+    title: 'Bois de Vincennes',
+    category: 'nature',
+    description: 'Immense espace vert pour pique-niques, vélo et promenades',
+    location: 'Paris 12ème',
+    address: 'Route de la Pyramide, 75012 Paris',
+    ageRange: '0-99 ans',
+    price: 'Gratuit',
+    rating: 4.4,
+    tags: ['parc', 'vélo', 'nature', 'extérieur']
+  },
+  {
+    id: 'idf-10',
+    title: 'Palais de la Découverte',
+    category: 'culture',
+    description: 'Musée scientifique avec expériences interactives',
+    location: 'Paris 8ème',
+    address: 'Avenue Franklin D. Roosevelt, 75008 Paris',
+    ageRange: '5-99 ans',
+    price: '9€ - 12€',
+    rating: 4.5,
+    tags: ['musée', 'sciences', 'éducatif', 'intérieur']
+  },
+  {
+    id: 'rennes-1',
+    title: 'Parc du Thabor',
+    category: 'nature',
+    description: 'Magnifique jardin botanique et parc public',
+    location: 'Rennes',
+    address: 'Place Saint-Mélaine, 35000 Rennes',
+    ageRange: '0-99 ans',
+    price: 'Gratuit',
+    rating: 4.6,
+    tags: ['parc', 'jardins', 'nature', 'extérieur']
+  },
+  {
+    id: 'rennes-2',
+    title: 'Espace des Sciences',
+    category: 'culture',
+    description: 'Centre de culture scientifique avec planétarium',
+    location: 'Rennes',
+    address: 'Les Champs Libres, 35000 Rennes',
+    ageRange: '5-99 ans',
+    price: '5€ - 8€',
+    rating: 4.4,
+    tags: ['musée', 'sciences', 'planétarium', 'intérieur']
+  },
+  {
+    id: 'rennes-3',
+    title: 'La Prévalaye',
+    category: 'sport',
+    description: 'Grand espace naturel pour randonnées, vélo et sports',
+    location: 'Rennes',
+    address: 'La Prévalaye, 35000 Rennes',
+    ageRange: '3-99 ans',
+    price: 'Gratuit',
+    rating: 4.3,
+    tags: ['nature', 'sport', 'vélo', 'extérieur']
+  },
+  {
+    id: 'rennes-4',
+    title: 'Écomusée du Pays de Rennes',
+    category: 'culture',
+    description: 'Découvrez la vie rurale bretonne d\'autrefois',
+    location: 'Rennes',
+    address: 'Route de Châtillon-sur-Seiche, 35200 Rennes',
+    ageRange: '4-99 ans',
+    price: '4€ - 6€',
+    rating: 4.2,
+    tags: ['musée', 'histoire', 'ferme', 'extérieur']
+  },
+  {
+    id: 'rennes-5',
+    title: 'Piscine Gayeulles',
+    category: 'sport',
+    description: 'Centre aquatique familial avec toboggans',
+    location: 'Rennes',
+    address: 'Parc des Gayeulles, 35000 Rennes',
+    ageRange: '0-99 ans',
+    price: '3€ - 5€',
+    rating: 4.1,
+    tags: ['piscine', 'sport', 'toboggans', 'intérieur']
+  },
+  {
+    id: 'idf-11',
+    title: 'Musée Grévin',
+    category: 'culture',
+    description: 'Musée de cire avec personnalités célèbres',
+    location: 'Paris 9ème',
+    address: '10 Boulevard Montmartre, 75009 Paris',
+    ageRange: '4-99 ans',
+    price: '24€ - 27€',
+    rating: 4.1,
+    tags: ['musée', 'cire', 'célébrités', 'intérieur']
+  },
+  {
+    id: 'idf-12',
+    title: 'Parc Zoologique de Paris',
+    category: 'nature',
+    description: 'Zoo moderne avec animaux du monde entier',
+    location: 'Paris 12ème',
+    address: 'Avenue Daumesnil, 75012 Paris',
+    ageRange: '2-99 ans',
+    price: '20€ - 25€',
+    rating: 4.3,
+    tags: ['zoo', 'animaux', 'nature', 'extérieur']
+  },
+  {
+    id: 'idf-13',
+    title: 'Forêt de Fontainebleau',
+    category: 'nature',
+    description: 'Magnifique forêt pour randonnées et escalade',
+    location: 'Fontainebleau',
+    address: 'Forêt de Fontainebleau, 77300',
+    ageRange: '5-99 ans',
+    price: 'Gratuit',
+    rating: 4.7,
+    tags: ['forêt', 'randonnée', 'escalade', 'extérieur']
+  },
+  {
+    id: 'idf-14',
+    title: 'Musée de l\'Air et de l\'Espace',
+    category: 'culture',
+    description: 'Collection exceptionnelle d\'avions et engins spatiaux',
+    location: 'Le Bourget',
+    address: 'Aéroport de Paris-Le Bourget, 93350',
+    ageRange: '5-99 ans',
+    price: '9€ - 16€',
+    rating: 4.5,
+    tags: ['musée', 'avions', 'espace', 'intérieur']
+  },
+  {
+    id: 'idf-15',
+    title: 'France Miniature',
+    category: 'loisirs',
+    description: 'La France en miniature avec monuments emblématiques',
+    location: 'Élancourt',
+    address: '25 Route du Mesnil, 78990 Élancourt',
+    ageRange: '3-99 ans',
+    price: '17€ - 25€',
+    rating: 4.2,
+    tags: ['miniature', 'monuments', 'éducatif', 'extérieur']
+  }
+];
+
+/**
  * Fetch leisure islands and itineraries from Île-de-France API
  * @param {Object} options - Query options
  * @param {number} options.limit - Number of results (default: 20)
@@ -247,6 +496,15 @@ export const convertLeisureIslandToNestiFormat = (island) => {
   }
 };
 
+/**
+ * Get fallback activities when API is unavailable
+ * @param {number} limit - Number of activities to return
+ * @returns {Array} Fallback activities
+ */
+export const getFallbackActivities = (limit = 20) => {
+  return FALLBACK_ACTIVITIES.slice(0, limit);
+};
+
 const ileDeFranceService = {
   fetchIDFActivities,
   fetchLeisureIslands,
@@ -254,7 +512,8 @@ const ileDeFranceService = {
   convertLeisureIslandToNestiFormat,
   getNearbyActivities,
   getEquipmentTypes,
-  searchIDFActivities
+  searchIDFActivities,
+  getFallbackActivities
 };
 
 export default ileDeFranceService;
