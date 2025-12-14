@@ -112,18 +112,18 @@ export default function Discover() {
       } else {
         // Use fallback data if API returns no results
         console.log('No IDF activities from API, using fallback data');
-        useFallbackIDFActivities();
+        loadFallbackIDFActivities();
       }
     } catch (error) {
       console.error('Error loading IDF activities:', error);
       // Use fallback data on error
-      useFallbackIDFActivities();
+      loadFallbackIDFActivities();
     } finally {
       setLoadingIDF(false);
     }
   };
 
-  const useFallbackIDFActivities = () => {
+  const loadFallbackIDFActivities = () => {
     const fallbackData = ileDeFranceService.getFallbackActivities(20);
     const transformedFallback = fallbackData.map((act, index) => ({
       id: act.id,
