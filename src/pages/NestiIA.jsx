@@ -66,14 +66,7 @@ export default function NestiIA() {
     setLog(l => [...l, { role: "user", content: userMessage }]);
     setIsTyping(true);
 
-    // Simulate API call with smart response
-    setTimeout(() => {
-      const smartResponse = getSmartResponse(userMessage);
-      setLog(l => [...l, { role: "assistant", content: smartResponse }]);
-      setIsTyping(false);
-    }, AI_RESPONSE_DELAY_MS);
-
-    /* Real API call (uncommented when ready):
+    // Call real API
     try {
       const r = await fetch("/api/nesti-ai", {
         method: "POST",
@@ -82,13 +75,18 @@ export default function NestiIA() {
       });
 
       const data = await r.json();
-      const reply = data?.choices?.[0]?.message?.content || data?.result || "Réponse IA indisponible";
+      
+      // Extract response from the expected format
+      const reply = data?.response || "Désolé, je n'ai pas pu répondre. Veuillez réessayer.";
       setLog(l => [...l, { role: "assistant", content: reply }]);
+      setIsTyping(false);
     } catch (err) {
-      setLog(l => [...l, { role: "assistant", content: "Erreur serveur" }]);
+      console.error("Error calling Nesti AI:", err);
+      // Fallback to local smart response if API fails
+      const fallbackResponse = getSmartResponse(userMessage);
+      setLog(l => [...l, { role: "assistant", content: `${fallbackResponse}\n\n⚠️ (Service temporairement indisponible - Réponse locale)` }]);
+      setIsTyping(false);
     }
-    setIsTyping(false);
-    */
   };
 
   const handleKeyPress = (e) => {

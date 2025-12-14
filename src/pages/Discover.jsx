@@ -109,12 +109,39 @@ export default function Discover() {
           }));
         
         setIdfActivities(transformedIDF);
+      } else {
+        // Use fallback data if API returns no results
+        console.log('No IDF activities from API, using fallback data');
+        useFallbackIDFActivities();
       }
     } catch (error) {
       console.error('Error loading IDF activities:', error);
+      // Use fallback data on error
+      useFallbackIDFActivities();
     } finally {
       setLoadingIDF(false);
     }
+  };
+
+  const useFallbackIDFActivities = () => {
+    const fallbackData = ileDeFranceService.getFallbackActivities(20);
+    const transformedFallback = fallbackData.map((act, index) => ({
+      id: act.id,
+      title: act.title,
+      category: act.category,
+      emoji: getCategoryEmojiByType(act.category),
+      matchScore: 90 - (index % 15),
+      rating: act.rating,
+      reviews: Math.floor(Math.random() * 150),
+      description: act.description,
+      location: act.location,
+      date: 'Disponible',
+      price: act.price === 'Gratuit' ? 0 : null,
+      ageRange: act.ageRange,
+      tags: act.tags,
+      source: 'Activités suggérées'
+    }));
+    setIdfActivities(transformedFallback);
   };
 
   const loadLeisureIslands = async () => {
@@ -213,18 +240,45 @@ export default function Discover() {
       {/* Activities List */}
       <div className="activities-list">
         {isLoading ? (
-          <div className="loading-message">
-            {activeTab === 'idf' 
-              ? 'Chargement des activités Île-de-France...' 
-              : 'Chargement des activités...'}
+          <div className="loading-container" style={{
+            textAlign: 'center',
+            padding: '3rem 1rem',
+            background: 'var(--color-bg-card)',
+            borderRadius: 'var(--radius-xl)',
+            marginTop: '1rem'
+          }}>
+            <div className="loading-spinner" style={{
+              width: '40px',
+              height: '40px',
+              border: '4px solid var(--color-border)',
+              borderTop: '4px solid var(--color-primary)',
+              borderRadius: '50%',
+              margin: '0 auto 1rem',
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            <p style={{ color: 'var(--color-text-secondary)', margin: 0 }}>
+              {activeTab === 'idf' 
+                ? 'Chargement des activités Île-de-France...' 
+                : 'Chargement des activités...'}
+            </p>
           </div>
         ) : displayActivities.length > 0 ? (
           displayActivities.map((activity) => (
             <ActivityCard key={activity.id} activity={activity} />
           ))
         ) : (
-          <div className="empty-activities">
-            <p>
+          <div className="empty-activities" style={{
+            textAlign: 'center',
+            padding: '3rem 1rem',
+            background: 'var(--color-bg-card)',
+            borderRadius: 'var(--radius-xl)',
+            marginTop: '1rem'
+          }}>
+            <div style={{ fontSize: '64px', marginBottom: '1rem', opacity: 0.5 }}>🔍</div>
+            <h3 style={{ fontSize: 'var(--font-size-xl)', marginBottom: '0.5rem', color: 'var(--color-text)' }}>
+              Aucune activité trouvée
+            </h3>
+            <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
               {activeTab === 'idf'
                 ? 'Aucune activité disponible en Île-de-France pour le moment.'
                 : 'Aucune activité disponible pour le moment.'}
@@ -232,7 +286,20 @@ export default function Discover() {
             {activeTab === 'idf' && (
               <button 
                 onClick={loadIDFActivities}
-                style={{ marginTop: '1rem', padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}
+                style={{ 
+                  marginTop: '1rem', 
+                  padding: '0.75rem 1.5rem', 
+                  background: 'var(--color-primary)', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '8px', 
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  fontSize: 'var(--font-size-base)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => e.target.style.opacity = '0.9'}
+                onMouseOut={(e) => e.target.style.opacity = '1'}
               >
                 Recharger
               </button>

@@ -1,0 +1,356 @@
+/**
+ * Global Animations for Nesti MVP
+ * Provides smooth, professional animations throughout the app
+ */
+
+/* ========================================
+   GLOBAL TRANSITIONS
+   ======================================== */
+
+* {
+  transition-property: background-color, color, border-color, opacity, transform;
+  transition-duration: 0.2s;
+  transition-timing-function: ease;
+}
+
+/* Disable transitions on theme change for instant switch */
+.theme-changing * {
+  transition: none !important;
+}
+
+/* ========================================
+   PAGE ANIMATIONS
+   ======================================== */
+
+/* Fade in animation for page loads */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-enter,
+.page-container {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Slide in from right (for navigation) */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* ========================================
+   BUTTON ANIMATIONS
+   ======================================== */
+
+/* Bounce effect on click */
+.btn:active,
+button:active {
+  transform: scale(0.95);
+  transition-duration: 0.1s;
+}
+
+/* Hover lift effect */
+.btn-lift:hover,
+.card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Pulse animation for important buttons */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+/* ========================================
+   MODAL ANIMATIONS
+   ======================================== */
+
+/* Slide up from bottom */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-enter,
+.modal-content {
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fade in overlay */
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-overlay {
+  animation: fadeInOverlay 0.2s ease-out;
+}
+
+/* Scale up modal */
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-scale {
+  animation: scaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ========================================
+   NOTIFICATION ANIMATIONS
+   ======================================== */
+
+/* Pulse for notification badges */
+@keyframes pulseBadge {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.notification-badge {
+  animation: pulseBadge 2s infinite;
+}
+
+/* Shake for errors */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+.shake {
+  animation: shake 0.5s;
+}
+
+/* ========================================
+   LOADING ANIMATIONS
+   ======================================== */
+
+/* Spinner rotation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner,
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Skeleton loading shimmer */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-bg) 0%,
+    var(--color-bg-secondary) 50%,
+    var(--color-bg) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Dots loading */
+@keyframes dotBounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+.loading-dots span {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin: 0 2px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  animation: dotBounce 1.4s infinite ease-in-out both;
+}
+
+.loading-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+/* ========================================
+   LIST ANIMATIONS
+   ======================================== */
+
+/* Stagger animation for lists */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.list-item-enter {
+  animation: fadeInUp 0.4s ease-out backwards;
+}
+
+.list-item-enter:nth-child(1) { animation-delay: 0.05s; }
+.list-item-enter:nth-child(2) { animation-delay: 0.1s; }
+.list-item-enter:nth-child(3) { animation-delay: 0.15s; }
+.list-item-enter:nth-child(4) { animation-delay: 0.2s; }
+.list-item-enter:nth-child(5) { animation-delay: 0.25s; }
+
+/* ========================================
+   CARD ANIMATIONS
+   ======================================== */
+
+/* Hover expand */
+@keyframes expandCard {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.02);
+  }
+}
+
+.card-expand:hover {
+  animation: expandCard 0.2s forwards;
+}
+
+/* ========================================
+   ICON ANIMATIONS
+   ======================================== */
+
+/* Bounce icon */
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+.icon-bounce {
+  animation: bounce 2s infinite;
+}
+
+/* Rotate icon */
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.icon-rotate {
+  animation: rotate 2s linear infinite;
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Disable animations for reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ========================================
+   TOUCH FEEDBACK
+   ======================================== */
+
+/* Active state for touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .btn:active,
+  button:active,
+  .card:active {
+    opacity: 0.7;
+  }
+}

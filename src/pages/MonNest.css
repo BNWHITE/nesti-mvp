@@ -462,3 +462,100 @@
   width: 20px;
   height: 20px;
 }
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+/* Mobile Small (320px - 374px) - Default styles work */
+
+/* Mobile Medium: 375px+ */
+@media (min-width: 375px) {
+  .family-card {
+    padding: var(--spacing-xl);
+  }
+}
+
+/* Mobile Large: 425px+ */
+@media (min-width: 425px) {
+  .member-card {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .member-avatar {
+    width: 60px;
+    height: 60px;
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* Tablet: 768px+ */
+@media (min-width: 768px) {
+  .monnest-page {
+    padding: var(--spacing-xl);
+  }
+
+  .family-icon {
+    font-size: 80px;
+  }
+
+  .family-name {
+    font-size: var(--font-size-3xl);
+  }
+
+  .members-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+  }
+
+  .member-actions {
+    flex-direction: row;
+  }
+
+  .member-action-btn {
+    flex: 1;
+  }
+}
+
+/* Laptop: 1024px+ */
+@media (min-width: 1024px) {
+  .members-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Touch targets for mobile */
+@media (hover: none) and (pointer: coarse) {
+  .share-code-btn,
+  .invite-btn,
+  .member-action-btn {
+    min-height: 44px;
+    padding: 12px 20px;
+  }
+
+  .close-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Compact mode for small screens */
+@media (max-width: 360px) {
+  .family-icon {
+    font-size: 48px;
+  }
+
+  .family-name {
+    font-size: var(--font-size-xl);
+  }
+
+  .member-actions {
+    gap: 4px;
+  }
+
+  .member-action-btn span {
+    display: none;
+  }
+}
