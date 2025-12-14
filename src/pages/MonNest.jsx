@@ -5,6 +5,7 @@ import { familyService } from '../services/familyService';
 import { inviteMember } from '../services/memberService';
 import MemberEditModal from '../components/MemberEditModal';
 import InviteLinkModal from '../components/InviteLinkModal';
+import CoNestSection from '../components/CoNestSection';
 import './MonNest.css';
 
 export default function MonNest() {
@@ -282,6 +283,11 @@ export default function MonNest() {
           )}
         </div>
       </div>
+
+      {/* Co-Nest Section */}
+      {familyData && familyData.id && (
+        <CoNestSection familyId={familyData.id} userId={user.id} />
+      )}
 
       {/* Invite Modal */}
       {showInviteModal && (
