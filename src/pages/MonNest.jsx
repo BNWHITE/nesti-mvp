@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PlusIcon, PencilIcon, Cog6ToothIcon, XMarkIcon, ShareIcon, LinkIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, Cog6ToothIcon, XMarkIcon, LinkIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 import { familyService } from '../services/familyService';
 import { inviteMember } from '../services/memberService';

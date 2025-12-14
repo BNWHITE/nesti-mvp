@@ -42,7 +42,7 @@ export default function ActivityCard({ activity }) {
       const eventDate = new Date();
       eventDate.setDate(eventDate.getDate() + 7); // Default to next week
 
-      const { data, error } = await createEvent({
+      const { error } = await createEvent({
         title: activity.title,
         description: activity.description || `Activité: ${activity.title}`,
         event_date: eventDate.toISOString().split('T')[0],

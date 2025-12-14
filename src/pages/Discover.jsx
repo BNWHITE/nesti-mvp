@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { SparklesIcon, AdjustmentsHorizontalIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { activityService } from '../services/activityService';
 import ileDeFranceService from '../services/ileDeFranceService';
 import ActivityCard from "../components/ActivityCard";

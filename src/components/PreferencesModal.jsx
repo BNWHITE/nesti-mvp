@@ -41,6 +41,7 @@ export default function PreferencesModal({ userId, familyId, onClose, onUpdate }
 
   useEffect(() => {
     loadPreferences();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, familyId]);
 
   const loadPreferences = async () => {
