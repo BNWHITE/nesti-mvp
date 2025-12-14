@@ -1,4 +1,4 @@
-import supabase from '../config/supabase';
+import { supabase } from '../lib/supabaseClient';
 
 /**
  * Role Service - Handles role-based permissions

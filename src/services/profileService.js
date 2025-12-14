@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 
 /**
  * Service pour gérer les profils utilisateurs

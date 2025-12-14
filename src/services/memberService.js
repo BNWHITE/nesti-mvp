@@ -1,4 +1,4 @@
-import supabase from '../config/supabase';
+import { supabase } from '../lib/supabaseClient';
 
 /**
  * Member Service - Complete member management

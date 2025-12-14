@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 
 /**
  * Service pour gérer l'upload et le stockage des médias (photos et vidéos)

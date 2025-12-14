@@ -1,4 +1,4 @@
-import supabase from '../config/supabase';
+import { supabase } from '../lib/supabaseClient';
 
 /**
  * Activity Service - For existing database schema
