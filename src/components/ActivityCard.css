@@ -220,6 +220,23 @@
   box-shadow: var(--shadow);
 }
 
+.activity-btn-primary:disabled {
+  background: var(--color-text-tertiary);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.activity-btn-secondary {
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.activity-btn-secondary:hover {
+  background: var(--color-border);
+  transform: translateY(-1px);
+}
+
 .btn-icon {
   width: 18px;
   height: 18px;

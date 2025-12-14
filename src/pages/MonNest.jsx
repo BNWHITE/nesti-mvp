@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { PlusIcon, PencilIcon, Cog6ToothIcon, XMarkIcon, ShareIcon, LinkIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, Cog6ToothIcon, XMarkIcon, LinkIcon, AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 import { familyService } from '../services/familyService';
 import { inviteMember } from '../services/memberService';
 import MemberEditModal from '../components/MemberEditModal';
 import InviteLinkModal from '../components/InviteLinkModal';
 import CoNestSection from '../components/CoNestSection';
+import PreferencesModal from '../components/PreferencesModal';
 import './MonNest.css';
 
 export default function MonNest() {
@@ -16,6 +17,7 @@ export default function MonNest() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showInviteLinkModal, setShowInviteLinkModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [inviteError, setInviteError] = useState(null);
   const [newMember, setNewMember] = useState({
@@ -208,6 +210,13 @@ export default function MonNest() {
             Lien d'invitation
           </button>
         )}
+        <button 
+          className="preferences-btn"
+          onClick={() => setShowPreferencesModal(true)}
+        >
+          <AdjustmentsHorizontalIcon className="preferences-icon" />
+          Modifier mes préférences
+        </button>
       </div>
 
       {/* Members Section */}
@@ -388,6 +397,19 @@ export default function MonNest() {
             setEditingMember(null);
           }}
           onUpdate={handleUpdateMember}
+        />
+      )}
+
+      {/* Preferences Modal */}
+      {showPreferencesModal && (
+        <PreferencesModal
+          userId={user.id}
+          familyId={familyData?.id}
+          onClose={() => setShowPreferencesModal(false)}
+          onUpdate={() => {
+            // Reload data if needed
+            loadFamilyData();
+          }}
         />
       )}
     </div>

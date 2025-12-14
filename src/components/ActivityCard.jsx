@@ -3,14 +3,70 @@ import {
   CalendarIcon, 
   CurrencyEuroIcon,
   HeartIcon,
-  StarIcon 
+  StarIcon,
+  GlobeAltIcon,
+  MapIcon
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import { useState } from 'react';
+import { createEvent } from '../services/eventService';
+import { useAuth } from '../contexts/AuthContext';
 import './ActivityCard.css';
 
 export default function ActivityCard({ activity }) {
   const [saved, setSaved] = useState(false);
+  const [addingToAgenda, setAddingToAgenda] = useState(false);
+  const { user } = useAuth();
+
+  const handleAddToAgenda = async () => {
+    if (!user) {
+      alert('Veuillez vous connecter pour ajouter à l\'agenda');
+      return;
+    }
+
+    // Get user's family_id
+    try {
+      setAddingToAgenda(true);
+      
+      // For now, we'll use a prompt to get the family_id
+      // In production, this would come from the user's profile
+      const familyId = user.family_id;
+      
+      if (!familyId) {
+        alert('Vous devez d\'abord rejoindre une famille pour ajouter des événements à l\'agenda');
+        setAddingToAgenda(false);
+        return;
+      }
+
+      // Create event from activity
+      const eventDate = new Date();
+      eventDate.setDate(eventDate.getDate() + 7); // Default to next week
+
+      const { error } = await createEvent({
+        title: activity.title,
+        description: activity.description || `Activité: ${activity.title}`,
+        event_date: eventDate.toISOString().split('T')[0],
+        event_time: '14:00',
+        location: activity.location || 'À définir',
+        category: activity.category || 'Activité',
+        family_id: familyId,
+        created_by: user.id,
+        participants: []
+      });
+
+      if (error) {
+        console.error('Error adding to agenda:', error);
+        alert('Erreur lors de l\'ajout à l\'agenda');
+      } else {
+        alert('✅ Activité ajoutée à l\'agenda familial !');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Erreur lors de l\'ajout à l\'agenda');
+    } finally {
+      setAddingToAgenda(false);
+    }
+  };
 
   return (
     <div className="activity-card">
@@ -102,10 +158,40 @@ export default function ActivityCard({ activity }) {
 
         {/* Actions */}
         <div className="activity-actions">
-          <button className="activity-btn activity-btn-primary">
+          <button 
+            className="activity-btn activity-btn-primary"
+            onClick={handleAddToAgenda}
+            disabled={addingToAgenda}
+          >
             <CalendarIcon className="btn-icon" />
-            Ajouter à l'agenda
+            {addingToAgenda ? 'Ajout...' : 'Ajouter à l\'agenda'}
           </button>
+          
+          {/* Website Link */}
+          {activity.fullData?.website && (
+            <a
+              href={activity.fullData.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="activity-btn activity-btn-secondary"
+            >
+              <GlobeAltIcon className="btn-icon" />
+              Site web
+            </a>
+          )}
+          
+          {/* Maps Link */}
+          {activity.fullData?.location && (activity.fullData.location.latitude && activity.fullData.location.longitude) && (
+            <a
+              href={`https://www.google.com/maps?q=${activity.fullData.location.latitude},${activity.fullData.location.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="activity-btn activity-btn-secondary"
+            >
+              <MapIcon className="btn-icon" />
+              Maps
+            </a>
+          )}
         </div>
       </div>
     </div>

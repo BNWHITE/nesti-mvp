@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { SparklesIcon, AdjustmentsHorizontalIcon, MapPinIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon, MapPinIcon } from '@heroicons/react/24/outline';
 import { activityService } from '../services/activityService';
 import ileDeFranceService from '../services/ileDeFranceService';
 import ActivityCard from "../components/ActivityCard";
+import SearchFilters from "../components/SearchFilters";
 import './Discover.css';
 
 const userPreferences = ['Football', 'Cuisine', 'Jardinage', 'Art'];
@@ -10,8 +11,11 @@ const userPreferences = ['Football', 'Cuisine', 'Jardinage', 'Art'];
 export default function Discover() {
   const [activeTab, setActiveTab] = useState('activites');
   const [activities, setActivities] = useState([]);
+  const [filteredActivities, setFilteredActivities] = useState([]);
   const [idfActivities, setIdfActivities] = useState([]);
+  const [filteredIdfActivities, setFilteredIdfActivities] = useState([]);
   const [leisureIslands, setLeisureIslands] = useState([]);
+  const [filteredLeisureIslands, setFilteredLeisureIslands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingIDF, setLoadingIDF] = useState(false);
   const [loadingIslands, setLoadingIslands] = useState(false);
@@ -48,6 +52,7 @@ export default function Discover() {
           tags: [act.category, act.difficulty].filter(Boolean)
         }));
         setActivities(transformedActivities);
+        setFilteredActivities(transformedActivities);
       }
     } catch (error) {
       console.error('Error loading activities:', error);
@@ -109,6 +114,7 @@ export default function Discover() {
           }));
         
         setIdfActivities(transformedIDF);
+        setFilteredIdfActivities(transformedIDF);
       } else {
         // Use fallback data if API returns no results
         console.log('No IDF activities from API, using fallback data');
@@ -142,6 +148,7 @@ export default function Discover() {
       source: 'Activités suggérées'
     }));
     setIdfActivities(transformedFallback);
+    setFilteredIdfActivities(transformedFallback);
   };
 
   const loadLeisureIslands = async () => {
@@ -177,11 +184,88 @@ export default function Discover() {
           }));
         
         setLeisureIslands(transformedIslands);
+        setFilteredLeisureIslands(transformedIslands);
       }
     } catch (error) {
       console.error('Error loading leisure islands:', error);
     } finally {
       setLoadingIslands(false);
+    }
+  };
+
+  const handleSearch = (searchTerm, filters) => {
+    const currentActivities = activeTab === 'idf' ? idfActivities : 
+                              activeTab === 'islands' ? leisureIslands : 
+                              activities;
+
+    let filtered = [...currentActivities];
+
+    // Apply search term
+    if (searchTerm) {
+      const lowerSearchTerm = searchTerm.toLowerCase();
+      filtered = filtered.filter(activity => 
+        activity.title.toLowerCase().includes(lowerSearchTerm) ||
+        activity.description?.toLowerCase().includes(lowerSearchTerm) ||
+        activity.category?.toLowerCase().includes(lowerSearchTerm) ||
+        activity.location?.toLowerCase().includes(lowerSearchTerm)
+      );
+    }
+
+    // Apply filters
+    if (filters.category) {
+      filtered = filtered.filter(activity => 
+        activity.category?.toLowerCase().includes(filters.category.toLowerCase())
+      );
+    }
+
+    if (filters.ageMin || filters.ageMax) {
+      filtered = filtered.filter(activity => {
+        // Extract age range from activity
+        const ageRangeMatch = activity.ageRange?.match(/(\d+)-(\d+)/);
+        if (!ageRangeMatch) return true; // Include if no age range specified
+        
+        const [, activityMin, activityMax] = ageRangeMatch;
+        const min = parseInt(activityMin);
+        const max = parseInt(activityMax);
+        
+        if (filters.ageMin && max < parseInt(filters.ageMin)) return false;
+        if (filters.ageMax && min > parseInt(filters.ageMax)) return false;
+        return true;
+      });
+    }
+
+    if (filters.price === 'free') {
+      filtered = filtered.filter(activity => activity.price === 0);
+    } else if (filters.price === 'low') {
+      filtered = filtered.filter(activity => activity.price > 0 && activity.price <= 20);
+    } else if (filters.price === 'medium') {
+      filtered = filtered.filter(activity => activity.price > 20 && activity.price <= 50);
+    } else if (filters.price === 'high') {
+      filtered = filtered.filter(activity => activity.price > 50);
+    }
+
+    if (filters.difficulty) {
+      filtered = filtered.filter(activity => 
+        activity.difficulty?.toLowerCase() === filters.difficulty.toLowerCase()
+      );
+    }
+
+    if (filters.accessibility) {
+      filtered = filtered.filter(activity => 
+        activity.tags?.some(tag => 
+          tag.toLowerCase().includes('accessible') || 
+          tag.toLowerCase().includes('pmr')
+        )
+      );
+    }
+
+    // Update the correct filtered state
+    if (activeTab === 'idf') {
+      setFilteredIdfActivities(filtered);
+    } else if (activeTab === 'islands') {
+      setFilteredLeisureIslands(filtered);
+    } else {
+      setFilteredActivities(filtered);
     }
   };
 
@@ -192,7 +276,9 @@ export default function Discover() {
     { id: 'articles', label: 'Articles' }
   ];
 
-  const displayActivities = activeTab === 'idf' ? idfActivities : activeTab === 'islands' ? leisureIslands : activities;
+  const displayActivities = activeTab === 'idf' ? filteredIdfActivities : 
+                            activeTab === 'islands' ? filteredLeisureIslands : 
+                            filteredActivities;
   const isLoading = activeTab === 'idf' ? loadingIDF : activeTab === 'islands' ? loadingIslands : loading;
 
   return (
@@ -218,11 +304,11 @@ export default function Discover() {
               }
             </p>
           </div>
-          <button className="filter-btn" aria-label="Filtrer">
-            <AdjustmentsHorizontalIcon className="filter-icon" />
-          </button>
         </div>
       </div>
+
+      {/* Search and Filters */}
+      <SearchFilters onSearch={handleSearch} onFilterChange={handleSearch} />
 
       {/* Tabs */}
       <div className="discover-tabs">
