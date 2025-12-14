@@ -197,3 +197,45 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+/* Tablet: 768px+ */
+@media (min-width: 768px) {
+  .discover-page {
+    padding: var(--spacing-xl);
+  }
+
+  .suggestions-box {
+    padding: var(--spacing-lg);
+  }
+
+  .discover-tabs {
+    justify-content: center;
+    max-width: 600px;
+    margin: 0 auto var(--spacing-lg);
+  }
+
+  .activities-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-md);
+  }
+}
+
+/* Laptop: 1024px+ */
+@media (min-width: 1024px) {
+  .activities-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Touch targets for mobile */
+@media (hover: none) and (pointer: coarse) {
+  .discover-tab,
+  .filter-btn {
+    min-height: 44px;
+  }
+}

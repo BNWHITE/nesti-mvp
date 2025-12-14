@@ -218,3 +218,54 @@
   height: 20px;
   transform: rotate(45deg);
 }
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+/* Tablet: 768px+ */
+@media (min-width: 768px) {
+  .nestia-page {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .chat-header {
+    padding: var(--spacing-xl);
+  }
+
+  .chat-title {
+    font-size: var(--font-size-3xl);
+  }
+
+  .messages-container {
+    padding: var(--spacing-xl);
+  }
+
+  .message-bubble {
+    max-width: 70%;
+  }
+}
+
+/* Laptop: 1024px+ */
+@media (min-width: 1024px) {
+  .nestia-page {
+    max-width: 900px;
+  }
+
+  .message-bubble {
+    max-width: 60%;
+  }
+}
+
+/* Touch targets for mobile */
+@media (hover: none) and (pointer: coarse) {
+  .send-btn {
+    width: 48px;
+    height: 48px;
+  }
+
+  .chat-input {
+    min-height: 48px;
+  }
+}

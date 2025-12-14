@@ -200,9 +200,126 @@ input:focus, textarea:focus, select:focus {
   font-weight: 500;
 }
 
-/* Responsive */
+/* ========================================
+   RESPONSIVE DESIGN - MOBILE FIRST
+   ======================================== */
+
+/* Base: Mobile Small (320px+) - Default styles above */
+
+/* Mobile Medium: 375px+ */
+@media (min-width: 375px) {
+  .app-container {
+    max-width: 100%;
+  }
+}
+
+/* Mobile Large: 425px+ */
+@media (min-width: 425px) {
+  .page-container {
+    padding: var(--spacing-lg);
+  }
+  
+  .card {
+    padding: var(--spacing-lg);
+  }
+}
+
+/* Tablet: 768px+ */
+@media (min-width: 768px) {
+  .app-container {
+    max-width: 768px;
+  }
+
+  .page-container {
+    padding: var(--spacing-xl);
+  }
+
+  .btn {
+    padding: 12px 24px;
+    font-size: var(--font-size-md);
+  }
+
+  .card {
+    padding: var(--spacing-xl);
+  }
+
+  /* Two column layouts */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+  }
+}
+
+/* Laptop: 1024px+ */
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: 1024px;
+  }
+
+  /* Three column layouts */
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-lg);
+  }
+}
+
+/* Desktop: 1440px+ */
+@media (min-width: 1440px) {
+  .app-container {
+    max-width: 1200px;
+  }
+}
+
+/* Touch targets for mobile (minimum 44x44px) */
+@media (hover: none) and (pointer: coarse) {
+  .btn,
+  button,
+  a,
+  .clickable {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Safe area for notched phones */
+@supports (padding: max(0px)) {
+  .app {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+
+  .main {
+    padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Small screens - compact mode */
 @media (max-width: 640px) {
   .page-container {
     padding: var(--spacing);
+  }
+  
+  .card {
+    border-radius: var(--radius);
+    margin-bottom: var(--spacing);
+  }
+  
+  /* Hide decorative elements on small screens */
+  .hide-mobile {
+    display: none !important;
   }
 }
