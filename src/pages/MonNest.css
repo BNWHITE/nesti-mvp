@@ -559,33 +559,3 @@
     display: none;
   }
 }
-
-/* Preferences Button */
-.preferences-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 24px;
-  background: var(--color-secondary);
-  color: var(--color-text);
-  border: 2px solid var(--color-primary);
-  border-radius: var(--radius-lg);
-  font-weight: 600;
-  font-size: var(--font-size-base);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 12px;
-}
-
-.preferences-btn:hover {
-  background: var(--color-primary);
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow);
-}
-
-.preferences-icon {
-  width: 20px;
-  height: 20px;
-}

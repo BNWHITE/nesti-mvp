@@ -5,21 +5,16 @@ import { supabase } from '../lib/supabaseClient';
  */
 
 /**
- * Reusable user query fragment for comments
- */
-const USER_SELECT_FRAGMENT = `
-  *,
-  user:users(id, first_name, last_name, email, avatar_url)
-`;
-
-/**
  * Récupérer les commentaires d'un post
  */
 export async function getComments(postId) {
   try {
     const { data, error } = await supabase
       .from('comments')
-      .select(USER_SELECT_FRAGMENT)
+      .select(`
+        *,
+        user:users(id, name, email, avatar_url)
+      `)
       .eq('post_id', postId)
       .order('created_at', { ascending: true });
 
@@ -46,7 +41,10 @@ export async function addComment(postId, userId, content) {
           created_at: new Date().toISOString()
         }
       ])
-      .select(USER_SELECT_FRAGMENT)
+      .select(`
+        *,
+        user:users(id, name, email, avatar_url)
+      `)
       .single();
 
     if (error) throw error;

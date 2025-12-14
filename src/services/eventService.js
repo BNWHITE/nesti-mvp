@@ -235,7 +235,7 @@ export const removeEventParticipant = async (eventId, userId) => {
   }
 };
 
-const eventService = {
+export default {
   createEvent,
   getFamilyEvents,
   getTodayEvents,
@@ -245,5 +245,3 @@ const eventService = {
   addEventParticipant,
   removeEventParticipant
 };
-
-export default eventService;
