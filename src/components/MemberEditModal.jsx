@@ -3,34 +3,16 @@ import { updateFamilyMember } from '../services/profileService';
 import './MemberEditModal.css';
 
 function MemberEditModal({ member, onClose, onUpdate }) {
-  // Safely parse the member name
-  const parseName = (fullName) => {
-    if (!fullName) return { firstName: '', lastName: '' };
-    const nameParts = fullName.trim().split(/\s+/);
-    return {
-      firstName: nameParts[0] || '',
-      lastName: nameParts.slice(1).join(' ') || ''
-    };
-  };
-
-  const { firstName, lastName } = parseName(member.name);
-
   const [formData, setFormData] = useState({
-    first_name: firstName,
-    last_name: lastName,
+    name: member.name || '',
     email: member.email || '',
-    role: member.roleType || 'parent',
+    role: member.role || 'Membre',
     phone: member.phone || ''
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  const roles = [
-    { value: 'admin', label: 'Admin' },
-    { value: 'parent', label: 'Parent' },
-    { value: 'ado', label: 'Ado' },
-    { value: 'child', label: 'Enfant' }
-  ];
+  const roles = ['Admin', 'Parent', 'Ado', 'Enfant', 'Membre'];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -39,29 +21,18 @@ function MemberEditModal({ member, onClose, onUpdate }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.first_name.trim()) {
-      setError('Le prénom est requis');
+    if (!formData.name.trim()) {
+      setError('Le nom est requis');
       return;
     }
 
     setSaving(true);
     setError(null);
 
-    // Prepare updates with correct column names
-    const updates = {
-      first_name: formData.first_name.trim(),
-      last_name: formData.last_name.trim(),
-      role: formData.role
-    };
-
-    if (formData.phone) {
-      updates.phone = formData.phone;
-    }
-
-    const { data, error: updateError } = await updateFamilyMember(member.id, updates);
+    const { data, error: updateError } = await updateFamilyMember(member.id, formData);
     
     if (updateError) {
-      setError(updateError.message || 'Erreur lors de la mise à jour');
+      setError(updateError.message);
       setSaving(false);
       return;
     }
@@ -84,26 +55,14 @@ function MemberEditModal({ member, onClose, onUpdate }) {
 
         <form onSubmit={handleSubmit} className="member-edit-form">
           <div className="form-group">
-            <label htmlFor="first_name">Prénom *</label>
+            <label htmlFor="name">Nom complet *</label>
             <input
               type="text"
-              id="first_name"
-              name="first_name"
-              value={formData.first_name}
+              id="name"
+              name="name"
+              value={formData.name}
               onChange={handleChange}
               required
-              disabled={saving}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="last_name">Nom de famille</label>
-            <input
-              type="text"
-              id="last_name"
-              name="last_name"
-              value={formData.last_name}
-              onChange={handleChange}
               disabled={saving}
             />
           </div>
@@ -116,8 +75,7 @@ function MemberEditModal({ member, onClose, onUpdate }) {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              disabled={true}
-              title="L'email ne peut pas être modifié"
+              disabled={saving}
             />
           </div>
 
@@ -143,7 +101,7 @@ function MemberEditModal({ member, onClose, onUpdate }) {
               disabled={saving}
             >
               {roles.map(role => (
-                <option key={role.value} value={role.value}>{role.label}</option>
+                <option key={role} value={role}>{role}</option>
               ))}
             </select>
           </div>
