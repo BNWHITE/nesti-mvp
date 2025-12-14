@@ -1,4 +1,4 @@
-import supabase from '../config/supabase';
+import { supabase } from '../lib/supabaseClient';
 
 /**
  * Event Service - Handles calendar events
