@@ -84,7 +84,7 @@ export default function NestiIA() {
       console.error("Error calling Nesti AI:", err);
       // Fallback to local smart response if API fails
       const fallbackResponse = getSmartResponse(userMessage);
-      setLog(l => [...l, { role: "assistant", content: `${fallbackResponse}\n\n⚠️ (Mode hors ligne - L'API n'est pas disponible)` }]);
+      setLog(l => [...l, { role: "assistant", content: `${fallbackResponse}\n\n⚠️ (Service temporairement indisponible - Réponse locale)` }]);
       setIsTyping(false);
     }
   };

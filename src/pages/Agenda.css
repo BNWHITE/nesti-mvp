@@ -118,7 +118,8 @@
   transform-origin: 50% 50%;
 }
 
-.filter-btn:active:after {
+/* Only show ripple on active filters to avoid theme issues */
+.filter-btn.active:active:after {
   animation: ripple 0.6s ease-out;
 }
 

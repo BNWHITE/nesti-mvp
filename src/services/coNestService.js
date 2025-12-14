@@ -58,7 +58,8 @@ export const getCoNests = async (familyId) => {
  */
 export const createCoNest = async (familyId1, familyId2, createdBy) => {
   try {
-    // Ensure family IDs are in consistent order
+    // Ensure family IDs are in consistent order for database constraint
+    // UUIDs are strings, so lexicographic comparison ensures consistent ordering
     const [fid1, fid2] = familyId1 < familyId2 ? [familyId1, familyId2] : [familyId2, familyId1];
 
     const { data, error } = await supabase

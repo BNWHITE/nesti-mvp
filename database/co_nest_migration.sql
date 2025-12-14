@@ -14,7 +14,9 @@ CREATE TABLE IF NOT EXISTS co_nests (
   created_by UUID REFERENCES auth.users(id),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(family_id_1, family_id_2),
-  CHECK (family_id_1 < family_id_2) -- Ensure consistent ordering to prevent duplicates
+  -- Ensure consistent ordering to prevent duplicates (id1, id2) and (id2, id1)
+  -- UUID strings are compared lexicographically, ensuring deterministic ordering
+  CHECK (family_id_1 < family_id_2)
 );
 
 -- Add indexes for performance

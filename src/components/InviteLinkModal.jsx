@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { XMarkIcon, LinkIcon, ClipboardDocumentIcon, CheckIcon } from '@heroicons/react/24/outline';
 import invitationService from '../services/invitationService';
 import './InviteLinkModal.css';
@@ -10,12 +10,7 @@ export default function InviteLinkModal({ familyId, familyName, userId, onClose 
   const [copied, setCopied] = useState(null);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    loadInvitations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [familyId]);
-
-  const loadInvitations = async () => {
+  const loadInvitations = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error: fetchError } = await invitationService.getActiveInvitations(familyId);
@@ -32,7 +27,11 @@ export default function InviteLinkModal({ familyId, familyName, userId, onClose 
     } finally {
       setLoading(false);
     }
-  };
+  }, [familyId]);
+
+  useEffect(() => {
+    loadInvitations();
+  }, [loadInvitations]);
 
   const handleCreateInvitation = async () => {
     try {
