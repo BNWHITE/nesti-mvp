@@ -97,11 +97,14 @@ export const getActiveInvitations = async (familyId) => {
       .select('*')
       .eq('family_id', familyId)
       .gt('expires_at', now)
-      .filter('uses_count', 'lt', 'max_uses')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return { data: data || [], error: null };
+    
+    // Filter invitations that have uses left (client-side filtering)
+    const activeInvitations = (data || []).filter(inv => inv.uses_count < inv.max_uses);
+    
+    return { data: activeInvitations, error: null };
   } catch (error) {
     console.error('Error fetching active invitations:', error);
     return { data: [], error };
@@ -171,7 +174,7 @@ export const useInvitation = async (code, userId) => {
       .insert([{
         family_id: familyId,
         user_id: userId,
-        role: 'member',
+        role: 'parent', // Default role for invited members
         joined_at: new Date().toISOString()
       }]);
 

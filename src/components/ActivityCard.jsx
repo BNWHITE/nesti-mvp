@@ -3,7 +3,8 @@ import {
   CalendarIcon, 
   CurrencyEuroIcon,
   HeartIcon,
-  StarIcon 
+  StarIcon,
+  GlobeAltIcon
 } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import { useState } from 'react';
@@ -11,6 +12,39 @@ import './ActivityCard.css';
 
 export default function ActivityCard({ activity }) {
   const [saved, setSaved] = useState(false);
+
+  // Generate Google Maps URL from coordinates or address
+  const getGoogleMapsUrl = () => {
+    // Check if we have coordinates from fullData
+    if (activity.fullData && activity.fullData.location && activity.fullData.location.coordinates) {
+      const coords = activity.fullData.location.coordinates;
+      return `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lon}`;
+    }
+    
+    // Fallback to coordinates if available directly
+    if (activity.coordinates) {
+      return `https://www.google.com/maps/search/?api=1&query=${activity.coordinates.lat},${activity.coordinates.lng || activity.coordinates.lon}`;
+    }
+    
+    // Fallback to address search
+    if (activity.fullData && activity.fullData.location) {
+      const loc = activity.fullData.location;
+      const address = `${loc.address || ''} ${loc.city || ''} ${loc.postalCode || ''}`.trim();
+      if (address) {
+        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+      }
+    }
+    
+    // Last fallback to location text
+    if (activity.location) {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.location)}`;
+    }
+    
+    return null;
+  };
+
+  const googleMapsUrl = getGoogleMapsUrl();
+  const websiteUrl = activity.website || activity.sourceUrl || (activity.fullData && activity.fullData.sourceUrl);
 
   return (
     <div className="activity-card">
@@ -88,6 +122,34 @@ export default function ActivityCard({ activity }) {
             </div>
           )}
         </div>
+
+        {/* Location & Website Links */}
+        {(googleMapsUrl || websiteUrl) && (
+          <div className="activity-links">
+            {googleMapsUrl && (
+              <a 
+                href={googleMapsUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="activity-link-btn"
+              >
+                <MapPinIcon className="link-icon" />
+                <span>Voir sur Maps</span>
+              </a>
+            )}
+            {websiteUrl && (
+              <a 
+                href={websiteUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="activity-link-btn"
+              >
+                <GlobeAltIcon className="link-icon" />
+                <span>Site web</span>
+              </a>
+            )}
+          </div>
+        )}
 
         {/* Tags */}
         {activity.tags && activity.tags.length > 0 && (

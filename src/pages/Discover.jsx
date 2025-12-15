@@ -105,6 +105,8 @@ export default function Discover() {
               act.amenities.freeAccess && 'Accès libre'
             ].filter(Boolean),
             source: 'Île-de-France',
+            sourceUrl: act.sourceUrl,
+            coordinates: act.location.coordinates,
             fullData: act
           }));
         
@@ -135,6 +137,8 @@ export default function Discover() {
       reviews: Math.floor(Math.random() * 150),
       description: act.description,
       location: act.location,
+      address: act.address,
+      coordinates: act.coordinates,
       date: 'Disponible',
       price: act.price === 'Gratuit' ? 0 : null,
       ageRange: act.ageRange,
@@ -173,6 +177,8 @@ export default function Discover() {
               'Nature'
             ].filter(Boolean),
             source: 'Îles de loisirs IDF',
+            sourceUrl: island.sourceUrl,
+            coordinates: island.location.coordinates,
             fullData: island
           }));
         

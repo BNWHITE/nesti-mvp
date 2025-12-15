@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { PlusIcon, PhotoIcon, FaceSmileIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PhotoIcon, FaceSmileIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 import { familyService } from '../services/familyService';
 import { messageService } from '../services/messageService';
+import { uploadPhoto, uploadVideo } from '../services/mediaService';
 import PostCard from "../components/PostCard";
 import WelcomeTips from "../components/WelcomeTips";
 import './Home.css';
@@ -12,7 +13,10 @@ export default function Home() {
   const [posts, setPosts] = useState([]); // Start with empty array - no mock data
   const [postContent, setPostContent] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedVideo, setSelectedVideo] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [videoPreview, setVideoPreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const [family, setFamily] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
@@ -89,15 +93,40 @@ export default function Home() {
   };
 
   const handleCreatePost = async () => {
-    if ((postContent.trim() || selectedImage) && family) {
+    if ((postContent.trim() || selectedImage || selectedVideo) && family) {
       try {
-        // TODO: Upload image to storage if selectedImage exists
-        // For now, we'll store image as base64 or skip it
+        setUploading(true);
+        let mediaUrl = null;
+        let mediaType = 'text';
+
+        // Upload image if selected
+        if (selectedImage) {
+          const { url, error } = await uploadPhoto(selectedImage, user.id);
+          if (error) {
+            alert('Erreur lors de l\'upload de l\'image: ' + error.message);
+            setUploading(false);
+            return;
+          }
+          mediaUrl = url;
+          mediaType = 'photo';
+        }
+        
+        // Upload video if selected
+        if (selectedVideo) {
+          const { url, error } = await uploadVideo(selectedVideo, user.id);
+          if (error) {
+            alert('Erreur lors de l\'upload de la vidéo: ' + error.message);
+            setUploading(false);
+            return;
+          }
+          mediaUrl = url;
+          mediaType = 'photo'; // Using 'photo' for now, could be 'video' if schema supports it
+        }
         
         const { data, error } = await messageService.sendMessage(
           family.id,
-          postContent,
-          selectedImage ? 'photo' : 'text'
+          postContent || (mediaUrl ? 'A partagé un média' : ''),
+          mediaType
         );
 
         if (!error && data) {
@@ -107,9 +136,9 @@ export default function Home() {
             author: userProfile?.first_name || 'Vous',
             authorInitials: userProfile?.first_name?.substring(0, 2).toUpperCase() || 'ME',
             timestamp: 'Il y a quelques instants',
-            type: selectedImage ? 'photo' : 'text',
+            type: mediaType,
             content: postContent,
-            image: imagePreview, // Show preview
+            image: mediaUrl || imagePreview,
             likes: 0,
             reactions: 0,
             celebrations: 0,
@@ -118,11 +147,15 @@ export default function Home() {
           setPosts([newPost, ...posts]);
           setPostContent('');
           setSelectedImage(null);
+          setSelectedVideo(null);
           setImagePreview(null);
+          setVideoPreview(null);
         }
       } catch (error) {
         console.error('Error creating post:', error);
         alert('Erreur lors de la publication');
+      } finally {
+        setUploading(false);
       }
     }
   };
@@ -131,6 +164,8 @@ export default function Home() {
     const file = e.target.files[0];
     if (file) {
       setSelectedImage(file);
+      setSelectedVideo(null); // Clear video if image selected
+      setVideoPreview(null);
       // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -140,9 +175,29 @@ export default function Home() {
     }
   };
 
+  const handleVideoSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedVideo(file);
+      setSelectedImage(null); // Clear image if video selected
+      setImagePreview(null);
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setVideoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const removeImage = () => {
     setSelectedImage(null);
     setImagePreview(null);
+  };
+
+  const removeVideo = () => {
+    setSelectedVideo(null);
+    setVideoPreview(null);
   };
 
   const getUserInitials = () => {
@@ -182,6 +237,14 @@ export default function Home() {
             </div>
           )}
           
+          {/* Video Preview */}
+          {videoPreview && (
+            <div className="image-preview-container">
+              <video src={videoPreview} controls className="image-preview" />
+              <button onClick={removeVideo} className="remove-image-btn">×</button>
+            </div>
+          )}
+          
           <div className="create-post-actions">
             <label className="create-post-btn" title="Ajouter une photo">
               <PhotoIcon className="create-icon" />
@@ -190,6 +253,17 @@ export default function Home() {
                 accept="image/*" 
                 onChange={handleImageSelect}
                 style={{ display: 'none' }}
+                disabled={uploading}
+              />
+            </label>
+            <label className="create-post-btn" title="Ajouter une vidéo">
+              <VideoCameraIcon className="create-icon" />
+              <input 
+                type="file" 
+                accept="video/*" 
+                onChange={handleVideoSelect}
+                style={{ display: 'none' }}
+                disabled={uploading}
               />
             </label>
             <button className="create-post-btn" title="Ajouter un emoji">
@@ -199,9 +273,9 @@ export default function Home() {
               className="create-post-submit"
               onClick={handleCreatePost}
               title="Publier"
-              disabled={!postContent.trim() && !selectedImage}
+              disabled={(!postContent.trim() && !selectedImage && !selectedVideo) || uploading}
             >
-              <PlusIcon className="plus-icon" />
+              {uploading ? '...' : <PlusIcon className="plus-icon" />}
             </button>
           </div>
         </div>
