@@ -1,11 +1,17 @@
 import { HeartIcon, ChatBubbleLeftIcon, ShareIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import CommentSection from './CommentSection';
+import ShareModal from './ShareModal';
 import './PostCard.css';
 
 export default function PostCard({ post }) {
+  const { user } = useAuth();
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(post.likes || 0);
+  const [showComments, setShowComments] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const handleLike = () => {
     if (liked) {
@@ -51,9 +57,14 @@ export default function PostCard({ post }) {
       <div className="post-content">
         {post.emoji && <div className="post-emoji">{post.emoji}</div>}
         <p className="post-text">{post.content}</p>
-        {post.image && (
+        {post.image && post.type === 'photo' && (
           <div className="post-image-container">
             <img src={post.image} alt="Post" className="post-image" />
+          </div>
+        )}
+        {post.image && post.type === 'video' && (
+          <div className="post-image-container">
+            <video src={post.image} controls className="post-image" />
           </div>
         )}
       </div>
@@ -80,17 +91,41 @@ export default function PostCard({ post }) {
           {liked ? <HeartIconSolid className="action-icon" /> : <HeartIcon className="action-icon" />}
           <span>J'aime</span>
         </button>
-        <button className="post-action-btn">
+        <button 
+          className="post-action-btn"
+          onClick={() => setShowComments(!showComments)}
+        >
           <ChatBubbleLeftIcon className="action-icon" />
           <span>Commenter</span>
         </button>
-        <button className="post-action-btn">
+        <button 
+          className="post-action-btn"
+          onClick={() => setShowShareModal(true)}
+        >
           <ShareIcon className="action-icon" />
           <span>Partager</span>
         </button>
       </div>
 
+      {/* Share Modal */}
+      {showShareModal && (
+        <ShareModal 
+          post={post}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
+
       {/* Comments Section */}
+      {showComments && user && (
+        <CommentSection 
+          postId={post.id}
+          currentUserId={user.id}
+          currentUserName={post.author || 'Utilisateur'}
+          currentUserAvatar={null}
+        />
+      )}
+
+      {/* Old Comments Display (kept for backward compatibility) */}
       {post.comments && post.comments.length > 0 && (
         <div className="post-comments">
           {post.comments.map((comment, index) => (

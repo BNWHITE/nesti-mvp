@@ -5,17 +5,17 @@ import { supabase } from '../lib/supabaseClient';
  */
 
 /**
- * Récupérer les commentaires d'un post
+ * Récupérer les commentaires d'un post/message
  */
-export async function getComments(postId) {
+export async function getComments(messageId) {
   try {
     const { data, error } = await supabase
       .from('comments')
       .select(`
         *,
-        user:users(id, name, email, avatar_url)
+        user:profiles!author_id(id, first_name, email, avatar_url)
       `)
-      .eq('post_id', postId)
+      .eq('post_id', messageId)
       .order('created_at', { ascending: true });
 
     if (error) throw error;
@@ -29,21 +29,21 @@ export async function getComments(postId) {
 /**
  * Ajouter un commentaire
  */
-export async function addComment(postId, userId, content) {
+export async function addComment(messageId, userId, content) {
   try {
     const { data, error } = await supabase
       .from('comments')
       .insert([
         {
-          post_id: postId,
-          user_id: userId,
+          post_id: messageId,
+          author_id: userId,
           content: content,
           created_at: new Date().toISOString()
         }
       ])
       .select(`
         *,
-        user:users(id, name, email, avatar_url)
+        user:profiles!author_id(id, first_name, email, avatar_url)
       `)
       .single();
 
@@ -63,13 +63,13 @@ export async function deleteComment(commentId, userId) {
     // Vérifier que l'utilisateur est l'auteur
     const { data: comment, error: fetchError } = await supabase
       .from('comments')
-      .select('user_id')
+      .select('author_id')
       .eq('id', commentId)
       .single();
 
     if (fetchError) throw fetchError;
     
-    if (comment.user_id !== userId) {
+    if (comment.author_id !== userId) {
       throw new Error('Unauthorized: You can only delete your own comments');
     }
 
@@ -87,14 +87,14 @@ export async function deleteComment(commentId, userId) {
 }
 
 /**
- * Compter les commentaires d'un post
+ * Compter les commentaires d'un post/message
  */
-export async function getCommentCount(postId) {
+export async function getCommentCount(messageId) {
   try {
     const { count, error } = await supabase
       .from('comments')
       .select('*', { count: 'exact', head: true })
-      .eq('post_id', postId);
+      .eq('post_id', messageId);
 
     if (error) throw error;
     return { count, error: null };

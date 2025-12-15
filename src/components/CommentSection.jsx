@@ -10,6 +10,7 @@ function CommentSection({ postId, currentUserId, currentUserName, currentUserAva
 
   useEffect(() => {
     loadComments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postId]);
 
   const loadComments = async () => {
@@ -83,20 +84,20 @@ function CommentSection({ postId, currentUserId, currentUserName, currentUserAva
             <div key={comment.id} className="comment-item">
               <div className="comment-avatar">
                 {comment.user?.avatar_url ? (
-                  <img src={comment.user.avatar_url} alt={comment.user?.name || 'User'} />
+                  <img src={comment.user.avatar_url} alt={comment.user?.first_name || 'User'} />
                 ) : (
                   <div className="comment-avatar-placeholder">
-                    {getInitials(comment.user?.name || 'User')}
+                    {getInitials(comment.user?.first_name || 'User')}
                   </div>
                 )}
               </div>
               <div className="comment-content">
                 <div className="comment-meta">
-                  <span className="comment-author">{comment.user?.name || 'Utilisateur'}</span>
+                  <span className="comment-author">{comment.user?.first_name || 'Utilisateur'}</span>
                   <span className="comment-time">{formatTimestamp(comment.created_at)}</span>
                 </div>
                 <p className="comment-text">{comment.content}</p>
-                {comment.user_id === currentUserId && (
+                {comment.author_id === currentUserId && (
                   <button
                     className="comment-delete-btn"
                     onClick={() => handleDelete(comment.id)}
