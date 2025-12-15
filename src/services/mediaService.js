@@ -42,7 +42,7 @@ export async function uploadPhoto(file, userId) {
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}/${Date.now()}.${fileExt}`;
 
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('photos')
       .upload(fileName, file, {
         cacheControl: '3600',
@@ -76,7 +76,7 @@ export async function uploadVideo(file, userId) {
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}/${Date.now()}.${fileExt}`;
 
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('videos')
       .upload(fileName, file, {
         cacheControl: '3600',
@@ -115,7 +115,7 @@ export async function uploadAvatar(file, userId) {
       .from('photos')
       .remove([`avatars/${userId}.jpg`, `avatars/${userId}.png`, `avatars/${userId}.jpeg`]);
 
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('photos')
       .upload(fileName, file, {
         cacheControl: '3600',
