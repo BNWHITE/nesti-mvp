@@ -63,6 +63,7 @@ export default function Home() {
             timestamp: formatTimestamp(msg.created_at),
             type: msg.message_type,
             content: msg.message_text,
+            image: msg.media_url,
             likes: 0,
             reactions: 0,
             celebrations: 0,
@@ -128,7 +129,8 @@ export default function Home() {
         const { data, error } = await messageService.sendMessage(
           family.id,
           postContent || (mediaUrl ? 'A partagé un média' : ''),
-          mediaType
+          mediaType,
+          mediaUrl
         );
 
         if (!error && data) {

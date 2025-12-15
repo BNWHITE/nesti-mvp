@@ -36,8 +36,12 @@ export const messageService = {
 
   /**
    * Send a message to family
+   * @param {string} familyId - The ID of the family to send the message to
+   * @param {string} messageText - The text content of the message
+   * @param {string} messageType - The type of message ('text', 'photo', 'video', 'activity_share')
+   * @param {string|null} mediaUrl - Optional URL of the uploaded media (photo or video)
    */
-  async sendMessage(familyId, messageText, messageType = 'text') {
+  async sendMessage(familyId, messageText, messageType = 'text', mediaUrl = null) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
@@ -49,6 +53,7 @@ export const messageService = {
           sender_id: user.id,
           message_text: messageText,
           message_type: messageType,
+          media_url: mediaUrl,
         }])
         .select(`
           *,

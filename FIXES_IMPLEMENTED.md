@@ -293,4 +293,113 @@ REACT_APP_SUPABASE_ANON_KEY=votre_clé_anon
 
 ---
 
-*Document généré le 15 décembre 2024*
+## 4. ✅ Sauvegarde des URLs de médias dans la base de données
+
+### Problème
+Lorsqu'un utilisateur uploadait une photo ou vidéo dans l'application, le fichier était bien uploadé sur Supabase Storage, mais l'URL du média n'était jamais sauvegardée dans la base de données. Par conséquent, les photos ne s'affichaient pas dans le feed.
+
+### Solution implémentée
+- **Fichiers modifiés:**
+  - `src/services/messageService.js` - Ajout du paramètre `mediaUrl` à la fonction `sendMessage`
+  - `src/pages/Home.jsx` - Passage de l'URL du média et inclusion dans la transformation des posts
+
+### Changements détaillés
+
+#### messageService.js
+1. **Fonction `sendMessage` mise à jour:**
+   - Ajout d'un paramètre optionnel `mediaUrl = null`
+   - Inclusion du champ `media_url` dans l'insertion de données
+   ```javascript
+   async sendMessage(familyId, messageText, messageType = 'text', mediaUrl = null) {
+     // ...
+     .insert([{
+       family_id: familyId,
+       sender_id: user.id,
+       message_text: messageText,
+       message_type: messageType,
+       media_url: mediaUrl,  // ✅ URL du média ajoutée
+     }])
+   ```
+
+#### Home.jsx
+1. **Appel à `sendMessage` mis à jour:**
+   - Passage du paramètre `mediaUrl` lors de l'envoi du message
+   ```javascript
+   const { data, error } = await messageService.sendMessage(
+     family.id,
+     postContent || (mediaUrl ? 'A partagé un média' : ''),
+     mediaType,
+     mediaUrl  // ✅ URL du média passée
+   );
+   ```
+
+2. **Transformation des posts mise à jour:**
+   - Inclusion du champ `media_url` dans les posts transformés
+   ```javascript
+   const transformedPosts = messagesData.map(msg => ({
+     // ...
+     image: msg.media_url,  // ✅ URL du média incluse
+     // ...
+   }));
+   ```
+
+### Configuration requise Supabase
+
+**IMPORTANT:** La colonne `media_url` doit exister dans la table `family_messages` :
+
+```sql
+-- Ajouter la colonne media_url si elle n'existe pas
+ALTER TABLE family_messages ADD COLUMN IF NOT EXISTS media_url TEXT;
+```
+
+Si la table `family_messages` n'existe pas encore, elle doit être créée avec le schéma suivant :
+
+```sql
+CREATE TABLE IF NOT EXISTS family_messages (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  family_id UUID REFERENCES families(id) ON DELETE CASCADE NOT NULL,
+  sender_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+  message_text TEXT,
+  message_type TEXT DEFAULT 'text' CHECK (message_type IN ('text', 'photo', 'video', 'activity_share')),
+  media_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index pour optimiser les requêtes
+CREATE INDEX IF NOT EXISTS idx_family_messages_family_id ON family_messages(family_id);
+CREATE INDEX IF NOT EXISTS idx_family_messages_sender_id ON family_messages(sender_id);
+CREATE INDEX IF NOT EXISTS idx_family_messages_created_at ON family_messages(created_at DESC);
+
+-- Enable RLS
+ALTER TABLE family_messages ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+CREATE POLICY "Users can view messages from their families" ON family_messages
+  FOR SELECT USING (
+    family_id IN (
+      SELECT family_id FROM family_members WHERE user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can create messages in their families" ON family_messages
+  FOR INSERT WITH CHECK (
+    family_id IN (
+      SELECT family_id FROM family_members WHERE user_id = auth.uid()
+    ) AND sender_id = auth.uid()
+  );
+```
+
+### Test
+Pour tester la sauvegarde des URLs de médias:
+1. Aller sur la page d'accueil
+2. Cliquer sur l'icône photo 📷 ou vidéo 🎥
+3. Sélectionner un fichier
+4. Ajouter un message (optionnel)
+5. Cliquer sur le bouton + pour publier
+6. Le média devrait maintenant s'afficher dans le feed
+7. Vérifier dans la base de données que la colonne `media_url` contient bien l'URL du média
+
+---
+
+*Document mis à jour le 15 décembre 2024*
