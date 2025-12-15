@@ -169,6 +169,9 @@ export const useInvitation = async (code, userId) => {
     if (useError) throw useError;
 
     // Add user to the family with default role
+    // Note: Using 'parent' as default for invited members. 
+    // Valid roles: 'admin', 'parent', 'ado', 'enfant' (defined in schema)
+    // Consider allowing role selection during invitation creation in the future
     const { error: memberError } = await supabase
       .from('family_members')
       .insert([{

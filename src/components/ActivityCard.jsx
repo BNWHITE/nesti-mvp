@@ -18,12 +18,15 @@ export default function ActivityCard({ activity }) {
     // Check if we have coordinates from fullData
     if (activity.fullData && activity.fullData.location && activity.fullData.location.coordinates) {
       const coords = activity.fullData.location.coordinates;
-      return `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lon}`;
+      // Support both 'lon' and 'lng' formats for compatibility
+      const longitude = coords.lon || coords.lng;
+      return `https://www.google.com/maps/search/?api=1&query=${coords.lat},${longitude}`;
     }
     
     // Fallback to coordinates if available directly
     if (activity.coordinates) {
-      return `https://www.google.com/maps/search/?api=1&query=${activity.coordinates.lat},${activity.coordinates.lng || activity.coordinates.lon}`;
+      const longitude = activity.coordinates.lon || activity.coordinates.lng;
+      return `https://www.google.com/maps/search/?api=1&query=${activity.coordinates.lat},${longitude}`;
     }
     
     // Fallback to address search

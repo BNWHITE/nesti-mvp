@@ -120,7 +120,9 @@ export default function Home() {
             return;
           }
           mediaUrl = url;
-          mediaType = 'photo'; // Using 'photo' for now, could be 'video' if schema supports it
+          // Note: Using 'photo' type for videos due to current schema limitations
+          // The posts table doesn't have a 'video' type yet. Consider adding it in a future migration.
+          mediaType = 'photo';
         }
         
         const { data, error } = await messageService.sendMessage(
