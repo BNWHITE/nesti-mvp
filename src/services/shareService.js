@@ -23,7 +23,7 @@ export const shareService = {
           post_id: postId,
           shared_by: user.id,
           shared_with: recipientId,
-          message: message,
+          message,
         }])
         .select()
         .single();
