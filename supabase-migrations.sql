@@ -70,6 +70,7 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT CHECK (length(bio) <= 500);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS date_of_birth DATE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS location VARCHAR(100);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS accessibility_needs JSONB DEFAULT NULL;
 
 -- Préférences notifications
 ALTER TABLE users ADD COLUMN IF NOT EXISTS notification_preferences JSONB DEFAULT '{
@@ -372,7 +373,7 @@ AND table_name IN ('comments', 'media');
 SELECT column_name, data_type 
 FROM information_schema.columns 
 WHERE table_name = 'users' 
-AND column_name IN ('avatar_url', 'phone', 'bio', 'notification_preferences', 'privacy_settings');
+AND column_name IN ('avatar_url', 'phone', 'bio', 'notification_preferences', 'privacy_settings', 'accessibility_needs');
 
 -- Compter les policies RLS
 SELECT tablename, policyname 
