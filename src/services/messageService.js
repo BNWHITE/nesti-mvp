@@ -37,7 +37,7 @@ export const messageService = {
   /**
    * Send a message to family
    */
-  async sendMessage(familyId, messageText, messageType = 'text') {
+  async sendMessage(familyId, messageText, messageType = 'text', mediaUrl = null) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
@@ -49,6 +49,7 @@ export const messageService = {
           sender_id: user.id,
           message_text: messageText,
           message_type: messageType,
+          media_url: mediaUrl,
         }])
         .select(`
           *,
