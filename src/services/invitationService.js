@@ -97,11 +97,14 @@ export const getActiveInvitations = async (familyId) => {
       .select('*')
       .eq('family_id', familyId)
       .gt('expires_at', now)
-      .filter('uses_count', 'lt', 'max_uses')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return { data: data || [], error: null };
+    
+    // Filter invitations that have uses left (client-side filtering)
+    const activeInvitations = (data || []).filter(inv => inv.uses_count < inv.max_uses);
+    
+    return { data: activeInvitations, error: null };
   } catch (error) {
     console.error('Error fetching active invitations:', error);
     return { data: [], error };
@@ -166,12 +169,15 @@ export const useInvitation = async (code, userId) => {
     if (useError) throw useError;
 
     // Add user to the family with default role
+    // Note: Using 'parent' as default for invited members. 
+    // Valid roles: 'admin', 'parent', 'ado', 'enfant' (defined in schema)
+    // Consider allowing role selection during invitation creation in the future
     const { error: memberError } = await supabase
       .from('family_members')
       .insert([{
         family_id: familyId,
         user_id: userId,
-        role: 'member',
+        role: 'parent', // Default role for invited members
         joined_at: new Date().toISOString()
       }]);
 
