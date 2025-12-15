@@ -23,7 +23,14 @@ export const saveAccessibilityNeeds = async (userId, accessibilityNeeds) => {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      // If column doesn't exist, warn but don't fail
+      if (error.code === '42703') {
+        console.warn('accessibility_needs column does not exist yet. Please run migrations.');
+        return { data: null, error: null };
+      }
+      throw error;
+    }
     return { data, error: null };
   } catch (error) {
     console.error('Error saving accessibility needs:', error);
@@ -83,7 +90,14 @@ export const getAccessibilityNeeds = async (userId) => {
       .eq('id', userId)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      // If column doesn't exist, return null gracefully
+      if (error.code === '42703') {
+        console.warn('accessibility_needs column does not exist yet. Please run migrations.');
+        return { data: null, error: null };
+      }
+      throw error;
+    }
     return { data: data?.accessibility_needs || null, error: null };
   } catch (error) {
     console.error('Error getting accessibility needs:', error);
