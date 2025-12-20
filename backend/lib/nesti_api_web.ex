@@ -39,6 +39,8 @@ defmodule NestiApiWeb do
     end
   end
 
+  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
+
   def verified_routes do
     quote do
       use Phoenix.VerifiedRoutes,
