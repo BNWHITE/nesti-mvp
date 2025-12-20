@@ -2,6 +2,9 @@
 
 Backend API pour l'application Nesti, déployable sur Render.
 
+> **Note:** Cette structure est un squelette prêt pour le déploiement. 
+> Certains modules référencés dans la configuration (Guardian, Vault) devront être implémentés lors du développement complet de l'API.
+
 ## 🚀 Démarrage rapide
 
 ### Prérequis
@@ -68,6 +71,12 @@ Voir le fichier [runtime.exs](config/runtime.exs) pour la liste complète des va
 - `DATABASE_URL` - URL de connexion PostgreSQL
 - `PHX_HOST` - Hostname de l'application
 - `OPENAI_API_KEY` - Clé API OpenAI (optionnel)
+
+## ⚙️ Modules à implémenter
+
+Lors du développement complet, il faudra créer :
+- `NestiApi.Guardian` - Module Guardian pour l'authentification JWT
+- `NestiApi.Vault` - Module Cloak pour le chiffrement des données sensibles
 
 ## 🧪 Tests
 

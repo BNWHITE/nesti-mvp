@@ -72,6 +72,8 @@ if config_env() == :prod do
   # =============================================================================
   # Guardian JWT Configuration
   # =============================================================================
+  # NOTE: You need to create the Guardian module when implementing authentication
+  # See: https://github.com/ueberauth/guardian
   
   guardian_secret = ConfigHelper.get_env!("GUARDIAN_SECRET")
   
@@ -87,6 +89,8 @@ if config_env() == :prod do
   # =============================================================================
   # Encryption Configuration (AES-256-GCM)
   # =============================================================================
+  # NOTE: You need to create the Vault module when implementing field encryption
+  # See: https://github.com/danielberkompas/cloak_ecto
   
   encryption_key = ConfigHelper.get_env!("ENCRYPTION_KEY")
   
