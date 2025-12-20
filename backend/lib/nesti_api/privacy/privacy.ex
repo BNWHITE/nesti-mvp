@@ -12,21 +12,43 @@ defmodule NestiApi.Privacy do
 
   import Ecto.Query, warn: false
   alias NestiApi.Repo
-  alias NestiApi.Privacy.{UserConsent, DataDeletionRequest, DataExport, AuditLog}
+  alias NestiApi.Privacy.{UserConsent, DeletionRequest, DataExport, AuditLog}
   alias NestiApi.Accounts.User
 
   @doc """
   Records user consent for a specific purpose.
   """
-  def create_consent(user_id, purpose, granted \\ true) do
+  def create_consent(user_id, consent_type, granted \\ true) do
     %UserConsent{}
     |> UserConsent.changeset(%{
       user_id: user_id,
-      purpose: purpose,
+      consent_type: consent_type,
       granted: granted,
-      granted_at: DateTime.utc_now()
+      granted_at: if(granted, do: DateTime.utc_now(), else: nil)
     })
-    |> Repo.insert()
+    |> Repo.insert(
+      on_conflict: {:replace, [:granted, :granted_at, :updated_at]},
+      conflict_target: [:user_id, :consent_type]
+    )
+  end
+
+  @doc """
+  Gets a specific user consent by type.
+  """
+  def get_user_consent(user_id, consent_type) do
+    UserConsent
+    |> where([c], c.user_id == ^user_id and c.consent_type == ^consent_type)
+    |> Repo.one()
+  end
+
+  @doc """
+  Deletes a specific user consent.
+  """
+  def delete_consent(user_id, consent_type) do
+    case get_user_consent(user_id, consent_type) do
+      nil -> {:error, :not_found}
+      consent -> Repo.delete(consent)
+    end
   end
 
   @doc """
@@ -42,29 +64,66 @@ defmodule NestiApi.Privacy do
   @doc """
   Creates a data export request for RGPD portability.
   """
-  def create_data_export_request(user_id, format \\ "json") do
+  def create_data_export_request(user_id) do
     %DataExport{}
     |> DataExport.changeset(%{
       user_id: user_id,
-      format: format,
-      status: "pending",
-      requested_at: DateTime.utc_now()
+      status: "processing",
+      expires_at: DateTime.add(DateTime.utc_now(), 7, :day)
     })
     |> Repo.insert()
   end
 
   @doc """
-  Creates a data deletion request (Right to be Forgotten).
+  Gets a data export by ID.
   """
-  def create_deletion_request(user_id, reason \\ nil) do
-    %DataDeletionRequest{}
-    |> DataDeletionRequest.changeset(%{
+  def get_data_export(id) do
+    Repo.get(DataExport, id)
+  end
+
+  @doc """
+  Creates a data deletion request (Right to be Forgotten).
+  30-day grace period before actual deletion.
+  """
+  def create_deletion_request(user_id) do
+    requested_at = DateTime.utc_now()
+    scheduled_for = DateTime.add(requested_at, 30, :day)
+
+    %DeletionRequest{}
+    |> DeletionRequest.changeset(%{
       user_id: user_id,
-      reason: reason,
-      status: "pending",
-      requested_at: DateTime.utc_now()
+      requested_at: requested_at,
+      scheduled_for: scheduled_for,
+      status: "pending"
     })
     |> Repo.insert()
+  end
+
+  @doc """
+  Cancels a deletion request.
+  """
+  def cancel_deletion_request(user_id) do
+    query =
+      from dr in DeletionRequest,
+        where: dr.user_id == ^user_id and dr.status == "pending"
+
+    case Repo.one(query) do
+      nil -> {:error, :not_found}
+      request ->
+        request
+        |> DeletionRequest.changeset(%{status: "cancelled"})
+        |> Repo.update()
+    end
+  end
+
+  @doc """
+  Gets pending deletion requests.
+  """
+  def list_pending_deletions do
+    DeletionRequest
+    |> where([dr], dr.status == "pending")
+    |> where([dr], dr.scheduled_for <= ^DateTime.utc_now())
+    |> Repo.all()
   end
 
   @doc """
@@ -73,13 +132,13 @@ defmodule NestiApi.Privacy do
   def process_deletion_request(request_id) do
     # Implementation would anonymize/delete user data
     # This is a placeholder for the actual deletion logic
-    request = Repo.get(DataDeletionRequest, request_id)
+    request = Repo.get(DeletionRequest, request_id)
     
     if request do
       request
-      |> DataDeletionRequest.changeset(%{
+      |> DeletionRequest.changeset(%{
         status: "completed",
-        processed_at: DateTime.utc_now()
+        completed_at: DateTime.utc_now()
       })
       |> Repo.update()
     end
@@ -88,13 +147,15 @@ defmodule NestiApi.Privacy do
   @doc """
   Logs an audit event for RGPD compliance.
   """
-  def log_audit(user_id, action, details \\ nil) do
+  def log_audit(user_id, action, resource_type, opts \\ []) do
     %AuditLog{}
     |> AuditLog.changeset(%{
       user_id: user_id,
       action: action,
-      details: details,
-      timestamp: DateTime.utc_now()
+      resource_type: resource_type,
+      resource_id: Keyword.get(opts, :resource_id),
+      metadata: Keyword.get(opts, :metadata, %{}),
+      ip_address: Keyword.get(opts, :ip_address)
     })
     |> Repo.insert()
   end
