@@ -33,7 +33,20 @@ check_item() {
     local expected=$3
     
     if [ ! -z "$DATABASE_URL" ] && command -v psql &> /dev/null; then
-        result=$(psql "$DATABASE_URL" -t -c "$sql_query" 2>/dev/null | xargs)
+        # Capture both result and errors
+        local psql_output
+        psql_output=$(psql "$DATABASE_URL" -t -c "$sql_query" 2>&1)
+        local psql_exit=$?
+        
+        # Check for errors
+        if [ $psql_exit -ne 0 ]; then
+            echo -e "${RED}❌ $description (query failed)${NC}"
+            echo "   Error: $psql_output"
+            ((FAILED++))
+            return
+        fi
+        
+        result=$(echo "$psql_output" | xargs)
         
         if [ "$result" == "$expected" ]; then
             echo -e "${GREEN}✅ $description${NC}"

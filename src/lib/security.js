@@ -391,13 +391,25 @@ export const initializeSecurity = () => {
     });
   });
   
-  // Detect developer tools (basic detection)
-  const devtools = /./;
-  devtools.toString = function() {
-    securityMonitor.logEvent('devtools_open');
-    return 'devtools';
+  // Note: Developer tools detection is intentionally basic
+  // This is for monitoring only, not as a security measure
+  // Real security comes from server-side validation and RLS
+  const detectDevTools = () => {
+    const threshold = 160; // Typical devtools causes this difference
+    const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+    const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+    
+    if (widthThreshold || heightThreshold) {
+      securityMonitor.logEvent('devtools_possibly_open', {
+        note: 'Detection unreliable - for monitoring only'
+      });
+    }
   };
-  console.log('%c', devtools);
+  
+  // Run once on init (don't rely on this for security)
+  if (process.env.NODE_ENV === 'production') {
+    detectDevTools();
+  }
   
   return {
     csp: getCSPMetaTag(),

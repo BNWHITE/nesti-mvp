@@ -17,20 +17,29 @@ export const isValidEmail = (email) => {
 
 /**
  * Detects potential SQL injection patterns
+ * Note: This is defense in depth - always use parameterized queries as primary defense
  * @param {string} input - User input to check
  * @returns {boolean} True if SQL injection detected
  */
 export const containsSQLInjection = (input) => {
   if (!input || typeof input !== 'string') return false;
   
-  const sqlPatterns = [
-    /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION)\b)/gi,
-    /(;|\-\-|\/\*|\*\/)/g,
-    /(\bOR\b.*=.*|\bAND\b.*=.*)/gi,
-    /(\'.*\'|\".*\")/g,
+  // Check for SQL injection with multiple dangerous patterns
+  // Reduced false positives by requiring suspicious context
+  const dangerousPatterns = [
+    // SQL comments with dangerous keywords
+    /(--|\/\*).*\b(DROP|DELETE|UPDATE|INSERT|ALTER)\b/gi,
+    // UNION-based injection
+    /\bUNION\b.*\bSELECT\b/gi,
+    // Boolean-based injection with operators
+    /(\bOR\b|\bAND\b)\s*['"]?\s*\d+\s*=\s*\d+/gi,
+    // Stacked queries
+    /;\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\b/gi,
+    // Hex encoding attempt
+    /0x[0-9a-f]{8,}/gi,
   ];
   
-  return sqlPatterns.some(pattern => pattern.test(input));
+  return dangerousPatterns.some(pattern => pattern.test(input));
 };
 
 /**

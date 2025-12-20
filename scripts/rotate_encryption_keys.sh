@@ -70,101 +70,96 @@ echo ""
 echo "🔄 Starting key rotation..."
 echo ""
 
-# Create rotation SQL script
-cat > /tmp/key_rotation.sql << EOF
+# Create rotation SQL script with parameter placeholders
+cat > /tmp/key_rotation.sql << 'EOFTEMPLATE'
 -- ============================================
 -- Encryption Key Rotation
--- Generated: $(date)
+-- Generated: TIMESTAMP_PLACEHOLDER
 -- ============================================
 
 BEGIN;
 
--- Set old key for decryption
-ALTER DATABASE postgres SET app.encryption_key = '$OLD_KEY';
-
 -- Create temporary decryption storage
+-- Note: Old key is read from environment at runtime
 CREATE TEMP TABLE temp_users_decrypted AS
 SELECT 
   id,
-  pgp_sym_decrypt(email_encrypted, '$OLD_KEY') as email,
-  pgp_sym_decrypt(first_name_encrypted, '$OLD_KEY') as first_name,
-  pgp_sym_decrypt(last_name_encrypted, '$OLD_KEY') as last_name
+  pgp_sym_decrypt(email_encrypted, current_setting('app.old_encryption_key')) as email,
+  pgp_sym_decrypt(first_name_encrypted, current_setting('app.old_encryption_key')) as first_name,
+  pgp_sym_decrypt(last_name_encrypted, current_setting('app.old_encryption_key')) as last_name
 FROM users
 WHERE email_encrypted IS NOT NULL;
 
 CREATE TEMP TABLE temp_posts_decrypted AS
 SELECT 
   id,
-  pgp_sym_decrypt(content_encrypted, '$OLD_KEY') as content
+  pgp_sym_decrypt(content_encrypted, current_setting('app.old_encryption_key')) as content
 FROM posts
 WHERE content_encrypted IS NOT NULL;
 
 CREATE TEMP TABLE temp_comments_decrypted AS
 SELECT 
   id,
-  pgp_sym_decrypt(content_encrypted, '$OLD_KEY') as content
+  pgp_sym_decrypt(content_encrypted, current_setting('app.old_encryption_key')) as content
 FROM comments
 WHERE content_encrypted IS NOT NULL;
 
 CREATE TEMP TABLE temp_events_decrypted AS
 SELECT 
   id,
-  pgp_sym_decrypt(description_encrypted, '$OLD_KEY') as description,
-  pgp_sym_decrypt(location_encrypted, '$OLD_KEY') as location
+  pgp_sym_decrypt(description_encrypted, current_setting('app.old_encryption_key')) as description,
+  pgp_sym_decrypt(location_encrypted, current_setting('app.old_encryption_key')) as location
 FROM events
 WHERE description_encrypted IS NOT NULL OR location_encrypted IS NOT NULL;
 
 CREATE TEMP TABLE temp_chat_messages_decrypted AS
 SELECT 
   id,
-  pgp_sym_decrypt(message_encrypted, '$OLD_KEY') as message,
+  pgp_sym_decrypt(message_encrypted, current_setting('app.old_encryption_key')) as message,
   CASE 
     WHEN response_encrypted IS NOT NULL 
-    THEN pgp_sym_decrypt(response_encrypted, '$OLD_KEY')
+    THEN pgp_sym_decrypt(response_encrypted, current_setting('app.old_encryption_key'))
     ELSE NULL
   END as response
 FROM chat_messages
 WHERE message_encrypted IS NOT NULL;
 
--- Set new key for encryption
-ALTER DATABASE postgres SET app.encryption_key = '$NEW_KEY';
-
--- Re-encrypt users
+-- Re-encrypt users with new key
 UPDATE users u
 SET 
-  email_encrypted = pgp_sym_encrypt(t.email, '$NEW_KEY'),
-  first_name_encrypted = pgp_sym_encrypt(t.first_name, '$NEW_KEY'),
-  last_name_encrypted = pgp_sym_encrypt(t.last_name, '$NEW_KEY')
+  email_encrypted = pgp_sym_encrypt(t.email, current_setting('app.encryption_key')),
+  first_name_encrypted = pgp_sym_encrypt(t.first_name, current_setting('app.encryption_key')),
+  last_name_encrypted = pgp_sym_encrypt(t.last_name, current_setting('app.encryption_key'))
 FROM temp_users_decrypted t
 WHERE u.id = t.id;
 
 -- Re-encrypt posts
 UPDATE posts p
-SET content_encrypted = pgp_sym_encrypt(t.content, '$NEW_KEY')
+SET content_encrypted = pgp_sym_encrypt(t.content, current_setting('app.encryption_key'))
 FROM temp_posts_decrypted t
 WHERE p.id = t.id;
 
 -- Re-encrypt comments
 UPDATE comments c
-SET content_encrypted = pgp_sym_encrypt(t.content, '$NEW_KEY')
+SET content_encrypted = pgp_sym_encrypt(t.content, current_setting('app.encryption_key'))
 FROM temp_comments_decrypted t
 WHERE c.id = t.id;
 
 -- Re-encrypt events
 UPDATE events e
 SET 
-  description_encrypted = pgp_sym_encrypt(COALESCE(t.description, ''), '$NEW_KEY'),
-  location_encrypted = pgp_sym_encrypt(COALESCE(t.location, ''), '$NEW_KEY')
+  description_encrypted = pgp_sym_encrypt(COALESCE(t.description, ''), current_setting('app.encryption_key')),
+  location_encrypted = pgp_sym_encrypt(COALESCE(t.location, ''), current_setting('app.encryption_key'))
 FROM temp_events_decrypted t
 WHERE e.id = t.id;
 
 -- Re-encrypt chat messages
 UPDATE chat_messages cm
 SET 
-  message_encrypted = pgp_sym_encrypt(t.message, '$NEW_KEY'),
+  message_encrypted = pgp_sym_encrypt(t.message, current_setting('app.encryption_key')),
   response_encrypted = CASE 
     WHEN t.response IS NOT NULL 
-    THEN pgp_sym_encrypt(t.response, '$NEW_KEY')
+    THEN pgp_sym_encrypt(t.response, current_setting('app.encryption_key'))
     ELSE NULL
   END
 FROM temp_chat_messages_decrypted t
@@ -187,11 +182,11 @@ INSERT INTO audit_logs (
 );
 
 -- Verify re-encryption (sample check)
-DO \$\$
+DO $VERIFICATION$
 DECLARE
   test_result TEXT;
 BEGIN
-  SELECT pgp_sym_decrypt(email_encrypted, '$NEW_KEY') INTO test_result
+  SELECT pgp_sym_decrypt(email_encrypted, current_setting('app.encryption_key')) INTO test_result
   FROM users
   WHERE email_encrypted IS NOT NULL
   LIMIT 1;
@@ -201,21 +196,18 @@ BEGIN
   END IF;
   
   RAISE NOTICE 'Verification successful: Data can be decrypted with new key';
-END \$\$;
+END $VERIFICATION$;
 
 COMMIT;
+EOFTEMPLATE
 
--- Clean up temp tables
-DROP TABLE IF EXISTS temp_users_decrypted;
-DROP TABLE IF EXISTS temp_posts_decrypted;
-DROP TABLE IF EXISTS temp_comments_decrypted;
-DROP TABLE IF EXISTS temp_events_decrypted;
-DROP TABLE IF EXISTS temp_chat_messages_decrypted;
-EOF
+# Replace timestamp placeholder
+sed -i "s/TIMESTAMP_PLACEHOLDER/$(date)/" /tmp/key_rotation.sql
 
-# Execute rotation
-echo "📝 Executing key rotation SQL..."
-if psql "$DATABASE_URL" < /tmp/key_rotation.sql; then
+# Execute rotation with keys passed as session variables (safer than embedding in SQL)
+echo "📝 Executing key rotation..."
+PGOPTIONS="-c app.old_encryption_key=$OLD_KEY -c app.encryption_key=$NEW_KEY" \
+psql "$DATABASE_URL" < /tmp/key_rotation.sql
     echo -e "${GREEN}✅ Key rotation completed successfully!${NC}"
     echo ""
     echo "======================================"

@@ -17,8 +17,14 @@ BEGIN
   -- For now, use environment variable (set in Supabase dashboard)
   encryption_key := current_setting('app.encryption_key', true);
   
+  -- Validate encryption key is configured
   IF encryption_key IS NULL OR encryption_key = '' THEN
     RAISE EXCEPTION 'Encryption key not configured';
+  END IF;
+  
+  -- Validate minimum key length (base64 32 bytes = ~44 chars)
+  IF length(encryption_key) < 32 THEN
+    RAISE EXCEPTION 'Encryption key too short. Minimum 32 characters required';
   END IF;
   
   -- Use AES-256 encryption
@@ -103,11 +109,29 @@ END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
 -- Function to detect SQL injection patterns
+-- Note: This is a basic detection - use with parameterized queries as primary defense
 CREATE OR REPLACE FUNCTION contains_sql_injection(input TEXT)
 RETURNS BOOLEAN AS $$
 BEGIN
-  -- Check for common SQL injection patterns
-  RETURN input ~* '(;|\bDROP\b|\bDELETE\b|\bUPDATE\b|\bINSERT\b|\bEXEC\b|\bEXECUTE\b|\bUNION\b|\bSELECT\b.*\bFROM\b|--|\*|\/\*|\bOR\b.*=.*|''.*''|\bAND\b.*=.*)';
+  -- Check for dangerous SQL patterns only in suspicious contexts
+  -- Reduced false positives by requiring multiple indicators
+  IF input IS NULL THEN
+    RETURN false;
+  END IF;
+  
+  -- Check for SQL injection with multiple dangerous patterns
+  RETURN (
+    -- SQL comments with dangerous keywords
+    (input ~* '(--|\/\*).*\b(DROP|DELETE|UPDATE|INSERT|ALTER)\b') OR
+    -- UNION-based injection
+    (input ~* '\bUNION\b.*\bSELECT\b') OR
+    -- Boolean-based injection with operators
+    (input ~* '(\bOR\b|\bAND\b)\s*[''"]?\s*\d+\s*=\s*\d+') OR
+    -- Stacked queries
+    (input ~* ';\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE)\b') OR
+    -- Hex encoding attempt
+    (input ~* '0x[0-9a-f]+')
+  );
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
