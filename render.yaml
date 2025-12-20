@@ -1,0 +1,67 @@
+# Render Blueprint - Configuration de déploiement
+# https://render.com/docs/blueprint-spec
+
+services:
+  # Backend Phoenix API
+  - type: web
+    name: nesti-api
+    runtime: docker
+    region: frankfurt  # 🇪🇺 EU pour conformité RGPD
+    plan: starter  # $7/mois - ou "free" pour tester
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/health
+    
+    # Build settings
+    buildFilter:
+      paths:
+        - backend/**
+    
+    # Autoscaling (optionnel, pour plan payant)
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+      targetMemoryPercent: 80
+      targetCPUPercent: 80
+    
+    # Variables d'environnement
+    envVars:
+      # Elixir/Phoenix
+      - key: MIX_ENV
+        value: prod
+      - key: PORT
+        value: 4000
+      - key: PHX_SERVER
+        value: true
+        
+      # Secrets (générés automatiquement)
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: GUARDIAN_SECRET
+        generateValue: true
+        
+      # Secrets (à configurer manuellement)
+      - key: ENCRYPTION_KEY
+        sync: false  # ⚠️ Minimum 32 caractères
+      - key: DATABASE_URL
+        sync: false  # URL PostgreSQL Supabase
+      - key: OPENAI_API_KEY
+        sync: false  # Clé API OpenAI
+        
+      # Configuration
+      - key: PHX_HOST
+        sync: false  # Ex: nesti-api.onrender.com
+      - key: POOL_SIZE
+        value: 10
+        
+      # Sécurité
+      - key: SECURE_COOKIES
+        value: true
+      - key: FORCE_SSL
+        value: true
+
+# Base de données (optionnel - on utilise Supabase)
+# databases:
+#   - name: nesti-db
+#     plan: starter
+#     region: frankfurt
