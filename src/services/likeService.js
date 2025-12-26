@@ -4,18 +4,12 @@ import { supabase } from '../lib/supabaseClient';
  * Service pour gérer les likes/réactions sur les posts
  */
 
-// Helper pour logger uniquement en développement
-const logError = (message, error) => {
-  if (process.env.NODE_ENV === 'development') {
-    console.error(message, error);
-  }
-};
-
 /**
  * Vérifier si l'utilisateur a déjà liké un post
  */
 export async function hasUserLiked(postId, userId) {
   try {
+    console.log('🔍 Vérification like:', { postId, userId });
     const { data, error } = await supabase
       .from('post_reactions')
       .select('id')
@@ -24,10 +18,14 @@ export async function hasUserLiked(postId, userId) {
       .eq('reaction_type', 'like')
       .maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Erreur hasUserLiked:', error);
+      throw error;
+    }
+    console.log('✅ Résultat hasUserLiked:', !!data);
     return { hasLiked: !!data, error: null };
   } catch (error) {
-    logError('Error checking like:', error);
+    console.error('❌ Exception hasUserLiked:', error);
     return { hasLiked: false, error };
   }
 }
@@ -37,6 +35,7 @@ export async function hasUserLiked(postId, userId) {
  */
 export async function likePost(postId, userId) {
   try {
+    console.log('➕ Ajout like:', { postId, userId });
     const { data, error } = await supabase
       .from('post_reactions')
       .insert([
@@ -50,15 +49,17 @@ export async function likePost(postId, userId) {
       .single();
 
     if (error) {
+      console.error('❌ Erreur likePost:', error);
       // Si erreur de duplicata, le like existe déjà
       if (error.code === '23505') {
         return { data: null, error: null, alreadyLiked: true };
       }
       throw error;
     }
+    console.log('✅ Like ajouté:', data);
     return { data, error: null, alreadyLiked: false };
   } catch (error) {
-    logError('Error liking post:', error);
+    console.error('❌ Exception likePost:', error);
     return { data: null, error, alreadyLiked: false };
   }
 }
@@ -68,6 +69,7 @@ export async function likePost(postId, userId) {
  */
 export async function unlikePost(postId, userId) {
   try {
+    console.log('➖ Suppression like:', { postId, userId });
     const { error } = await supabase
       .from('post_reactions')
       .delete()
@@ -75,10 +77,14 @@ export async function unlikePost(postId, userId) {
       .eq('user_id', userId)
       .eq('reaction_type', 'like');
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Erreur unlikePost:', error);
+      throw error;
+    }
+    console.log('✅ Like supprimé');
     return { error: null };
   } catch (error) {
-    logError('Error unliking post:', error);
+    console.error('❌ Exception unlikePost:', error);
     return { error };
   }
 }
@@ -88,17 +94,25 @@ export async function unlikePost(postId, userId) {
  */
 export async function toggleLike(postId, userId) {
   try {
-    const { hasLiked } = await hasUserLiked(postId, userId);
+    console.log('🔄 Toggle like:', { postId, userId });
+    const { hasLiked, error: checkError } = await hasUserLiked(postId, userId);
+    
+    if (checkError) {
+      console.error('❌ Erreur lors de la vérification:', checkError);
+      return { liked: false, error: checkError };
+    }
     
     if (hasLiked) {
-      await unlikePost(postId, userId);
+      const { error } = await unlikePost(postId, userId);
+      if (error) return { liked: true, error };
       return { liked: false, error: null };
     } else {
-      await likePost(postId, userId);
+      const { error } = await likePost(postId, userId);
+      if (error) return { liked: false, error };
       return { liked: true, error: null };
     }
   } catch (error) {
-    logError('Error toggling like:', error);
+    console.error('❌ Exception toggleLike:', error);
     return { liked: false, error };
   }
 }

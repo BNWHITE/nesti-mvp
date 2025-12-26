@@ -242,10 +242,15 @@ export default function FeedPage({ user, familyId }) {
 
       console.log('✅ Commentaire ajouté:', data);
 
-      // Ajouter le commentaire à la liste locale
+      // Ajouter le commentaire à la liste locale avec le nom de l'utilisateur connecté
+      const commentWithUser = {
+        ...data,
+        user: data.user || { first_name: userName }
+      };
+      
       setPostComments(prev => ({
         ...prev,
-        [postId]: [...(prev[postId] || []), data]
+        [postId]: [...(prev[postId] || []), commentWithUser]
       }));
 
       // Mettre à jour le compteur
