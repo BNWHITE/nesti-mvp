@@ -13,7 +13,6 @@ defmodule NestiApi.Privacy do
   import Ecto.Query, warn: false
   alias NestiApi.Repo
   alias NestiApi.Privacy.{UserConsent, DataDeletionRequest, DataExport, AuditLog}
-  alias NestiApi.Accounts.User
 
   @doc """
   Records user consent for a specific purpose.
