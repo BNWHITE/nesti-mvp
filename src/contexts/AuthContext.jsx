@@ -11,9 +11,9 @@ const AuthContext = createContext({});
 // Nettoyer toutes les données sensibles du navigateur
 const clearSensitiveData = () => {
   // Supprimer localStorage (sauf préférences non-sensibles)
-  const keysToKeep = ['theme', 'darkMode', 'language'];
+  const keysToKeep = ['theme', 'darkMode', 'language', 'nesti_tips_shown'];
   Object.keys(localStorage).forEach(key => {
-    if (! keysToKeep.includes(key)) {
+    if (!keysToKeep.includes(key)) {
       localStorage.removeItem(key);
     }
   });

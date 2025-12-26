@@ -28,9 +28,13 @@ config :logger, level: :info
 # Disable runtime configuration for compile-time values
 config :phoenix, :logger, false
 
-# CORS for production - allow all origins or configure specific ones
+# CORS for production - restrict to known origins
 config :cors_plug,
-  origin: ["*"],
+  origin: [
+    "https://nesti-app.fr",
+    "https://www.nesti-app.fr",
+    "https://nest-i.vercel.app"
+  ],
   max_age: 86400,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
 
