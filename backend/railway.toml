@@ -1,0 +1,14 @@
+[build]
+builder = "nixpacks"
+
+[build.env]
+NIXPACKS_ELIXIR_VERSION = "1.17.0"
+NIXPACKS_ERLANG_VERSION = "27.0"
+MIX_ENV = "prod"
+
+[deploy]
+startCommand = "mix phx.server"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 30
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
