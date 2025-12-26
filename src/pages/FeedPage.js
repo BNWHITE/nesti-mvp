@@ -1,9 +1,9 @@
-// src/pages/FeedPage.js (DESIGN AMÉLIORÉ)
+// src/pages/FeedPage.js - REFONTE UI INSTAGRAM-LIKE
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { toggleLike, getUserLikesForPosts } from '../services/likeService';
-import { addComment, getComments } from '../services/commentService';
+import { addComment, getComments, likeComment, unlikeComment } from '../services/commentService';
 import './FeedPage.css';
 
 // Helper pour formater le temps écoulé
@@ -26,6 +26,173 @@ const formatTimeAgo = (timestamp) => {
   return date.toLocaleDateString('fr-FR');
 };
 
+// Composant VideoPlayer avec autoplay comme Instagram
+const VideoPlayer = ({ src, poster }) => {
+  const videoRef = useRef(null);
+  const containerRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    const container = containerRef.current;
+    if (!video || !container) return;
+
+    // Intersection Observer pour autoplay quand visible
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            video.play().catch(() => {});
+            setIsPlaying(true);
+          } else {
+            video.pause();
+            setIsPlaying(false);
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  const togglePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    
+    if (video.paused) {
+      video.play();
+      setIsPlaying(true);
+    } else {
+      video.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  const toggleMute = (e) => {
+    e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !video.muted;
+    setIsMuted(video.muted);
+  };
+
+  return (
+    <div ref={containerRef} className="video-container" onClick={togglePlay}>
+      <video
+        ref={videoRef}
+        src={src}
+        poster={poster}
+        loop
+        muted={isMuted}
+        playsInline
+        className="post-video"
+      />
+      {!isPlaying && (
+        <div className="video-play-overlay">
+          <span className="play-icon">▶️</span>
+        </div>
+      )}
+      <button className="video-mute-btn" onClick={toggleMute}>
+        {isMuted ? '🔇' : '🔊'}
+      </button>
+    </div>
+  );
+};
+
+// Composant CommentItem avec réponses et likes
+const CommentItem = ({ comment, user, userName, onReply, onLikeComment, depth = 0 }) => {
+  const [showReplyInput, setShowReplyInput] = useState(false);
+  const [replyContent, setReplyContent] = useState('');
+  const [isLiked, setIsLiked] = useState(comment.user_liked || false);
+  const [likesCount, setLikesCount] = useState(comment.likes_count || 0);
+
+  const handleLikeComment = async () => {
+    if (!user?.id) return;
+    
+    try {
+      if (isLiked) {
+        await unlikeComment(comment.id, user.id);
+        setLikesCount(prev => Math.max(0, prev - 1));
+      } else {
+        await likeComment(comment.id, user.id);
+        setLikesCount(prev => prev + 1);
+      }
+      setIsLiked(!isLiked);
+    } catch (error) {
+      console.error('Erreur like commentaire:', error);
+    }
+  };
+
+  const handleSubmitReply = () => {
+    if (!replyContent.trim()) return;
+    onReply(comment.id, replyContent.trim());
+    setReplyContent('');
+    setShowReplyInput(false);
+  };
+
+  return (
+    <div className={`comment-item ${depth > 0 ? 'comment-reply' : ''}`}>
+      <div className="comment-header">
+        <span className="comment-author">{comment.userName || comment.user?.first_name || 'Anonyme'}</span>
+        <span className="comment-time">{formatTimeAgo(comment.created_at)}</span>
+      </div>
+      <p className="comment-content">{comment.content}</p>
+      <div className="comment-actions">
+        <button 
+          className={`comment-action-btn ${isLiked ? 'liked' : ''}`}
+          onClick={handleLikeComment}
+        >
+          {isLiked ? '❤️' : '🤍'} {likesCount > 0 && likesCount}
+        </button>
+        {depth === 0 && (
+          <button 
+            className="comment-action-btn"
+            onClick={() => setShowReplyInput(!showReplyInput)}
+          >
+            💬 Répondre
+          </button>
+        )}
+      </div>
+      
+      {showReplyInput && (
+        <div className="reply-input-container">
+          <input
+            type="text"
+            placeholder={`Répondre à ${comment.userName || 'ce commentaire'}...`}
+            value={replyContent}
+            onChange={(e) => setReplyContent(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSubmitReply()}
+            className="reply-input"
+          />
+          <button onClick={handleSubmitReply} className="reply-submit-btn">
+            ➤
+          </button>
+        </div>
+      )}
+      
+      {/* Afficher les réponses (1 niveau seulement) */}
+      {comment.replies && comment.replies.length > 0 && (
+        <div className="replies-container">
+          {comment.replies.map(reply => (
+            <CommentItem 
+              key={reply.id} 
+              comment={reply} 
+              user={user}
+              userName={userName}
+              onReply={onReply}
+              onLikeComment={onLikeComment}
+              depth={1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function FeedPage({ user, familyId }) { 
   const [posts, setPosts] = useState([]);
   const [activities, setActivities] = useState([]);
@@ -34,7 +201,8 @@ export default function FeedPage({ user, familyId }) {
   const [userLikes, setUserLikes] = useState(new Set());
   const [expandedComments, setExpandedComments] = useState(new Set());
   const [commentInputs, setCommentInputs] = useState({});
-  const [postComments, setPostComments] = useState({}); 
+  const [postComments, setPostComments] = useState({});
+  const [likeAnimations, setLikeAnimations] = useState({}); 
 
   const fetchUserData = useCallback(async () => {
     try {
@@ -151,24 +319,25 @@ export default function FeedPage({ user, familyId }) {
     }
   };
 
-  const handleLike = async (postId) => {
+  const handleLike = async (postId, authorId) => {
     if (!user?.id) {
       alert('Veuillez vous connecter pour aimer ce post');
       return;
     }
 
-    console.log('🔄 Toggle like pour post:', postId, 'user:', user.id);
+    // Animation de like (cœur qui apparaît)
+    setLikeAnimations(prev => ({ ...prev, [postId]: true }));
+    setTimeout(() => {
+      setLikeAnimations(prev => ({ ...prev, [postId]: false }));
+    }, 600);
 
     try {
-      const { liked, error } = await toggleLike(postId, user.id);
+      const { liked, error } = await toggleLike(postId, user.id, authorId);
       
       if (error) {
-        console.error('❌ Erreur like:', error);
-        alert('Erreur lors du like: ' + (error.message || error.details || 'Erreur inconnue'));
+        console.error('Erreur like:', error);
         return;
       }
-
-      console.log('✅ Like toggle réussi:', liked ? 'liké' : 'unliké');
 
       // Mettre à jour l'UI
       if (liked) {
@@ -187,8 +356,7 @@ export default function FeedPage({ user, familyId }) {
         ));
       }
     } catch (error) {
-      console.error('❌ Erreur like catch:', error);
-      alert('Erreur lors du like: ' + error.message);
+      console.error('Erreur like:', error);
     }
   };
   
@@ -218,40 +386,55 @@ export default function FeedPage({ user, familyId }) {
     }
   };
 
-  const handleSubmitComment = async (postId) => {
-    const content = commentInputs[postId]?.trim();
-    if (!content) {
-      alert('Veuillez écrire un commentaire');
-      return;
-    }
+  const handleSubmitComment = async (postId, parentId = null, directContent = null) => {
+    const inputKey = parentId ? `${postId}-${parentId}` : postId;
+    const content = directContent || commentInputs[inputKey]?.trim();
+    if (!content) return;
     if (!user?.id) {
       alert('Veuillez vous connecter pour commenter');
       return;
     }
 
-    console.log('🔄 Ajout commentaire:', { postId, userId: user.id, content });
+    // Trouver l'auteur du post pour la notification
+    const post = posts.find(p => p.id === postId);
+    const authorId = post?.author_id;
 
     try {
-      const { data, error } = await addComment(postId, user.id, content);
+      const { data, error } = await addComment(postId, user.id, content, userName, parentId, authorId);
       
       if (error) {
-        console.error('❌ Erreur ajout commentaire:', error);
-        alert('Erreur: ' + (error.message || error.details || 'Erreur inconnue'));
+        console.error('Erreur ajout commentaire:', error);
         return;
       }
 
-      console.log('✅ Commentaire ajouté:', data);
-
-      // Ajouter le commentaire à la liste locale avec le nom de l'utilisateur connecté
+      // Ajouter le commentaire à la liste locale
       const commentWithUser = {
         ...data,
-        user: data.user || { first_name: userName }
+        userName: userName,
+        replies: []
       };
       
-      setPostComments(prev => ({
-        ...prev,
-        [postId]: [...(prev[postId] || []), commentWithUser]
-      }));
+      setPostComments(prev => {
+        const currentComments = prev[postId] || [];
+        
+        if (parentId) {
+          // C'est une réponse - l'ajouter au commentaire parent
+          return {
+            ...prev,
+            [postId]: currentComments.map(c => 
+              c.id === parentId 
+                ? { ...c, replies: [...(c.replies || []), commentWithUser] }
+                : c
+            )
+          };
+        } else {
+          // C'est un commentaire principal
+          return {
+            ...prev,
+            [postId]: [...currentComments, commentWithUser]
+          };
+        }
+      });
 
       // Mettre à jour le compteur
       setPosts(posts.map(p => 
@@ -259,10 +442,9 @@ export default function FeedPage({ user, familyId }) {
       ));
 
       // Vider l'input
-      setCommentInputs(prev => ({ ...prev, [postId]: '' }));
+      setCommentInputs(prev => ({ ...prev, [inputKey]: '' }));
     } catch (error) {
-      console.error('❌ Erreur ajout commentaire catch:', error);
-      alert('Erreur: ' + error.message);
+      console.error('Erreur ajout commentaire:', error);
     }
   };
 
@@ -328,53 +510,86 @@ export default function FeedPage({ user, familyId }) {
                   <div className="author-avatar">{post.author.emoji}</div>
                   <div>
                     <div className="author-name">{post.author.name}</div>
-                    <div className="post-meta">{post.time} • {post.author.role}</div>
+                    <div className="post-meta">{post.time}</div>
                   </div>
                 </div>
-                <span className="post-type">{post.type === 'welcome' ? '👋' : '🎂'}</span>
               </div>
               
+              {/* Contenu texte */}
               <div className="post-content">
                 {post.content}
               </div>
 
-              <div className="post-stats">
-                <span>{post.likes} J'aime</span>
-                <span>{post.comments} Commentaires</span>
+              {/* Vidéo si présente */}
+              {post.video_url && (
+                <VideoPlayer src={post.video_url} poster={post.thumbnail_url} />
+              )}
+
+              {/* Image si présente */}
+              {post.image_url && (
+                <div className="post-image-container">
+                  <img 
+                    src={post.image_url} 
+                    alt="Contenu du post" 
+                    className="post-image"
+                    onDoubleClick={() => handleLike(post.id, post.author_id)}
+                  />
+                  {likeAnimations[post.id] && (
+                    <div className="like-animation">❤️</div>
+                  )}
+                </div>
+              )}
+
+              {/* Barre d'actions simplifiée */}
+              <div className="post-actions-bar">
+                <button 
+                  className={`action-btn ${userLikes.has(post.id) ? 'liked' : ''}`}
+                  onClick={() => handleLike(post.id, post.author_id)}
+                >
+                  {userLikes.has(post.id) ? '❤️' : '🤍'}
+                </button>
+                <button 
+                  className="action-btn"
+                  onClick={() => handleComment(post.id)}
+                >
+                  💬
+                </button>
+                <button className="action-btn">
+                  🔗
+                </button>
               </div>
 
-              <div className="post-reactions-bar">
-                <button 
-                  className={`reaction-btn like-btn ${userLikes.has(post.id) ? 'liked' : ''}`} 
-                  onClick={() => handleLike(post.id)}
-                >
-                    {userLikes.has(post.id) ? '❤️' : '🤍'} J'aime
-                </button>
-                <button className="reaction-btn comment-btn" onClick={() => handleComment(post.id)}>
-                    💬 Commenter
-                </button>
-              </div>
+              {/* Compteur de likes */}
+              {post.likes > 0 && (
+                <div className="likes-count">
+                  {post.likes} J'aime{post.likes > 1 ? 's' : ''}
+                </div>
+              )}
 
               {/* Section commentaires */}
               {expandedComments.has(post.id) && (
                 <div className="comments-section">
                   <div className="comments-list">
                     {(postComments[post.id] || []).map(comment => (
-                      <div key={comment.id} className="comment-item">
-                        <span className="comment-author">
-                          {comment.user?.first_name || 'Anonyme'}:
-                        </span>
-                        <span className="comment-content">{comment.content}</span>
-                      </div>
+                      <CommentItem 
+                        key={comment.id}
+                        comment={comment}
+                        user={user}
+                        userName={userName}
+                        onReply={(parentId, content) => {
+                          handleSubmitComment(post.id, parentId, content);
+                        }}
+                        onLikeComment={() => {}}
+                      />
                     ))}
                     {(postComments[post.id] || []).length === 0 && (
-                      <p className="no-comments">Aucun commentaire. Soyez le premier !</p>
+                      <p className="no-comments">Aucun commentaire encore.</p>
                     )}
                   </div>
                   <div className="comment-input-container">
                     <input
                       type="text"
-                      placeholder="Écrire un commentaire..."
+                      placeholder="Ajouter un commentaire..."
                       value={commentInputs[post.id] || ''}
                       onChange={(e) => setCommentInputs(prev => ({ 
                         ...prev, 
@@ -391,10 +606,20 @@ export default function FeedPage({ user, familyId }) {
                       onClick={() => handleSubmitComment(post.id)}
                       className="comment-submit-btn"
                     >
-                      Envoyer
+                      ➤
                     </button>
                   </div>
                 </div>
+              )}
+
+              {/* Lien pour voir les commentaires */}
+              {!expandedComments.has(post.id) && post.comments > 0 && (
+                <button 
+                  className="view-comments-btn"
+                  onClick={() => handleComment(post.id)}
+                >
+                  Voir les {post.comments} commentaire{post.comments > 1 ? 's' : ''}
+                </button>
               )}
             </div>
           ))}

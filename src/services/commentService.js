@@ -1,88 +1,215 @@
 import { supabase } from '../lib/supabaseClient';
+import { createNotification } from './notificationService';
 
 /**
  * Service pour gérer les commentaires sur les posts
  */
 
-// Helper pour logger uniquement en développement
-const logError = (message, error) => {
-  if (process.env.NODE_ENV === 'development') {
-    console.error(message, error);
-  }
-};
-
 /**
- * Récupérer les commentaires d'un post/message
+ * Récupérer les commentaires d'un post (avec réponses)
  */
-export async function getComments(messageId) {
+export async function getComments(postId) {
   try {
+    // Récupérer tous les commentaires (parents et réponses)
     const { data, error } = await supabase
       .from('comments')
       .select('*')
-      .eq('post_id', messageId)
+      .eq('post_id', postId)
       .order('created_at', { ascending: true });
 
     if (error) throw error;
     
-    // Enrichir avec les infos utilisateur si possible
+    // Enrichir avec les infos utilisateur et compteur de likes
     const enrichedData = await Promise.all((data || []).map(async (comment) => {
+      // Info utilisateur
+      let user = null;
       try {
         const { data: userData } = await supabase
           .from('user_profiles')
-          .select('id, first_name, email, avatar_url')
+          .select('id, first_name, avatar_url')
           .eq('id', comment.author_id)
-          .single();
-        return { ...comment, user: userData };
-      } catch {
-        return { ...comment, user: null };
-      }
+          .maybeSingle();
+        user = userData;
+      } catch { /* ignore */ }
+      
+      // Compteur de likes
+      let likesCount = 0;
+      try {
+        const { count } = await supabase
+          .from('comment_reactions')
+          .select('*', { count: 'exact', head: true })
+          .eq('comment_id', comment.id);
+        likesCount = count || 0;
+      } catch { /* ignore */ }
+      
+      return { ...comment, user, likes_count: likesCount };
     }));
     
-    return { data: enrichedData, error: null };
+    // Organiser en arbre (commentaires parents avec leurs réponses)
+    const parentComments = enrichedData.filter(c => !c.parent_id);
+    const replies = enrichedData.filter(c => c.parent_id);
+    
+    const commentsWithReplies = parentComments.map(parent => ({
+      ...parent,
+      replies: replies.filter(r => r.parent_id === parent.id)
+    }));
+    
+    return { data: commentsWithReplies, error: null };
   } catch (error) {
-    logError('Error fetching comments:', error);
-    return { data: null, error };
+    console.error('Error fetching comments:', error);
+    return { data: [], error };
   }
 }
 
 /**
- * Ajouter un commentaire
+ * Ajouter un commentaire (ou réponse)
  */
-export async function addComment(messageId, userId, content) {
+export async function addComment(postId, userId, content, parentId = null) {
   try {
-    // Insérer le commentaire sans JOIN
+    const insertData = {
+      post_id: postId,
+      author_id: userId,
+      content: content
+    };
+    
+    if (parentId) {
+      insertData.parent_id = parentId;
+    }
+    
     const { data, error } = await supabase
       .from('comments')
-      .insert([
-        {
-          post_id: messageId,
-          author_id: userId,
-          content: content
-        }
-      ])
+      .insert([insertData])
       .select('*')
       .single();
 
     if (error) throw error;
     
-    // Récupérer les infos utilisateur séparément
-    let user = null;
+    // Récupérer l'auteur du post pour la notification
     try {
-      const { data: userData } = await supabase
-        .from('user_profiles')
-        .select('id, first_name, email, avatar_url')
-        .eq('id', userId)
+      const { data: post } = await supabase
+        .from('posts')
+        .select('author_id')
+        .eq('id', postId)
         .single();
-      user = userData;
-    } catch {
-      // Ignorer si pas de profil
+      
+      if (post && post.author_id !== userId) {
+        await createNotification({
+          userId: post.author_id,
+          actorId: userId,
+          type: parentId ? 'reply' : 'comment',
+          postId: postId,
+          commentId: data.id,
+          message: content.substring(0, 100)
+        });
+      }
+      
+      // Si c'est une réponse, notifier l'auteur du commentaire parent
+      if (parentId) {
+        const { data: parentComment } = await supabase
+          .from('comments')
+          .select('author_id')
+          .eq('id', parentId)
+          .single();
+        
+        if (parentComment && parentComment.author_id !== userId) {
+          await createNotification({
+            userId: parentComment.author_id,
+            actorId: userId,
+            type: 'reply',
+            postId: postId,
+            commentId: data.id,
+            message: content.substring(0, 100)
+          });
+        }
+      }
+    } catch { /* ignore notification errors */ }
+    
+    return { data: { ...data, user: null, likes_count: 0, replies: [] }, error: null };
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    return { data: null, error };
+  }
+}
+
+/**
+ * Liker un commentaire
+ */
+export async function likeComment(commentId, userId) {
+  try {
+    const { error } = await supabase
+      .from('comment_reactions')
+      .insert([{ comment_id: commentId, user_id: userId }])
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') {
+        // Déjà liké, on unlike
+        return unlikeComment(commentId, userId);
+      }
+      throw error;
     }
     
-    return { data: { ...data, user }, error: null };
+    // Notifier l'auteur du commentaire
+    try {
+      const { data: comment } = await supabase
+        .from('comments')
+        .select('author_id, post_id')
+        .eq('id', commentId)
+        .single();
+      
+      if (comment && comment.author_id !== userId) {
+        await createNotification({
+          userId: comment.author_id,
+          actorId: userId,
+          type: 'like_comment',
+          postId: comment.post_id,
+          commentId: commentId
+        });
+      }
+    } catch { /* ignore */ }
+    
+    return { liked: true, error: null };
   } catch (error) {
-    logError('Error adding comment:', error);
-    console.error('Détails erreur commentaire:', error);
-    return { data: null, error };
+    console.error('Error liking comment:', error);
+    return { liked: false, error };
+  }
+}
+
+/**
+ * Unliker un commentaire
+ */
+export async function unlikeComment(commentId, userId) {
+  try {
+    const { error } = await supabase
+      .from('comment_reactions')
+      .delete()
+      .eq('comment_id', commentId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return { liked: false, error: null };
+  } catch (error) {
+    console.error('Error unliking comment:', error);
+    return { liked: true, error };
+  }
+}
+
+/**
+ * Vérifier si l'utilisateur a liké un commentaire
+ */
+export async function hasUserLikedComment(commentId, userId) {
+  try {
+    const { data } = await supabase
+      .from('comment_reactions')
+      .select('id')
+      .eq('comment_id', commentId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    
+    return { hasLiked: !!data, error: null };
+  } catch (error) {
+    return { hasLiked: false, error };
   }
 }
 
@@ -91,7 +218,6 @@ export async function addComment(messageId, userId, content) {
  */
 export async function deleteComment(commentId, userId) {
   try {
-    // Vérifier que l'utilisateur est l'auteur
     const { data: comment, error: fetchError } = await supabase
       .from('comments')
       .select('author_id')
@@ -101,7 +227,7 @@ export async function deleteComment(commentId, userId) {
     if (fetchError) throw fetchError;
     
     if (comment.author_id !== userId) {
-      throw new Error('Unauthorized: You can only delete your own comments');
+      throw new Error('Unauthorized');
     }
 
     const { error } = await supabase
@@ -112,25 +238,7 @@ export async function deleteComment(commentId, userId) {
     if (error) throw error;
     return { success: true, error: null };
   } catch (error) {
-    logError('Error deleting comment:', error);
+    console.error('Error deleting comment:', error);
     return { success: false, error };
-  }
-}
-
-/**
- * Compter les commentaires d'un post/message
- */
-export async function getCommentCount(messageId) {
-  try {
-    const { count, error } = await supabase
-      .from('comments')
-      .select('*', { count: 'exact', head: true })
-      .eq('post_id', messageId);
-
-    if (error) throw error;
-    return { count, error: null };
-  } catch (error) {
-    logError('Error counting comments:', error);
-    return { count: 0, error };
   }
 }

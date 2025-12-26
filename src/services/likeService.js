@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient';
+import { createNotification } from './notificationService';
 
 /**
  * Service pour gérer les likes/réactions sur les posts
@@ -9,7 +10,6 @@ import { supabase } from '../lib/supabaseClient';
  */
 export async function hasUserLiked(postId, userId) {
   try {
-    console.log('🔍 Vérification like:', { postId, userId });
     const { data, error } = await supabase
       .from('post_reactions')
       .select('id')
@@ -18,14 +18,10 @@ export async function hasUserLiked(postId, userId) {
       .eq('reaction_type', 'like')
       .maybeSingle();
 
-    if (error) {
-      console.error('❌ Erreur hasUserLiked:', error);
-      throw error;
-    }
-    console.log('✅ Résultat hasUserLiked:', !!data);
+    if (error) throw error;
     return { hasLiked: !!data, error: null };
   } catch (error) {
-    console.error('❌ Exception hasUserLiked:', error);
+    console.error('Erreur hasUserLiked:', error);
     return { hasLiked: false, error };
   }
 }
@@ -35,31 +31,44 @@ export async function hasUserLiked(postId, userId) {
  */
 export async function likePost(postId, userId) {
   try {
-    console.log('➕ Ajout like:', { postId, userId });
     const { data, error } = await supabase
       .from('post_reactions')
-      .insert([
-        {
-          post_id: postId,
-          user_id: userId,
-          reaction_type: 'like'
-        }
-      ])
+      .insert([{
+        post_id: postId,
+        user_id: userId,
+        reaction_type: 'like'
+      }])
       .select()
       .single();
 
     if (error) {
-      console.error('❌ Erreur likePost:', error);
-      // Si erreur de duplicata, le like existe déjà
       if (error.code === '23505') {
         return { data: null, error: null, alreadyLiked: true };
       }
       throw error;
     }
-    console.log('✅ Like ajouté:', data);
+    
+    // Notifier l'auteur du post
+    try {
+      const { data: post } = await supabase
+        .from('posts')
+        .select('author_id')
+        .eq('id', postId)
+        .single();
+      
+      if (post && post.author_id !== userId) {
+        await createNotification({
+          userId: post.author_id,
+          actorId: userId,
+          type: 'like_post',
+          postId: postId
+        });
+      }
+    } catch { /* ignore */ }
+    
     return { data, error: null, alreadyLiked: false };
   } catch (error) {
-    console.error('❌ Exception likePost:', error);
+    console.error('Erreur likePost:', error);
     return { data: null, error, alreadyLiked: false };
   }
 }
@@ -69,7 +78,6 @@ export async function likePost(postId, userId) {
  */
 export async function unlikePost(postId, userId) {
   try {
-    console.log('➖ Suppression like:', { postId, userId });
     const { error } = await supabase
       .from('post_reactions')
       .delete()
@@ -77,14 +85,10 @@ export async function unlikePost(postId, userId) {
       .eq('user_id', userId)
       .eq('reaction_type', 'like');
 
-    if (error) {
-      console.error('❌ Erreur unlikePost:', error);
-      throw error;
-    }
-    console.log('✅ Like supprimé');
+    if (error) throw error;
     return { error: null };
   } catch (error) {
-    console.error('❌ Exception unlikePost:', error);
+    console.error('Erreur unlikePost:', error);
     return { error };
   }
 }
@@ -94,11 +98,9 @@ export async function unlikePost(postId, userId) {
  */
 export async function toggleLike(postId, userId) {
   try {
-    console.log('🔄 Toggle like:', { postId, userId });
     const { hasLiked, error: checkError } = await hasUserLiked(postId, userId);
     
     if (checkError) {
-      console.error('❌ Erreur lors de la vérification:', checkError);
       return { liked: false, error: checkError };
     }
     
@@ -112,7 +114,7 @@ export async function toggleLike(postId, userId) {
       return { liked: true, error: null };
     }
   } catch (error) {
-    console.error('❌ Exception toggleLike:', error);
+    console.error('Erreur toggleLike:', error);
     return { liked: false, error };
   }
 }

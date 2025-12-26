@@ -3,6 +3,7 @@ import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import DarkModeToggle from "./DarkModeToggle";
+import NotificationBell from "./NotificationBell";
 import './Header.css';
 
 export default function Header() {
@@ -48,6 +49,7 @@ export default function Header() {
         </div>
         
         <div className="header-right">
+          <NotificationBell userId={user?.id} />
           <DarkModeToggle />
           <div className="user-menu">
             <button 
