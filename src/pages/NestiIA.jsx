@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import logger from '../lib/logger';
 import { PaperAirplaneIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import './NestiIA.css';
 
@@ -79,7 +80,7 @@ export default function NestiIA() {
       setLog(l => [...l, { role: "assistant", content: reply }]);
       setIsTyping(false);
     } catch (err) {
-      console.error("Error calling Nesti AI:", err);
+      logger.error("Error calling Nesti AI:", err);
       // Fallback to local smart response if API fails
       const fallbackResponse = getSmartResponse(userMessage);
       setLog(l => [...l, { role: "assistant", content: `${fallbackResponse}\n\n⚠️ (Service temporairement indisponible - Réponse locale)` }]);

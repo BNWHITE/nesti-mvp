@@ -1,4 +1,5 @@
 // src/api/base44Client.js
+import logger from '../lib/logger';
 import { supabase } from '@/lib/supabaseClient';
 
 // Helper pour mapper les noms d'entités vers les tables Supabase (snake_case)
@@ -95,7 +96,7 @@ export const base44 = {
       },
       InvokeLLM: async (params) => {
         // Pour le MVP, on simule une réponse ou on appelle une Edge Function Supabase
-        console.log("Appel LLM simulé avec:", params);
+        logger.log("Appel LLM simulé avec:", params);
         return "Ceci est une réponse simulée de Nesti IA. Connectez une Edge Function pour une vraie IA.";
       }
     }

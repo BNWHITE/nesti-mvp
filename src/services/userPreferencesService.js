@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient';
+import logger from '../lib/logger';
 
 /**
  * User Preferences Service
@@ -26,14 +27,14 @@ export const saveAccessibilityNeeds = async (userId, accessibilityNeeds) => {
     if (error) {
       // If column doesn't exist, warn but don't fail
       if (error.code === '42703') {
-        console.warn('accessibility_needs column does not exist yet. Please run migrations.');
+        logger.warn('accessibility_needs column does not exist yet. Please run migrations.');
         return { data: null, error: null };
       }
       throw error;
     }
     return { data, error: null };
   } catch (error) {
-    console.error('Error saving accessibility needs:', error);
+    logger.error('Error saving accessibility needs:', error);
     return { data: null, error };
   }
 };
@@ -72,7 +73,7 @@ export const saveActivityPreferences = async (userId, preferences) => {
 
     return { data: [], error: null };
   } catch (error) {
-    console.error('Error saving activity preferences:', error);
+    logger.error('Error saving activity preferences:', error);
     return { data: null, error };
   }
 };
@@ -93,14 +94,14 @@ export const getAccessibilityNeeds = async (userId) => {
     if (error) {
       // If column doesn't exist, return null gracefully
       if (error.code === '42703') {
-        console.warn('accessibility_needs column does not exist yet. Please run migrations.');
+        logger.warn('accessibility_needs column does not exist yet. Please run migrations.');
         return { data: null, error: null };
       }
       throw error;
     }
     return { data: data?.accessibility_needs || null, error: null };
   } catch (error) {
-    console.error('Error getting accessibility needs:', error);
+    logger.error('Error getting accessibility needs:', error);
     return { data: null, error };
   }
 };
@@ -124,7 +125,7 @@ export const getActivityPreferences = async (userId) => {
       error: null 
     };
   } catch (error) {
-    console.error('Error getting activity preferences:', error);
+    logger.error('Error getting activity preferences:', error);
     return { data: [], error };
   }
 };
@@ -160,7 +161,7 @@ export const completeOnboarding = async (userId, onboardingData) => {
 
     return { success: true, error: null };
   } catch (error) {
-    console.error('Error completing onboarding:', error);
+    logger.error('Error completing onboarding:', error);
     return { success: false, error };
   }
 };

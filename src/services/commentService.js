@@ -4,6 +4,13 @@ import { supabase } from '../lib/supabaseClient';
  * Service pour gérer les commentaires sur les posts
  */
 
+// Helper pour logger uniquement en développement
+const logError = (message, error) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.error(message, error);
+  }
+};
+
 /**
  * Récupérer les commentaires d'un post/message
  */
@@ -21,7 +28,7 @@ export async function getComments(messageId) {
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
-    console.error('Error fetching comments:', error);
+    logError('Error fetching comments:', error);
     return { data: null, error };
   }
 }
@@ -37,6 +44,7 @@ export async function addComment(messageId, userId, content) {
         {
           post_id: messageId,
           author_id: userId,
+          user_id: userId,
           content: content,
           created_at: new Date().toISOString()
         }
@@ -50,7 +58,7 @@ export async function addComment(messageId, userId, content) {
     if (error) throw error;
     return { data, error: null };
   } catch (error) {
-    console.error('Error adding comment:', error);
+    logError('Error adding comment:', error);
     return { data: null, error };
   }
 }
@@ -81,7 +89,7 @@ export async function deleteComment(commentId, userId) {
     if (error) throw error;
     return { success: true, error: null };
   } catch (error) {
-    console.error('Error deleting comment:', error);
+    logError('Error deleting comment:', error);
     return { success: false, error };
   }
 }
@@ -99,7 +107,7 @@ export async function getCommentCount(messageId) {
     if (error) throw error;
     return { count, error: null };
   } catch (error) {
-    console.error('Error counting comments:', error);
+    logError('Error counting comments:', error);
     return { count: 0, error };
   }
 }

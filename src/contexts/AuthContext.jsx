@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import logger from '../lib/logger';
 
 const AuthContext = createContext({});
 
@@ -35,7 +36,7 @@ const preventDataLeakage = () => {
     // Bloquer si la sélection contient des patterns de tokens JWT
     if (selection.match(/eyJ[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*/)) {
       e.preventDefault();
-      console.warn('🔒 Copie de données sensibles bloquée');
+      logger.warn('🔒 Copie de données sensibles bloquée');
     }
   });
 };
@@ -53,7 +54,7 @@ const setupSecurityListeners = () => {
   const resetInactivityTimer = () => {
     clearTimeout(inactivityTimer);
     inactivityTimer = setTimeout(() => {
-      console.warn('🔒 Déconnexion automatique pour inactivité');
+      logger.warn('🔒 Déconnexion automatique pour inactivité');
       supabase.auth. signOut();
       clearSensitiveData();
       window.location.href = '/auth';
@@ -138,7 +139,7 @@ export const AuthProvider = ({ children }) => {
           }]);
         
         if (profileError) {
-          console.error('Profile creation error:', profileError);
+          logger.error('Profile creation error:', profileError);
         }
       }
 
@@ -252,7 +253,7 @@ export const AuthProvider = ({ children }) => {
       clearSensitiveData();
       window.location.href = '/auth';
     } catch (error) {
-      console.error('Logout all devices error:', error);
+      logger.error('Logout all devices error:', error);
     }
   };
 

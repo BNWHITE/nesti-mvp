@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import logger from '../lib/logger';
 import { uploadPhoto, uploadVideo, validateFile, compressImage } from '../services/mediaService';
 import './MediaUploader.css';
 
@@ -33,7 +34,7 @@ function MediaUploader({ userId, onMediaUploaded, maxPhotos = 5 }) {
           preview: URL.createObjectURL(compressedFile)
         });
       } catch (err) {
-        console.error('Compression error:', err);
+        logger.error('Compression error:', err);
         newPhotos.push({
           file,
           preview: URL.createObjectURL(file)

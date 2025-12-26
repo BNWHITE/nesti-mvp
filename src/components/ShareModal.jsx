@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import logger from '../lib/logger';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { shareService } from '../services/shareService';
 import { familyService } from '../services/familyService';
@@ -28,7 +29,7 @@ export default function ShareModal({ post, onClose }) {
         setFamilyMembers(members || []);
       }
     } catch (error) {
-      console.error('Error loading family members:', error);
+      logger.error('Error loading family members:', error);
     } finally {
       setLoading(false);
     }
@@ -55,7 +56,7 @@ export default function ShareModal({ post, onClose }) {
         onClose();
       }
     } catch (error) {
-      console.error('Error sharing:', error);
+      logger.error('Error sharing:', error);
       alert('Erreur lors du partage');
     } finally {
       setSharing(false);

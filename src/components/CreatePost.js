@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import './CreatePost.css';
+import logger from '../lib/logger';
 
 const CreatePost = ({ user, familyId, onPostCreated }) => {
   const [content, setContent] = useState('');
@@ -14,7 +15,7 @@ const CreatePost = ({ user, familyId, onPostCreated }) => {
     // Simuler l'envoi à Supabase (table family_posts)
     setIsPosting(true);
     setTimeout(() => {
-      console.log('Post sent:', content);
+      logger.log('Post sent:', content);
       setContent('');
       setIsPosting(false);
       onPostCreated();

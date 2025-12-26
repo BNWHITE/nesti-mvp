@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import logger from '../lib/logger';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { createFamily } from '../services/familyService';
@@ -88,7 +89,7 @@ const Onboarding = () => {
           setError('Erreur inattendue. Veuillez réessayer.');
         }
       } catch (err) {
-        console.error('Error creating family:', err);
+        logger.error('Error creating family:', err);
         const errorMessage = err.message || 'Erreur lors de la création de votre famille. Réessayez.';
         setError(errorMessage);
       } finally {
@@ -109,7 +110,7 @@ const Onboarding = () => {
         });
         navigate('/');
       } catch (error) {
-        console.error('Error saving onboarding data:', error);
+        logger.error('Error saving onboarding data:', error);
         // Continue to app even if preferences fail to save
         navigate('/');
       } finally {

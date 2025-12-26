@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient';
+import logger from '../lib/logger';
 
 /**
  * Family Service - Adapted for existing database schema
@@ -17,7 +18,7 @@ export const getUserProfile = async (userId) => {
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error('Error getting user profile:', error);
+    logger.error('Error getting user profile:', error);
     return null;
   }
 };
@@ -25,11 +26,11 @@ export const getUserProfile = async (userId) => {
 // Helper function to create family
 export const createFamily = async ({ family_name, user_id, user_email, user_first_name }) => {
   try {
-    console.log('Starting family creation for user:', user_id);
+    logger.log('Starting family creation for user:', user_id);
     
     // SOLUTION 2: Try to use the database function first (most robust)
     // This bypasses RLS policies entirely
-    console.log('Attempting to use database function...');
+    logger.log('Attempting to use database function...');
     
     try {
       const { data: funcResult } = await supabase
@@ -42,7 +43,7 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
 
       // If function exists and succeeds
       if (funcResult && funcResult.success) {
-        console.log('Family created successfully via database function:', funcResult);
+        logger.log('Family created successfully via database function:', funcResult);
         return {
           id: funcResult.family_id,
           family_name: funcResult.family_name,
@@ -52,24 +53,24 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
       
       // If function exists but returned error
       if (funcResult && !funcResult.success) {
-        console.error('Database function returned error:', funcResult.error);
+        logger.error('Database function returned error:', funcResult.error);
         throw new Error(`Erreur: ${funcResult.error}`);
       }
       
       // If we get here, function might not exist, fall through to manual method
-      console.log('Database function not available, using manual method...');
+      logger.log('Database function not available, using manual method...');
     } catch (funcError) {
       // Function doesn't exist (42883) or other RPC error - fall through to manual method
       if (funcError.code === '42883') {
-        console.log('Database function not found, using manual method...');
+        logger.log('Database function not found, using manual method...');
       } else {
-        console.warn('Function call error, falling back to manual method:', funcError);
+        logger.warn('Function call error, falling back to manual method:', funcError);
       }
     }
     
     // FALLBACK: Manual method (if function doesn't exist)
     // This requires proper RLS policies to be set up
-    console.log('Using manual family creation method...');
+    logger.log('Using manual family creation method...');
     
     // Step 1: Check if user profile already exists
     const { data: existingUser, error: checkError } = await supabase
@@ -78,7 +79,7 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
       .eq('id', user_id)
       .maybeSingle();
 
-    console.log('Existing user check:', { existingUser, checkError });
+    logger.log('Existing user check:', { existingUser, checkError });
 
     // Step 2: Create family first
     const { data: family, error: familyError } = await supabase
@@ -90,15 +91,15 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
       .single();
 
     if (familyError) {
-      console.error('Family creation error:', familyError);
+      logger.error('Family creation error:', familyError);
       throw new Error(`Impossible de créer la famille: ${familyError.message}`);
     }
 
-    console.log('Family created successfully:', family);
+    logger.log('Family created successfully:', family);
 
     // Step 3: Create or update user profile with the family_id
     if (!existingUser) {
-      console.log('Creating new user profile...');
+      logger.log('Creating new user profile...');
       
       const { data: newUser, error: createUserError } = await supabase
         .from('users')
@@ -113,8 +114,8 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
         .maybeSingle();
 
       if (createUserError) {
-        console.error('User creation error:', createUserError);
-        console.error('Error details:', JSON.stringify(createUserError, null, 2));
+        logger.error('User creation error:', createUserError);
+        logger.error('Error details:', JSON.stringify(createUserError, null, 2));
         
         // Clean up the family
         await supabase.from('families').delete().eq('id', family.id);
@@ -131,9 +132,9 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
         
         throw new Error(`Erreur lors de la création du profil: ${createUserError.message}`);
       }
-      console.log('User profile created:', newUser);
+      logger.log('User profile created:', newUser);
     } else {
-      console.log('Updating existing user profile...');
+      logger.log('Updating existing user profile...');
       const { data: updatedUser, error: userError } = await supabase
         .from('users')
         .update({ 
@@ -146,16 +147,16 @@ export const createFamily = async ({ family_name, user_id, user_email, user_firs
         .single();
 
       if (userError) {
-        console.error('User update error:', userError);
+        logger.error('User update error:', userError);
         await supabase.from('families').delete().eq('id', family.id);
         throw new Error(`Erreur lors de la mise à jour du profil: ${userError.message}`);
       }
-      console.log('User profile updated:', updatedUser);
+      logger.log('User profile updated:', updatedUser);
     }
 
     return family;
   } catch (error) {
-    console.error('Error in createFamily:', error);
+    logger.error('Error in createFamily:', error);
     if (error.message) {
       throw error;
     } else {
