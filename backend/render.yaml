@@ -7,12 +7,8 @@ services:
     runtime: elixir
     region: frankfurt # EU region proche de la France
     plan: free
-    buildCommand: |
-      mix local.hex --force
-      mix local.rebar --force
-      mix deps.get --only prod
-      MIX_ENV=prod mix compile
-      MIX_ENV=prod mix assets.deploy 2>/dev/null || true
+    rootDir: backend
+    buildCommand: mix local.hex --force && mix local.rebar --force && mix deps.get --only prod && MIX_ENV=prod mix compile && MIX_ENV=prod mix phx.digest
     startCommand: MIX_ENV=prod mix phx.server
     envVars:
       - key: MIX_ENV
