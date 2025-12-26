@@ -3,11 +3,14 @@ class ApiConfig {
   // URL du backend local (développement)
   static const String baseUrl = 'http://localhost:4000/api';
   
-  // URL du backend production (à configurer plus tard)
-  static const String productionUrl = 'https://api.nesti.fr/api';
+  // URL du backend production (Render)
+  static const String productionUrl = 'https://nesti-mvp.onrender.com/api';
   
-  // Utiliser l'URL de développement par défaut
-  static String get apiUrl => baseUrl;
+  // Détection automatique de l'environnement
+  static const bool isProduction = bool.fromEnvironment('dart.vm.product', defaultValue: false);
+  
+  // Utiliser l'URL appropriée selon l'environnement
+  static String get apiUrl => isProduction ? productionUrl : baseUrl;
   
   // Endpoints
   static const String healthEndpoint = '/health';
