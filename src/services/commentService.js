@@ -44,9 +44,7 @@ export async function addComment(messageId, userId, content) {
         {
           post_id: messageId,
           author_id: userId,
-          user_id: userId,
-          content: content,
-          created_at: new Date().toISOString()
+          content: content
         }
       ])
       .select(`

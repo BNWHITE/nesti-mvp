@@ -163,13 +163,18 @@ export default function FeedPage({ user, familyId }) {
       return;
     }
 
+    console.log('🔄 Toggle like pour post:', postId, 'user:', user.id);
+
     try {
       const { liked, error } = await toggleLike(postId, user.id);
       
       if (error) {
-        console.error('Erreur like:', error);
+        console.error('❌ Erreur like:', error);
+        alert('Erreur lors du like: ' + (error.message || error.details || 'Erreur inconnue'));
         return;
       }
+
+      console.log('✅ Like toggle réussi:', liked ? 'liké' : 'unliké');
 
       // Mettre à jour l'UI
       if (liked) {
@@ -188,7 +193,8 @@ export default function FeedPage({ user, familyId }) {
         ));
       }
     } catch (error) {
-      console.error('Erreur like:', error);
+      console.error('❌ Erreur like catch:', error);
+      alert('Erreur lors du like: ' + error.message);
     }
   };
   
@@ -220,16 +226,27 @@ export default function FeedPage({ user, familyId }) {
 
   const handleSubmitComment = async (postId) => {
     const content = commentInputs[postId]?.trim();
-    if (!content || !user?.id) return;
+    if (!content) {
+      alert('Veuillez écrire un commentaire');
+      return;
+    }
+    if (!user?.id) {
+      alert('Veuillez vous connecter pour commenter');
+      return;
+    }
+
+    console.log('🔄 Ajout commentaire:', { postId, userId: user.id, content });
 
     try {
       const { data, error } = await addComment(postId, user.id, content);
       
       if (error) {
-        console.error('Erreur ajout commentaire:', error);
-        alert('Erreur lors de l\'ajout du commentaire');
+        console.error('❌ Erreur ajout commentaire:', error);
+        alert('Erreur: ' + (error.message || error.details || 'Erreur inconnue'));
         return;
       }
+
+      console.log('✅ Commentaire ajouté:', data);
 
       // Ajouter le commentaire à la liste locale
       setPostComments(prev => ({
@@ -245,7 +262,8 @@ export default function FeedPage({ user, familyId }) {
       // Vider l'input
       setCommentInputs(prev => ({ ...prev, [postId]: '' }));
     } catch (error) {
-      console.error('Erreur ajout commentaire:', error);
+      console.error('❌ Erreur ajout commentaire catch:', error);
+      alert('Erreur: ' + error.message);
     }
   };
 
