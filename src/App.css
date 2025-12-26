@@ -1,0 +1,325 @@
+/* Nesti MVP - Main App Styles */
+@import './styles/theme.css';
+@import './styles/animations.css';
+
+/* App Container - Mobile First */
+.app {
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.3s ease;
+}
+
+.app-container {
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  position: relative;
+  transition: background-color 0.3s ease;
+}
+
+/* Main Content Area */
+.main {
+  flex: 1;
+  padding-bottom: 80px; /* Space for bottom navigation */
+  overflow-y: auto;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Page Containers */
+.page-container {
+  padding: var(--spacing-md);
+  min-height: calc(100vh - 80px);
+}
+
+/* Card Styles */
+.card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow);
+  margin-bottom: var(--spacing-md);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Button Styles */
+.btn {
+  padding: 10px 20px;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+.btn-secondary {
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+}
+
+.btn-secondary:hover {
+  background: var(--color-border);
+}
+
+/* Input Styles */
+input, textarea, select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: var(--font-size-base);
+  background: var(--color-bg-card);
+  color: var(--color-text);
+  transition: border-color 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* Avatar Styles */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-light);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: var(--font-size-base);
+}
+
+.avatar-sm {
+  width: 32px;
+  height: 32px;
+  font-size: var(--font-size-sm);
+}
+
+.avatar-lg {
+  width: 50px;
+  height: 50px;
+  font-size: var(--font-size-lg);
+}
+
+/* Badge Styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.badge-admin {
+  background: #10b981;
+  color: white;
+}
+
+.badge-parent {
+  background: #10b981;
+  color: white;
+}
+
+.badge-ado {
+  background: #fbbf24;
+  color: #78350f;
+}
+
+.badge-urgent {
+  background: #ef4444;
+  color: white;
+}
+
+/* Loading Container */
+.loading-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  gap: var(--spacing-md);
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container p {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN - MOBILE FIRST
+   ======================================== */
+
+/* Base: Mobile Small (320px+) - Default styles above */
+
+/* Mobile Medium: 375px+ */
+@media (min-width: 375px) {
+  .app-container {
+    max-width: 100%;
+  }
+}
+
+/* Mobile Large: 425px+ */
+@media (min-width: 425px) {
+  .page-container {
+    padding: var(--spacing-lg);
+  }
+  
+  .card {
+    padding: var(--spacing-lg);
+  }
+}
+
+/* Tablet: 768px+ */
+@media (min-width: 768px) {
+  .app-container {
+    max-width: 768px;
+  }
+
+  .page-container {
+    padding: var(--spacing-xl);
+  }
+
+  .btn {
+    padding: 12px 24px;
+    font-size: var(--font-size-md);
+  }
+
+  .card {
+    padding: var(--spacing-xl);
+  }
+
+  /* Two column layouts */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+  }
+}
+
+/* Laptop: 1024px+ */
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: 1024px;
+  }
+
+  /* Three column layouts */
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-lg);
+  }
+}
+
+/* Desktop: 1440px+ */
+@media (min-width: 1440px) {
+  .app-container {
+    max-width: 1200px;
+  }
+}
+
+/* Touch targets for mobile (minimum 44x44px) */
+@media (hover: none) and (pointer: coarse) {
+  .btn,
+  button,
+  a,
+  .clickable {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Safe area for notched phones */
+@supports (padding: max(0px)) {
+  .app {
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+
+  .main {
+    padding-bottom: max(80px, calc(80px + env(safe-area-inset-bottom)));
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Small screens - compact mode */
+@media (max-width: 640px) {
+  .page-container {
+    padding: var(--spacing);
+  }
+  
+  .card {
+    border-radius: var(--radius);
+    margin-bottom: var(--spacing);
+  }
+  
+  /* Hide decorative elements on small screens */
+  .hide-mobile {
+    display: none !important;
+  }
+}

@@ -1,0 +1,124 @@
+/* src/pages/AgendaPage.css (DESIGN FINAL / ÉVÉNEMENTS CLAIRS) */
+
+.agenda-page {
+    padding: 20px 15px;
+    background-color: var(--color-background);
+}
+
+.agenda-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.agenda-header h1 {
+    font-size: 1.8em;
+    color: var(--color-primary);
+    font-weight: 800;
+}
+
+.add-event-btn.primary {
+    padding: 10px 18px;
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    box-shadow: 0 4px 6px rgba(90, 24, 154, 0.2);
+}
+
+/* Calendrier Conteneur */
+.calendar-container {
+    background-color: var(--color-card-bg);
+    border-radius: 12px;
+    box-shadow: var(--color-shadow);
+    margin-bottom: 25px;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+}
+
+.calendar-toggle {
+    text-align: center;
+    padding: 12px;
+    background-color: var(--color-background);
+    cursor: pointer;
+    font-size: 0.9em;
+    color: var(--color-text-light);
+    font-weight: 600;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.calendar-placeholder {
+    padding: 30px 20px;
+    text-align: center;
+    color: var(--color-text-light);
+    font-style: italic;
+    background-color: var(--color-card-bg);
+}
+
+/* Liste d'événements */
+.event-list-container h2 {
+    font-size: 1.4em;
+    margin-bottom: 15px;
+    color: var(--color-text);
+    font-weight: 700;
+}
+
+.event-list {
+    max-height: 50vh; 
+    overflow-y: auto;
+}
+
+.event-card {
+    display: flex;
+    align-items: center;
+    background-color: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-left: 5px solid var(--color-primary); /* Rendu en JS */
+    transition: all 0.2s;
+}
+
+.event-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.event-date-box {
+    text-align: center;
+    padding-right: 15px;
+    border-right: 1px solid var(--color-border);
+    margin-right: 15px;
+    min-width: 60px;
+}
+
+.event-day {
+    display: block;
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.event-month {
+    display: block;
+    font-size: 0.75em;
+    color: var(--color-text-light);
+    text-transform: uppercase;
+}
+
+.event-title {
+    font-size: 1.15em;
+    margin: 0;
+    font-weight: 600;
+}
+
+.event-time {
+    font-size: 0.9em;
+    color: var(--color-text-light);
+    margin-top: 5px;
+    font-weight: 500;
+}

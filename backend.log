@@ -1,0 +1,182 @@
+🚀 Starting Nesti Elixir Backend...
+📦 Compiling...
+    warning: Guardian.DB.after_encode_and_sign/4 is undefined (module Guardian.DB is not available or is yet to be defined)
+    │
+ 32 │     with {:ok, _} <- Guardian.DB.after_encode_and_sign(resource, claims["typ"], claims, token) do
+    │                                  ~
+    │
+    └─ lib/nesti_api/guardian.ex:32:34: NestiApi.Guardian.after_encode_and_sign/4
+
+    warning: Guardian.DB.on_verify/2 is undefined (module Guardian.DB is not available or is yet to be defined)
+    │
+ 38 │     with {:ok, _} <- Guardian.DB.on_verify(claims, token) do
+    │                                  ~
+    │
+    └─ lib/nesti_api/guardian.ex:38:34: NestiApi.Guardian.on_verify/3
+
+    warning: Guardian.DB.on_refresh/2 is undefined (module Guardian.DB is not available or is yet to be defined)
+    │
+ 44 │     with {:ok, _, _} <- Guardian.DB.on_refresh({old_token, old_claims}, {new_token, new_claims}) do
+    │                                     ~
+    │
+    └─ lib/nesti_api/guardian.ex:44:37: NestiApi.Guardian.on_refresh/3
+
+    warning: Guardian.DB.on_revoke/2 is undefined (module Guardian.DB is not available or is yet to be defined)
+    │
+ 50 │     with {:ok, _} <- Guardian.DB.on_revoke(claims, token) do
+    │                                  ~
+    │
+    └─ lib/nesti_api/guardian.ex:50:34: NestiApi.Guardian.on_revoke/3
+
+    warning: unused alias User
+    │
+ 16 │   alias NestiApi.Accounts.User
+    │   ~
+    │
+    └─ lib/nesti_api/privacy/privacy.ex:16:3
+
+🔌 Starting Phoenix server on http://localhost:4000...
+    warning: Guardian.DB.after_encode_and_sign/4 is undefined (module Guardian.DB is not available or is yet to be defined)
+    │
+ 32 │     with {:ok, _} <- Guardian.DB.after_encode_and_sign(resource, claims["typ"], claims, token) do
+    │                                  ~
+    │
+    └─ lib/nesti_api/guardian.ex:32:34: NestiApi.Guardian.after_encode_and_sign/4
+
+    warning: Guardian.DB.on_verify/2 is undefined (module Guardian.DB is not available or is yet to be defined)
+    │
+ 38 │     with {:ok, _} <- Guardian.DB.on_verify(claims, token) do
+    │                                  ~
+    │
+    └─ lib/nesti_api/guardian.ex:38:34: NestiApi.Guardian.on_verify/3
+
+    warning: Guardian.DB.on_refresh/2 is undefined (module Guardian.DB is not available or is yet to be defined)
+    │
+ 44 │     with {:ok, _, _} <- Guardian.DB.on_refresh({old_token, old_claims}, {new_token, new_claims}) do
+    │                                     ~
+    │
+    └─ lib/nesti_api/guardian.ex:44:37: NestiApi.Guardian.on_refresh/3
+
+    warning: Guardian.DB.on_revoke/2 is undefined (module Guardian.DB is not available or is yet to be defined)
+    │
+ 50 │     with {:ok, _} <- Guardian.DB.on_revoke(claims, token) do
+    │                                  ~
+    │
+    └─ lib/nesti_api/guardian.ex:50:34: NestiApi.Guardian.on_revoke/3
+
+    warning: unused alias User
+    │
+ 16 │   alias NestiApi.Accounts.User
+    │   ~
+    │
+    └─ lib/nesti_api/privacy/privacy.ex:16:3
+
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[info] Running NestiApiWeb.Endpoint with Bandit 1.9.0 at :::4000 (http)
+[info] Access NestiApiWeb.Endpoint at https://localhost
+[error] Postgrex.Protocol (#PID<0.285.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.289.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.284.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.286.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.290.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.288.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.287.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.291.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.283.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.282.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.286.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.285.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.283.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.287.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.282.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.288.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.291.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.290.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.284.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.289.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.285.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.287.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.286.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.283.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.282.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.291.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.288.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.284.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.290.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[error] Postgrex.Protocol (#PID<0.285.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.289.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.286.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.287.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.283.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.291.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.282.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.288.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.291.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.287.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.285.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.289.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.286.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.288.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.283.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.284.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.290.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.282.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.288.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.287.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.291.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.283.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+[warning] :ssl_opts is deprecated, pass opts to :ssl instead
+[error] Postgrex.Protocol (#PID<0.285.0>) failed to connect: ** (Postgrex.Error) FATAL XX000 (internal_error) Tenant or user not found
+start-backend.sh: line 25: 95115 Killed: 9               mix phx.server
+start-backend.sh: line 31: syntax error near unexpected token `fi'
+start-backend.sh: line 31: `fi'

@@ -1,0 +1,160 @@
+/* src/pages/DiscoveriesPage.css (DESIGN FINAL / MAPS ET FILTRES) */
+
+.discoveries-page {
+    padding: 0; 
+    background-color: var(--color-background);
+}
+
+/* Zone Carte */
+.discoveries-map-area {
+    height: 300px; /* Plus grand pour l'esthétique */
+    background: linear-gradient(135deg, #00BFA6, #00A68A); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    position: sticky;
+    top: 50px; 
+    z-index: 5;
+}
+
+.map-placeholder {
+    color: white;
+    font-weight: bold;
+    font-size: 1.2em;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.discoveries-content {
+    padding: 20px 15px;
+}
+
+/* Recherche et Filtres Conteneur */
+.search-controls {
+    margin-bottom: 25px;
+    background-color: var(--color-card-bg);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: var(--color-shadow);
+    margin-top: -80px; /* Remonte sur la carte */
+    position: relative;
+    z-index: 6;
+    border: 1px solid var(--color-border);
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--color-secondary); /* Bordure accentuée */
+    border-radius: 25px;
+    margin-bottom: 15px;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    font-size: 1em;
+}
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.filter-btn {
+    padding: 8px 15px;
+    border: 1px solid var(--color-border);
+    border-radius: 25px;
+    background-color: var(--color-background);
+    color: var(--color-text-light);
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+.filter-btn.active {
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+/* Liste des activités */
+.activity-list-title {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    color: var(--color-primary);
+    font-weight: 700;
+}
+
+.activities-list {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: 1fr; 
+}
+
+.activity-card {
+    background: var(--color-card-bg);
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--color-border);
+    transition: transform 0.2s;
+}
+.activity-card:hover {
+    transform: translateY(-2px);
+}
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.activity-title {
+    font-size: 1.3em;
+    margin: 0;
+    color: var(--color-text);
+    font-weight: 700;
+}
+
+.badge {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.8em;
+    font-weight: 700;
+    color: white;
+}
+
+.difficulty-débutant, .difficulty-facile { background-color: #2ECC71; }
+.difficulty-intermédiaire { background-color: #F39C12; }
+.difficulty-avancé { background-color: #E74C3C; }
+
+
+.activity-description {
+    font-size: 0.95em;
+    color: var(--color-text-light);
+    margin-bottom: 20px;
+}
+
+.activity-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.suggest-btn, .details-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9em;
+}
+
+.suggest-btn {
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+}
+
+.details-btn {
+    background-color: var(--color-background);
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+}
