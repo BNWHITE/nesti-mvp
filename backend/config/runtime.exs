@@ -20,10 +20,7 @@ config :nesti_api, NestiApiWeb.Endpoint,
 config :nesti_api, NestiApi.Repo,
   url: System.get_env("DATABASE_URL"),
   pool_size: String.to_integer(System.get_env("DATABASE_POOL_SIZE") || "10"),
-  ssl: true,
-  ssl_opts: [
-    verify: :verify_none
-  ]
+  ssl: [verify: :verify_none]
 
 # Do not print debug messages in production
 config :logger, level: :info
@@ -55,7 +52,7 @@ if config_env() == :prod do
   config :nesti_api, NestiApi.Repo,
     url: database_url,
     pool_size: String.to_integer(System.get_env("DATABASE_POOL_SIZE") || "10"),
-    ssl: true
+    ssl: [verify: :verify_none]
 
   config :nesti_api, NestiApiWeb.Endpoint,
     secret_key_base: secret_key_base
