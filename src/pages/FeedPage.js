@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { toggleLike, getUserLikesForPosts } from '../services/likeService';
+import { addComment, getComments } from '../services/commentService';
 import './FeedPage.css';
 
 // Helper pour formater le temps écoulé
@@ -28,7 +30,11 @@ export default function FeedPage({ user, familyId }) {
   const [posts, setPosts] = useState([]);
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [userName, setUserName] = useState('Utilisateur'); 
+  const [userName, setUserName] = useState('Utilisateur');
+  const [userLikes, setUserLikes] = useState(new Set());
+  const [expandedComments, setExpandedComments] = useState(new Set());
+  const [commentInputs, setCommentInputs] = useState({});
+  const [postComments, setPostComments] = useState({}); 
 
   const fetchUserData = useCallback(async () => {
     try {
@@ -90,11 +96,30 @@ export default function FeedPage({ user, familyId }) {
         content: post.content,
         type: 'post',
         time: formatTimeAgo(post.created_at),
-        likes: post.likes_count || 0,
+        likes: 0, // Sera mis à jour par le comptage des réactions
         comments: 0
       }));
 
       setPosts(formattedPosts);
+
+      // Charger les likes de l'utilisateur pour ces posts
+      if (formattedPosts.length > 0 && user?.id) {
+        const postIds = formattedPosts.map(p => p.id);
+        const { likedPostIds } = await getUserLikesForPosts(postIds, user.id);
+        setUserLikes(likedPostIds);
+
+        // Compter les likes pour chaque post
+        for (const post of formattedPosts) {
+          const { count } = await supabase
+            .from('post_reactions')
+            .select('*', { count: 'exact', head: true })
+            .eq('post_id', post.id)
+            .eq('reaction_type', 'like');
+          
+          post.likes = count || 0;
+        }
+        setPosts([...formattedPosts]);
+      }
 
     } catch (error) {
       console.error('Erreur chargement:', error);
@@ -132,15 +157,96 @@ export default function FeedPage({ user, familyId }) {
     }
   };
 
-  const handleLike = (postId) => {
-    // Logique de Like (Mise à jour du state et de Supabase)
-    console.log(`Liking post ${postId}`);
-    setPosts(posts.map(p => p.id === postId ? { ...p, likes: p.likes + 1 } : p));
+  const handleLike = async (postId) => {
+    if (!user?.id) {
+      alert('Veuillez vous connecter pour aimer ce post');
+      return;
+    }
+
+    try {
+      const { liked, error } = await toggleLike(postId, user.id);
+      
+      if (error) {
+        console.error('Erreur like:', error);
+        return;
+      }
+
+      // Mettre à jour l'UI
+      if (liked) {
+        setUserLikes(prev => new Set([...prev, postId]));
+        setPosts(posts.map(p => 
+          p.id === postId ? { ...p, likes: p.likes + 1 } : p
+        ));
+      } else {
+        setUserLikes(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(postId);
+          return newSet;
+        });
+        setPosts(posts.map(p => 
+          p.id === postId ? { ...p, likes: Math.max(0, p.likes - 1) } : p
+        ));
+      }
+    } catch (error) {
+      console.error('Erreur like:', error);
+    }
   };
   
-  const handleComment = (postId) => {
-    // Logique d'affichage du champ de commentaire (Mise à jour du state)
-    alert(`Fonctionnalité Commenter pour le post ${postId} à implémenter !`);
+  const handleComment = async (postId) => {
+    // Toggle l'affichage des commentaires
+    setExpandedComments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(postId)) {
+        newSet.delete(postId);
+      } else {
+        newSet.add(postId);
+        // Charger les commentaires si pas encore fait
+        loadComments(postId);
+      }
+      return newSet;
+    });
+  };
+
+  const loadComments = async (postId) => {
+    try {
+      const { data, error } = await getComments(postId);
+      if (!error && data) {
+        setPostComments(prev => ({ ...prev, [postId]: data }));
+      }
+    } catch (error) {
+      console.error('Erreur chargement commentaires:', error);
+    }
+  };
+
+  const handleSubmitComment = async (postId) => {
+    const content = commentInputs[postId]?.trim();
+    if (!content || !user?.id) return;
+
+    try {
+      const { data, error } = await addComment(postId, user.id, content);
+      
+      if (error) {
+        console.error('Erreur ajout commentaire:', error);
+        alert('Erreur lors de l\'ajout du commentaire');
+        return;
+      }
+
+      // Ajouter le commentaire à la liste locale
+      setPostComments(prev => ({
+        ...prev,
+        [postId]: [...(prev[postId] || []), data]
+      }));
+
+      // Mettre à jour le compteur
+      setPosts(posts.map(p => 
+        p.id === postId ? { ...p, comments: (p.comments || 0) + 1 } : p
+      ));
+
+      // Vider l'input
+      setCommentInputs(prev => ({ ...prev, [postId]: '' }));
+    } catch (error) {
+      console.error('Erreur ajout commentaire:', error);
+    }
   };
 
   const quickActions = [
@@ -221,13 +327,58 @@ export default function FeedPage({ user, familyId }) {
               </div>
 
               <div className="post-reactions-bar">
-                <button className="reaction-btn like-btn" onClick={() => handleLike(post.id)}>
-                    ❤️ J'aime
+                <button 
+                  className={`reaction-btn like-btn ${userLikes.has(post.id) ? 'liked' : ''}`} 
+                  onClick={() => handleLike(post.id)}
+                >
+                    {userLikes.has(post.id) ? '❤️' : '🤍'} J'aime
                 </button>
                 <button className="reaction-btn comment-btn" onClick={() => handleComment(post.id)}>
                     💬 Commenter
                 </button>
               </div>
+
+              {/* Section commentaires */}
+              {expandedComments.has(post.id) && (
+                <div className="comments-section">
+                  <div className="comments-list">
+                    {(postComments[post.id] || []).map(comment => (
+                      <div key={comment.id} className="comment-item">
+                        <span className="comment-author">
+                          {comment.user?.first_name || 'Anonyme'}:
+                        </span>
+                        <span className="comment-content">{comment.content}</span>
+                      </div>
+                    ))}
+                    {(postComments[post.id] || []).length === 0 && (
+                      <p className="no-comments">Aucun commentaire. Soyez le premier !</p>
+                    )}
+                  </div>
+                  <div className="comment-input-container">
+                    <input
+                      type="text"
+                      placeholder="Écrire un commentaire..."
+                      value={commentInputs[post.id] || ''}
+                      onChange={(e) => setCommentInputs(prev => ({ 
+                        ...prev, 
+                        [post.id]: e.target.value 
+                      }))}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSubmitComment(post.id);
+                        }
+                      }}
+                      className="comment-input"
+                    />
+                    <button 
+                      onClick={() => handleSubmitComment(post.id)}
+                      className="comment-submit-btn"
+                    >
+                      Envoyer
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -43,11 +43,9 @@ const preventDataLeakage = () => {
 
 // Nettoyer à la fermeture de la page
 const setupSecurityListeners = () => {
-  // Nettoyer quand l'utilisateur quitte la page
-  window.addEventListener('beforeunload', () => {
-    // Supprimer les données de session (pas les préférences)
-    sessionStorage.clear();
-  });
+  // NOTE: On ne supprime plus les données de session au beforeunload
+  // pour permettre à l'utilisateur de rester connecté entre les visites
+  // La session Supabase est gérée automatiquement avec les refresh tokens
   
   // Détecter l'inactivité et déconnecter après 30 min
   let inactivityTimer;
