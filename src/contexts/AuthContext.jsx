@@ -55,13 +55,13 @@ const setupSecurityListeners = () => {
     clearTimeout(inactivityTimer);
     inactivityTimer = setTimeout(() => {
       logger.warn('🔒 Déconnexion automatique pour inactivité');
-      supabase.auth. signOut();
+      supabase.auth.signOut();
       clearSensitiveData();
       window.location.href = '/auth';
     }, 30 * 60 * 1000); // 30 minutes
   };
   
-  ['mousedown', 'keydown', 'scroll', 'touchstart']. forEach(event => {
+  ['mousedown', 'keydown', 'scroll', 'touchstart'].forEach(event => {
     document.addEventListener(event, resetInactivityTimer);
   });
   
@@ -93,16 +93,16 @@ export const AuthProvider = ({ children }) => {
     setupSecurityListeners();
     
     // Check active sessions and sets the user
-    supabase.auth. getSession().then(({ data:  { session } }) => {
+    supabase.auth.getSession().then(({ data:  { session } }) => {
       setSession(session);
-      setUser(session?. user ??  null);
+      setUser(session?.user ?? null);
       setLoading(false);
     });
 
     // Listen for changes on auth state
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      setUser(session?. user ?? null);
+      setUser(session?.user ?? null);
       setLoading(false);
       
       // 🔒 Si déconnexion, nettoyer les données
@@ -131,7 +131,7 @@ export const AuthProvider = ({ children }) => {
         const { error: profileError } = await supabase
           .from('users')
           .insert([{
-            id: data.user. id,
+            id: data.user.id,
             email: email,
             first_name: metadata.first_name || '',
             age: metadata.age || null,
@@ -151,15 +151,15 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async (email, password) => {
     try {
-      const { data, error } = await supabase. auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (error) {
         if (error.message === 'Invalid login credentials') {
-          error.message = 'Email ou mot de passe incorrect.  Vérifiez vos identifiants ou créez un compte si vous êtes nouveau.';
-        } else if (error. message. includes('Email not confirmed')) {
-          error.message = 'Veuillez confirmer votre email avant de vous connecter.  Vérifiez votre boîte de réception.';
+          error.message = 'Email ou mot de passe incorrect. Vérifiez vos identifiants ou créez un compte si vous êtes nouveau.';
+        } else if (error.message.includes('Email not confirmed')) {
+          error.message = 'Veuillez confirmer votre email avant de vous connecter. Vérifiez votre boîte de réception.';
         }
         throw error;
       }
@@ -169,15 +169,15 @@ export const AuthProvider = ({ children }) => {
         const { data: existingProfile } = await supabase
           .from('users')
           .select('id')
-          .eq('id', data.user. id)
+          .eq('id', data.user.id)
           .single();
         
         if (! existingProfile) {
           await supabase
             .from('users')
             .insert([{
-              id: data. user.id,
-              email: data. user.email,
+              id: data.user.id,
+              email: data.user.email,
               first_name:  data.user.user_metadata?.first_name || data.user.email.split('@')[0],
               role: 'parent',
             }]);
@@ -192,7 +192,7 @@ export const AuthProvider = ({ children }) => {
 
   const signInWithOAuth = async (provider) => {
     try {
-      const { data, error } = await supabase.auth. signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo:  window.location.origin,
@@ -201,7 +201,7 @@ export const AuthProvider = ({ children }) => {
       if (error) throw error;
       return { data, error: null };
     } catch (error) {
-      return { data:  null, error };
+      return { data: null, error };
     }
   };
 
@@ -240,7 +240,7 @@ export const AuthProvider = ({ children }) => {
         data: updates,
       });
       if (error) throw error;
-      return { data, error:  null };
+      return { data, error: null };
     } catch (error) {
       return { data: null, error };
     }

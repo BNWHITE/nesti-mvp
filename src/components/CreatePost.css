@@ -197,3 +197,88 @@
   background: #9ca3af;
   cursor: not-allowed;
 }
+
+/* Emoji Picker */
+.emoji-picker {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.emoji-btn {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  background: white;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.emoji-btn:hover {
+  border-color: #2D5F5D;
+  transform: scale(1.1);
+}
+
+.emoji-btn.selected {
+  border-color: #2D5F5D;
+  background: #f0fdf4;
+}
+
+/* Post Error */
+.post-error {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+/* Post Footer */
+.post-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+/* Create Post Form - Direct */
+.create-post-form textarea {
+  width: 100%;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color 0.2s ease;
+}
+
+.create-post-form textarea:focus {
+  outline: none;
+  border-color: #2D5F5D;
+}
+
+.create-post-form button[type="submit"] {
+  padding: 10px 24px;
+  background: #2D5F5D;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.create-post-form button[type="submit"]:hover:not(:disabled) {
+  background: #4A8B7A;
+}
+
+.create-post-form button[type="submit"]:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
