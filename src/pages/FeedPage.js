@@ -4,6 +4,26 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import './FeedPage.css';
 
+// Helper pour formater le temps écoulé
+const formatTimeAgo = (timestamp) => {
+  if (!timestamp) return 'Maintenant';
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  
+  if (diffMins < 1) return "À l'instant";
+  if (diffMins < 60) return `Il y a ${diffMins} min`;
+  
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `Il y a ${diffHours}h`;
+  
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `Il y a ${diffDays}j`;
+  
+  return date.toLocaleDateString('fr-FR');
+};
+
 export default function FeedPage({ user, familyId }) { 
   const [posts, setPosts] = useState([]);
   const [activities, setActivities] = useState([]);
@@ -39,19 +59,42 @@ export default function FeedPage({ user, familyId }) {
       if (activitiesError) throw activitiesError;
       setActivities(activitiesData || []);
 
-      // Mock posts avec des compteurs de likes et commentaires
-      const mockPosts = [
-        {
-          id: 1,
-          author: { name: userName || 'Utilisateur', role: 'parent', emoji: '👨‍👩‍👧' }, 
-          content: "Bienvenue dans notre Nest familial ! 🏡 N'oubliez pas de consulter les nouvelles idées d'activités !",
-          type: "welcome",
-          time: "Maintenant",
-          likes: 5,
-          comments: 2
-        }
-      ];
-      setPosts(mockPosts);
+      // Charger les vrais posts depuis Supabase
+      const { data: postsData, error: postsError } = await supabase
+        .from('posts')
+        .select(`
+          id,
+          content,
+          emoji,
+          likes_count,
+          created_at,
+          author:profiles!author_id(id, first_name, avatar_url)
+        `)
+        .eq('family_id', familyId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (postsError) {
+        console.error('Erreur chargement posts:', postsError);
+      }
+
+      // Transformer les posts pour l'affichage
+      const formattedPosts = (postsData || []).map(post => ({
+        id: post.id,
+        author: {
+          name: post.author?.first_name || userName || 'Utilisateur',
+          role: 'parent',
+          emoji: post.emoji || '👨‍👩‍👧',
+          avatar_url: post.author?.avatar_url
+        },
+        content: post.content,
+        type: 'post',
+        time: formatTimeAgo(post.created_at),
+        likes: post.likes_count || 0,
+        comments: 0
+      }));
+
+      setPosts(formattedPosts);
 
     } catch (error) {
       console.error('Erreur chargement:', error);
