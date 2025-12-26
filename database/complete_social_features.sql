@@ -88,13 +88,14 @@ CREATE POLICY "Users can delete own post reactions" ON post_reactions FOR DELETE
 
 -- 7. VÉRIFIER/CORRIGER LES RLS SUR comments
 -- =====================================================
+-- NOTE: La table comments utilise author_id, pas user_id
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Anyone can view comments" ON comments;
 CREATE POLICY "Anyone can view comments" ON comments FOR SELECT USING (true);
 DROP POLICY IF EXISTS "Users can add comments" ON comments;
-CREATE POLICY "Users can add comments" ON comments FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can add comments" ON comments FOR INSERT WITH CHECK (auth.uid() = author_id);
 DROP POLICY IF EXISTS "Users can delete own comments" ON comments;
-CREATE POLICY "Users can delete own comments" ON comments FOR DELETE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own comments" ON comments FOR DELETE USING (auth.uid() = author_id);
 
 -- 8. VÉRIFICATION FINALE
 -- =====================================================
