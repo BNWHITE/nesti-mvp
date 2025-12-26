@@ -1,5 +1,12 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# Environment files (NEVER COMMIT)
+.env
+.env.*
+backend/.env
+!.env.example
+!backend/.env.example
+
 # dependencies
 /node_modules
 /.pnp
@@ -21,3 +28,21 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Elixir/Phoenix
+backend/_build/
+backend/deps/
+backend/*.ez
+backend/erl_crash.dump
+backend/.elixir_ls/
+
+# Flutter
+frontend/.dart_tool/
+frontend/.packages
+frontend/build/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+
+# Logs
+*.log
+backend.log
