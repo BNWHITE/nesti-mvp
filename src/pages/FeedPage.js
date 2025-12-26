@@ -65,17 +65,10 @@ export default function FeedPage({ user, familyId }) {
       if (activitiesError) throw activitiesError;
       setActivities(activitiesData || []);
 
-      // Charger les vrais posts depuis Supabase
+      // Charger les vrais posts depuis Supabase (sans JOIN problématique)
       const { data: postsData, error: postsError } = await supabase
         .from('posts')
-        .select(`
-          id,
-          content,
-          emoji,
-          likes_count,
-          created_at,
-          author:profiles!author_id(id, first_name, avatar_url)
-        `)
+        .select('id, content, emoji, created_at, author_id')
         .eq('family_id', familyId)
         .order('created_at', { ascending: false })
         .limit(20);
@@ -87,16 +80,17 @@ export default function FeedPage({ user, familyId }) {
       // Transformer les posts pour l'affichage
       const formattedPosts = (postsData || []).map(post => ({
         id: post.id,
+        author_id: post.author_id,
         author: {
-          name: post.author?.first_name || userName || 'Utilisateur',
+          name: userName || 'Utilisateur',
           role: 'parent',
           emoji: post.emoji || '👨‍👩‍👧',
-          avatar_url: post.author?.avatar_url
+          avatar_url: null
         },
         content: post.content,
         type: 'post',
         time: formatTimeAgo(post.created_at),
-        likes: 0, // Sera mis à jour par le comptage des réactions
+        likes: 0,
         comments: 0
       }));
 

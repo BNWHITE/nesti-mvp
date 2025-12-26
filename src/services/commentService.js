@@ -18,15 +18,27 @@ export async function getComments(messageId) {
   try {
     const { data, error } = await supabase
       .from('comments')
-      .select(`
-        *,
-        user:profiles!author_id(id, first_name, email, avatar_url)
-      `)
+      .select('*')
       .eq('post_id', messageId)
       .order('created_at', { ascending: true });
 
     if (error) throw error;
-    return { data, error: null };
+    
+    // Enrichir avec les infos utilisateur si possible
+    const enrichedData = await Promise.all((data || []).map(async (comment) => {
+      try {
+        const { data: userData } = await supabase
+          .from('user_profiles')
+          .select('id, first_name, email, avatar_url')
+          .eq('id', comment.author_id)
+          .single();
+        return { ...comment, user: userData };
+      } catch {
+        return { ...comment, user: null };
+      }
+    }));
+    
+    return { data: enrichedData, error: null };
   } catch (error) {
     logError('Error fetching comments:', error);
     return { data: null, error };
@@ -38,6 +50,7 @@ export async function getComments(messageId) {
  */
 export async function addComment(messageId, userId, content) {
   try {
+    // Insérer le commentaire sans JOIN
     const { data, error } = await supabase
       .from('comments')
       .insert([
@@ -47,16 +60,28 @@ export async function addComment(messageId, userId, content) {
           content: content
         }
       ])
-      .select(`
-        *,
-        user:profiles!author_id(id, first_name, email, avatar_url)
-      `)
+      .select('*')
       .single();
 
     if (error) throw error;
-    return { data, error: null };
+    
+    // Récupérer les infos utilisateur séparément
+    let user = null;
+    try {
+      const { data: userData } = await supabase
+        .from('user_profiles')
+        .select('id, first_name, email, avatar_url')
+        .eq('id', userId)
+        .single();
+      user = userData;
+    } catch {
+      // Ignorer si pas de profil
+    }
+    
+    return { data: { ...data, user }, error: null };
   } catch (error) {
     logError('Error adding comment:', error);
+    console.error('Détails erreur commentaire:', error);
     return { data: null, error };
   }
 }
