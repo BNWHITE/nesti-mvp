@@ -113,7 +113,7 @@ export default function Home() {
         setPosts([]);
       } else {
         // Transform posts to the expected format
-        // La table posts utilise has_photo, has_video au lieu de media_type
+        // La table posts utilise has_photo, has_video, image_url, video_url
         const transformedPosts = (postsData || []).map(post => ({
           id: post.id,
           author: post.user_profiles?.first_name || 'Membre',
@@ -121,8 +121,8 @@ export default function Home() {
           timestamp: formatTimestamp(post.created_at),
           type: post.has_video ? 'video' : post.has_photo ? 'photo' : 'text',
           content: post.content,
-          image: post.video_url || null,
-          video_url: post.video_url,
+          image: post.image_url || null,
+          video_url: post.video_url || null,
           likes: post.likes_count || 0,
           reactions: 0,
           celebrations: 0,
@@ -186,7 +186,7 @@ export default function Home() {
           mediaType = 'video';
         }
         
-        // La table posts utilise has_photo, has_video, video_url au lieu de media_type
+        // La table posts utilise has_photo, has_video, image_url, video_url
         // content est NOT NULL, donc mettre une chaîne vide si pas de texte
         const postData = {
           family_id: family.id,
@@ -195,6 +195,7 @@ export default function Home() {
           content: postContent.trim() || '',
           has_photo: mediaType === 'photo',
           has_video: mediaType === 'video',
+          image_url: mediaType === 'photo' ? mediaUrl : null,
           video_url: mediaType === 'video' ? mediaUrl : null,
           media_count: mediaUrl ? 1 : 0
         };
@@ -221,7 +222,7 @@ export default function Home() {
 
         if (data) {
           // Add new post to feed
-          // Utiliser has_video/has_photo au lieu de media_type
+          // Utiliser has_video/has_photo et image_url/video_url
           const newPost = {
             id: data.id,
             author: data.user_profiles?.first_name || 'Vous',
@@ -229,8 +230,8 @@ export default function Home() {
             timestamp: 'Il y a quelques instants',
             type: data.has_video ? 'video' : data.has_photo ? 'photo' : 'text',
             content: data.content,
-            image: data.video_url || null,
-            video_url: data.video_url,
+            image: data.image_url || null,
+            video_url: data.video_url || null,
             likes: 0,
             reactions: 0,
             celebrations: 0,
