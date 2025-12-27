@@ -3,17 +3,25 @@
 -- À exécuter dans Supabase SQL Editor
 -- =====================================================
 
--- 1. VÉRIFIER/CRÉER LA TABLE user_profiles
+-- 1. AJOUTER LES COLONNES MANQUANTES À user_profiles (SI ELLE EXISTE DÉJÀ)
 -- =====================================================
-CREATE TABLE IF NOT EXISTS user_profiles (
-  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-  email TEXT,
-  first_name TEXT,
-  last_name TEXT,
-  avatar_url TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
+DO $$ 
+BEGIN
+  -- Ajouter email si elle n'existe pas
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_profiles' AND column_name = 'email') THEN
+    ALTER TABLE user_profiles ADD COLUMN email TEXT;
+  END IF;
+  
+  -- Ajouter first_name si elle n'existe pas
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_profiles' AND column_name = 'first_name') THEN
+    ALTER TABLE user_profiles ADD COLUMN first_name TEXT;
+  END IF;
+  
+  -- Ajouter avatar_url si elle n'existe pas
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_profiles' AND column_name = 'avatar_url') THEN
+    ALTER TABLE user_profiles ADD COLUMN avatar_url TEXT;
+  END IF;
+END $$;
 
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Anyone can view profiles" ON user_profiles;
@@ -97,18 +105,18 @@ CREATE POLICY "Users can add comments" ON comments FOR INSERT WITH CHECK (auth.u
 DROP POLICY IF EXISTS "Users can delete own comments" ON comments;
 CREATE POLICY "Users can delete own comments" ON comments FOR DELETE USING (auth.uid() = author_id);
 
--- 8. TRIGGER POUR CRÉER AUTOMATIQUEMENT UN PROFIL UTILISATEUR
+-- 8. TRIGGER POUR CRÉER/METTRE À JOUR AUTOMATIQUEMENT UN PROFIL UTILISATEUR
 -- =====================================================
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
-  INSERT INTO public.user_profiles (id, email, first_name)
+  INSERT INTO public.user_profiles (id, first_name)
   VALUES (
     NEW.id,
-    NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'first_name', split_part(NEW.email, '@', 1))
   )
-  ON CONFLICT (id) DO NOTHING;
+  ON CONFLICT (id) DO UPDATE SET
+    first_name = COALESCE(EXCLUDED.first_name, user_profiles.first_name);
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -118,15 +126,14 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- Créer les profils pour les utilisateurs existants qui n'en ont pas
-INSERT INTO public.user_profiles (id, email, first_name)
+-- Créer/mettre à jour les profils pour les utilisateurs existants
+INSERT INTO public.user_profiles (id, first_name)
 SELECT 
   id, 
-  email, 
   COALESCE(raw_user_meta_data->>'first_name', split_part(email, '@', 1))
 FROM auth.users
-WHERE id NOT IN (SELECT id FROM public.user_profiles)
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+  first_name = COALESCE(EXCLUDED.first_name, user_profiles.first_name);
 
 -- 9. RLS POUR POSTS (UPDATE/DELETE)
 -- =====================================================

@@ -279,7 +279,9 @@ export default function FeedPage({ user, familyId }) {
       // Charger les likes de l'utilisateur pour ces posts
       if (formattedPosts.length > 0 && user?.id) {
         const postIds = formattedPosts.map(p => p.id);
-        const { likedPostIds } = await getUserLikesForPosts(postIds, user.id);
+        
+        // Nouvelle API simplifiée - pas besoin de passer userId
+        const { likedPostIds } = await getUserLikesForPosts(postIds);
         setUserLikes(likedPostIds);
 
         // Compter les likes pour chaque post
@@ -331,7 +333,7 @@ export default function FeedPage({ user, familyId }) {
     }
   };
 
-  const handleLike = async (postId, authorId) => {
+  const handleLike = async (postId) => {
     if (!user?.id) {
       alert('Veuillez vous connecter pour aimer ce post');
       return;
@@ -344,31 +346,35 @@ export default function FeedPage({ user, familyId }) {
     }, 600);
 
     try {
-      const { liked, error } = await toggleLike(postId, user.id, authorId);
+      // Nouvelle API simplifiée - pas besoin de passer userId
+      const { liked, count, error } = await toggleLike(postId);
       
       if (error) {
-        console.error('Erreur like:', error);
+        console.error('❌ Erreur like:', error);
+        alert('Erreur: ' + error.message);
         return;
       }
 
-      // Mettre à jour l'UI
+      console.log('✅ Like toggle réussi:', { liked, count });
+
+      // Mettre à jour l'UI avec le nouveau count
       if (liked) {
         setUserLikes(prev => new Set([...prev, postId]));
-        setPosts(posts.map(p => 
-          p.id === postId ? { ...p, likes: p.likes + 1 } : p
-        ));
       } else {
         setUserLikes(prev => {
           const newSet = new Set(prev);
           newSet.delete(postId);
           return newSet;
         });
-        setPosts(posts.map(p => 
-          p.id === postId ? { ...p, likes: Math.max(0, p.likes - 1) } : p
-        ));
       }
+      
+      // Mettre à jour le nombre de likes avec la valeur du serveur
+      setPosts(posts.map(p => 
+        p.id === postId ? { ...p, likes: count } : p
+      ));
+      
     } catch (error) {
-      console.error('Erreur like:', error);
+      console.error('❌ Exception like:', error);
     }
   };
   
@@ -544,7 +550,7 @@ export default function FeedPage({ user, familyId }) {
                     src={post.image_url} 
                     alt="Contenu du post" 
                     className="post-image"
-                    onDoubleClick={() => handleLike(post.id, post.author_id)}
+                    onDoubleClick={() => handleLike(post.id)}
                   />
                   {likeAnimations[post.id] && (
                     <div className="like-animation">❤️</div>
@@ -556,7 +562,7 @@ export default function FeedPage({ user, familyId }) {
               <div className="post-actions-bar">
                 <button 
                   className={`action-btn ${userLikes.has(post.id) ? 'liked' : ''}`}
-                  onClick={() => handleLike(post.id, post.author_id)}
+                  onClick={() => handleLike(post.id)}
                 >
                   {userLikes.has(post.id) ? '❤️' : '🤍'}
                 </button>

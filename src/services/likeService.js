@@ -1,162 +1,182 @@
-import { supabase } from '../lib/supabaseClient';
-import { createNotification } from './notificationService';
+// src/services/likeService.js - VERSION SIMPLIFIÉE ET ROBUSTE
+import { supabase, getCurrentUser, debugSession } from '../lib/supabaseClient';
 
 /**
- * Service pour gérer les likes/réactions sur les posts
+ * Toggle like sur un post - VERSION ULTRA-SIMPLE
+ * @param {string} postId - ID du post
+ * @returns {Promise<{liked: boolean, count: number, error: Error|null}>}
  */
-
-/**
- * Vérifier si l'utilisateur a déjà liké un post
- */
-export async function hasUserLiked(postId, userId) {
+export async function toggleLike(postId) {
   try {
-    const { data, error } = await supabase
+    // 1. Vérifier la session
+    const user = await getCurrentUser();
+    if (!user) {
+      console.error('❌ toggleLike: Utilisateur non connecté');
+      await debugSession();
+      return { liked: false, count: 0, error: new Error('Non connecté') };
+    }
+    
+    console.log('🔄 toggleLike:', { postId, userId: user.id });
+    
+    // 2. Vérifier si déjà liké
+    const { data: existingLike, error: checkError } = await supabase
       .from('post_reactions')
       .select('id')
       .eq('post_id', postId)
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .eq('reaction_type', 'like')
       .maybeSingle();
-
-    if (error) throw error;
-    return { hasLiked: !!data, error: null };
-  } catch (error) {
-    console.error('Erreur hasUserLiked:', error);
-    return { hasLiked: false, error };
-  }
-}
-
-/**
- * Ajouter un like à un post
- */
-export async function likePost(postId, userId) {
-  try {
-    const { data, error } = await supabase
-      .from('post_reactions')
-      .insert([{
-        post_id: postId,
-        user_id: userId,
-        reaction_type: 'like'
-      }])
-      .select()
-      .single();
-
-    if (error) {
-      if (error.code === '23505') {
-        return { data: null, error: null, alreadyLiked: true };
-      }
-      throw error;
-    }
-    
-    // Notifier l'auteur du post
-    try {
-      const { data: post } = await supabase
-        .from('posts')
-        .select('author_id')
-        .eq('id', postId)
-        .single();
-      
-      if (post && post.author_id !== userId) {
-        await createNotification({
-          userId: post.author_id,
-          actorId: userId,
-          type: 'like_post',
-          postId: postId
-        });
-      }
-    } catch { /* ignore */ }
-    
-    return { data, error: null, alreadyLiked: false };
-  } catch (error) {
-    console.error('Erreur likePost:', error);
-    return { data: null, error, alreadyLiked: false };
-  }
-}
-
-/**
- * Retirer un like d'un post
- */
-export async function unlikePost(postId, userId) {
-  try {
-    const { error } = await supabase
-      .from('post_reactions')
-      .delete()
-      .eq('post_id', postId)
-      .eq('user_id', userId)
-      .eq('reaction_type', 'like');
-
-    if (error) throw error;
-    return { error: null };
-  } catch (error) {
-    console.error('Erreur unlikePost:', error);
-    return { error };
-  }
-}
-
-/**
- * Toggle like (ajouter si pas liké, retirer sinon)
- */
-export async function toggleLike(postId, userId) {
-  try {
-    const { hasLiked, error: checkError } = await hasUserLiked(postId, userId);
     
     if (checkError) {
-      return { liked: false, error: checkError };
+      console.error('❌ Erreur vérification like:', checkError);
+      return { liked: false, count: 0, error: checkError };
     }
     
-    if (hasLiked) {
-      const { error } = await unlikePost(postId, userId);
-      if (error) return { liked: true, error };
-      return { liked: false, error: null };
+    let liked = false;
+    
+    if (existingLike) {
+      // 3a. Retirer le like
+      console.log('➖ Retrait du like...');
+      const { error: deleteError } = await supabase
+        .from('post_reactions')
+        .delete()
+        .eq('id', existingLike.id);
+      
+      if (deleteError) {
+        console.error('❌ Erreur suppression like:', deleteError);
+        return { liked: true, count: 0, error: deleteError };
+      }
+      liked = false;
     } else {
-      const { error } = await likePost(postId, userId);
-      if (error) return { liked: false, error };
-      return { liked: true, error: null };
+      // 3b. Ajouter le like
+      console.log('➕ Ajout du like...');
+      const { error: insertError } = await supabase
+        .from('post_reactions')
+        .insert({
+          post_id: postId,
+          user_id: user.id,
+          reaction_type: 'like'
+        });
+      
+      if (insertError) {
+        console.error('❌ Erreur ajout like:', insertError);
+        return { liked: false, count: 0, error: insertError };
+      }
+      liked = true;
     }
+    
+    // 4. Compter les likes
+    const { count, error: countError } = await supabase
+      .from('post_reactions')
+      .select('*', { count: 'exact', head: true })
+      .eq('post_id', postId)
+      .eq('reaction_type', 'like');
+    
+    if (countError) {
+      console.error('❌ Erreur comptage likes:', countError);
+    }
+    
+    console.log('✅ toggleLike réussi:', { liked, count: count || 0 });
+    return { liked, count: count || 0, error: null };
+    
   } catch (error) {
-    console.error('Erreur toggleLike:', error);
-    return { liked: false, error };
+    console.error('❌ toggleLike exception:', error);
+    return { liked: false, count: 0, error };
+  }
+}
+
+/**
+ * Obtenir les likes de l'utilisateur pour une liste de posts
+ * @param {string[]} postIds - Liste des IDs de posts
+ * @returns {Promise<{likedPostIds: Set<string>, error: Error|null}>}
+ */
+export async function getUserLikesForPosts(postIds) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return { likedPostIds: new Set(), error: null };
+    }
+    
+    if (!postIds || postIds.length === 0) {
+      return { likedPostIds: new Set(), error: null };
+    }
+    
+    const { data, error } = await supabase
+      .from('post_reactions')
+      .select('post_id')
+      .eq('user_id', user.id)
+      .eq('reaction_type', 'like')
+      .in('post_id', postIds);
+    
+    if (error) {
+      console.error('❌ getUserLikesForPosts:', error);
+      return { likedPostIds: new Set(), error };
+    }
+    
+    const likedPostIds = new Set(data?.map(r => r.post_id) || []);
+    console.log('📊 Likes utilisateur:', likedPostIds.size, 'posts');
+    return { likedPostIds, error: null };
+    
+  } catch (error) {
+    console.error('❌ getUserLikesForPosts exception:', error);
+    return { likedPostIds: new Set(), error };
   }
 }
 
 /**
  * Compter les likes d'un post
+ * @param {string} postId - ID du post
+ * @returns {Promise<number>}
  */
-export async function getLikesCount(postId) {
+export async function getLikeCount(postId) {
   try {
     const { count, error } = await supabase
       .from('post_reactions')
       .select('*', { count: 'exact', head: true })
       .eq('post_id', postId)
       .eq('reaction_type', 'like');
-
-    if (error) throw error;
-    return { count: count || 0, error: null };
+    
+    if (error) {
+      console.error('❌ getLikeCount:', error);
+      return 0;
+    }
+    
+    return count || 0;
   } catch (error) {
-    console.error('Error counting likes:', error);
-    return { count: 0, error };
+    console.error('❌ getLikeCount exception:', error);
+    return 0;
   }
 }
 
 /**
- * Récupérer les likes de l'utilisateur pour plusieurs posts
+ * Vérifier si l'utilisateur a liké un post
+ * @param {string} postId - ID du post
+ * @returns {Promise<boolean>}
  */
-export async function getUserLikesForPosts(postIds, userId) {
+export async function hasUserLiked(postId) {
   try {
+    const user = await getCurrentUser();
+    if (!user) return false;
+    
     const { data, error } = await supabase
       .from('post_reactions')
-      .select('post_id')
-      .in('post_id', postIds)
-      .eq('user_id', userId)
-      .eq('reaction_type', 'like');
-
-    if (error) throw error;
+      .select('id')
+      .eq('post_id', postId)
+      .eq('user_id', user.id)
+      .eq('reaction_type', 'like')
+      .maybeSingle();
     
-    // Retourner un Set des post_ids likés
-    const likedPostIds = new Set((data || []).map(r => r.post_id));
-    return { likedPostIds, error: null };
+    if (error) {
+      console.error('❌ hasUserLiked:', error);
+      return false;
+    }
+    
+    return !!data;
   } catch (error) {
-    console.error('Error fetching user likes:', error);
-    return { likedPostIds: new Set(), error };
+    console.error('❌ hasUserLiked exception:', error);
+    return false;
   }
 }
+
+// Alias pour compatibilité
+export const getLikesCount = getLikeCount;
