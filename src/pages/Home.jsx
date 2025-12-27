@@ -137,8 +137,8 @@ export default function Home() {
         // Load likes for these posts
         if (transformedPosts.length > 0) {
           const postIds = transformedPosts.map(p => p.id);
-          const userLikesData = await getUserLikesForPosts(postIds);
-          setUserLikes(new Set(userLikesData));
+          const { likedPostIds } = await getUserLikesForPosts(postIds);
+          setUserLikes(likedPostIds || new Set());
         }
       }
     } catch (error) {
