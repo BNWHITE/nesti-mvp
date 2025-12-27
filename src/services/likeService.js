@@ -1,5 +1,6 @@
 // src/services/likeService.js - VERSION SIMPLIFIÉE ET ROBUSTE
 import { supabase, getCurrentUser, debugSession } from '../lib/supabaseClient';
+import { createNotification } from './notificationService';
 
 /**
  * Toggle like sur un post - VERSION ULTRA-SIMPLE
@@ -63,6 +64,28 @@ export async function toggleLike(postId) {
         return { liked: false, count: 0, error: insertError };
       }
       liked = true;
+
+      // 3c. Créer une notification pour l'auteur du post
+      try {
+        const { data: post, error: postError } = await supabase
+          .from('posts')
+          .select('author_id')
+          .eq('id', postId)
+          .single();
+
+        if (!postError && post && post.author_id !== user.id) {
+          await createNotification({
+            userId: post.author_id,
+            actorId: user.id,
+            type: 'like',
+            postId: postId,
+            message: 'a aimé votre publication'
+          });
+        }
+      } catch (notifError) {
+        console.warn('⚠️ Erreur création notification like:', notifError);
+        // Ne pas échouer l'opération pour autant
+      }
     }
     
     // 4. Compter les likes

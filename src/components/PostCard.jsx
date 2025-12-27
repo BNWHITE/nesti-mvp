@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { toggleLike, getLikeCount } from '../services/likeService';
 import CommentSection from './CommentSection';
 import ShareModal from './ShareModal';
+import VideoPlayer from './VideoPlayer';
 import './PostCard.css';
 
 export default function PostCard({ post, userLikes, onLikeUpdate }) {
@@ -97,9 +98,7 @@ export default function PostCard({ post, userLikes, onLikeUpdate }) {
           </div>
         )}
         {post.image && post.type === 'video' && (
-          <div className="post-image-container">
-            <video src={post.image} controls className="post-image" />
-          </div>
+          <VideoPlayer src={post.image} autoplay={true} />
         )}
       </div>
 
