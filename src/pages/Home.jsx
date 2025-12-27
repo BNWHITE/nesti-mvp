@@ -58,12 +58,14 @@ export default function Home() {
       }
 
       // Get user's family - first get user from users table to find family_id
+      console.log('Loading data for user:', user.id);
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('family_id')
         .eq('id', user.id)
         .single();
 
+      console.log('User data:', userData, 'Error:', userError);
       if (userError) {
         console.error('Error loading user data:', userError);
         setFamily(null);
@@ -72,7 +74,7 @@ export default function Home() {
       }
 
       if (!userData?.family_id) {
-        console.log('User has no family');
+        console.log('User has no family - checking user_profiles...');
         setFamily(null);
         setPosts([]);
         return;
@@ -95,11 +97,12 @@ export default function Home() {
       setFamily(familyData);
 
       // Load posts from the posts table
+      // Utiliser un join LEFT pour ne pas perdre les posts sans profil
       const { data: postsData, error: postsError } = await supabase
         .from('posts')
         .select(`
           *,
-          user_profiles!posts_author_id_fkey (
+          user_profiles (
             first_name,
             last_name,
             avatar_url
@@ -108,6 +111,7 @@ export default function Home() {
         .eq('family_id', familyData.id)
         .order('created_at', { ascending: false });
 
+      console.log('Posts loaded:', postsData?.length, 'posts for family', familyData.id);
       if (postsError) {
         console.error('Error loading posts:', postsError);
         setPosts([]);
