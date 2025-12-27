@@ -485,6 +485,31 @@ export default function FeedPage({ user, familyId }) {
     <div className="feed-page">
       <div className="feed-header">
         <h1>Fil familial</h1>
+        {/* Bouton de debug pour tester les likes */}
+        <button
+          onClick={async () => {
+            console.log('🔧 LANCEMENT DIAGNOSTIC LIKES...');
+            if (window.testLikes) {
+              await window.testLikes();
+            } else {
+              console.error('❌ Script de test non chargé');
+            }
+          }}
+          style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            padding: '5px 10px',
+            background: '#ff6b6b',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            fontSize: '12px',
+            cursor: 'pointer'
+          }}
+        >
+          🔧 Debug Likes
+        </button>
         <div className="quick-actions">
           {quickActions.map((action) => (
             <button

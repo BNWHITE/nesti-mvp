@@ -15,6 +15,9 @@ import { getUserProfile } from "./services/familyService";
 import "./App.css";
 import "./styles/accessibility.css";
 
+// Import script de diagnostic (disponible dans console)
+import "./test-likes";
+
 // Protected Route Component with Onboarding Check
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();

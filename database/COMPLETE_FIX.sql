@@ -61,7 +61,6 @@ END $$;
 -- Table user_profiles (profils publics)
 CREATE TABLE IF NOT EXISTS user_profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email TEXT,
   first_name TEXT,
   avatar_url TEXT,
   bio TEXT,
@@ -72,10 +71,15 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 -- Ajouter colonnes manquantes à user_profiles
 DO $$
 BEGIN
-  ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS first_name TEXT;
-  ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT;
-  ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS bio TEXT;
-  EXCEPTION WHEN duplicate_column THEN NULL;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_profiles' AND column_name = 'first_name') THEN
+    ALTER TABLE user_profiles ADD COLUMN first_name TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_profiles' AND column_name = 'avatar_url') THEN
+    ALTER TABLE user_profiles ADD COLUMN avatar_url TEXT;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_profiles' AND column_name = 'bio') THEN
+    ALTER TABLE user_profiles ADD COLUMN bio TEXT;
+  END IF;
 END $$;
 
 -- Table posts
@@ -254,15 +258,13 @@ BEGIN
     email = EXCLUDED.email,
     first_name = COALESCE(EXCLUDED.first_name, users.first_name);
     
-  -- Créer dans user_profiles
-  INSERT INTO public.user_profiles (id, email, first_name)
+  -- Créer dans user_profiles (sans email car colonne n'existe pas)
+  INSERT INTO public.user_profiles (id, first_name)
   VALUES (
     NEW.id,
-    NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'first_name', split_part(NEW.email, '@', 1))
   )
   ON CONFLICT (id) DO UPDATE SET
-    email = EXCLUDED.email,
     first_name = COALESCE(EXCLUDED.first_name, user_profiles.first_name);
     
   RETURN NEW;
@@ -278,8 +280,8 @@ CREATE TRIGGER on_auth_user_created
 -- ===========================================
 -- ÉTAPE 7: CRÉER PROFILS POUR USERS EXISTANTS
 -- ===========================================
-INSERT INTO user_profiles (id, email, first_name)
-SELECT id, email, COALESCE(first_name, split_part(email, '@', 1))
+INSERT INTO user_profiles (id, first_name)
+SELECT id, COALESCE(first_name, split_part(email, '@', 1))
 FROM users
 ON CONFLICT (id) DO NOTHING;
 
