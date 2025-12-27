@@ -113,15 +113,17 @@ export default function Home() {
         setPosts([]);
       } else {
         // Transform posts to the expected format
+        // La table posts utilise has_photo, has_video au lieu de media_type
         const transformedPosts = (postsData || []).map(post => ({
           id: post.id,
           author: post.user_profiles?.first_name || 'Membre',
           authorInitials: (post.user_profiles?.first_name?.substring(0, 2) || 'MM').toUpperCase(),
           timestamp: formatTimestamp(post.created_at),
-          type: post.media_type || 'text',
+          type: post.has_video ? 'video' : post.has_photo ? 'photo' : 'text',
           content: post.content,
-          image: post.media_url,
-          likes: 0, // Will be updated below
+          image: post.video_url || null,
+          video_url: post.video_url,
+          likes: post.likes_count || 0,
           reactions: 0,
           celebrations: 0,
           comments: []
@@ -184,15 +186,21 @@ export default function Home() {
           mediaType = 'video';
         }
         
+        // La table posts utilise has_photo, has_video, video_url au lieu de media_type
+        const postData = {
+          family_id: family.id,
+          author_id: user.id,
+          user_id: user.id,
+          content: postContent.trim() || null,
+          has_photo: mediaType === 'photo',
+          has_video: mediaType === 'video',
+          video_url: mediaType === 'video' ? mediaUrl : null,
+          media_count: mediaUrl ? 1 : 0
+        };
+        
         const { data, error } = await supabase
           .from('posts')
-          .insert({
-            family_id: family.id,
-            author_id: user.id,
-            content: postContent.trim() || null,
-            media_url: mediaUrl,
-            media_type: mediaType
-          })
+          .insert(postData)
           .select(`
             *,
             user_profiles!posts_author_id_fkey (
@@ -212,14 +220,16 @@ export default function Home() {
 
         if (data) {
           // Add new post to feed
+          // Utiliser has_video/has_photo au lieu de media_type
           const newPost = {
             id: data.id,
             author: data.user_profiles?.first_name || 'Vous',
             authorInitials: (data.user_profiles?.first_name?.substring(0, 2) || 'ME').toUpperCase(),
             timestamp: 'Il y a quelques instants',
-            type: data.media_type,
+            type: data.has_video ? 'video' : data.has_photo ? 'photo' : 'text',
             content: data.content,
-            image: data.media_url,
+            image: data.video_url || null,
+            video_url: data.video_url,
             likes: 0,
             reactions: 0,
             celebrations: 0,
