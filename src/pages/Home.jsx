@@ -44,11 +44,11 @@ export default function Home() {
     try {
       setLoading(true);
 
-      // Get user profile
+      // Get user profile - user_profiles.id corresponds to user.id
       const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .single();
 
       if (profileError && profileError.code !== 'PGRST116') {
@@ -57,11 +57,32 @@ export default function Home() {
         setUserProfile(profile);
       }
 
-      // Get user's family
+      // Get user's family - first get user from users table to find family_id
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('family_id')
+        .eq('id', user.id)
+        .single();
+
+      if (userError) {
+        console.error('Error loading user data:', userError);
+        setFamily(null);
+        setPosts([]);
+        return;
+      }
+
+      if (!userData?.family_id) {
+        console.log('User has no family');
+        setFamily(null);
+        setPosts([]);
+        return;
+      }
+
+      // Now get the family
       const { data: familyData, error: familyError } = await supabase
         .from('families')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', userData.family_id)
         .single();
 
       if (familyError) {
