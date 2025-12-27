@@ -97,8 +97,56 @@ CREATE POLICY "Users can add comments" ON comments FOR INSERT WITH CHECK (auth.u
 DROP POLICY IF EXISTS "Users can delete own comments" ON comments;
 CREATE POLICY "Users can delete own comments" ON comments FOR DELETE USING (auth.uid() = author_id);
 
--- 8. VÉRIFICATION FINALE
+-- 8. TRIGGER POUR CRÉER AUTOMATIQUEMENT UN PROFIL UTILISATEUR
+-- =====================================================
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.user_profiles (id, email, first_name)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'first_name', split_part(NEW.email, '@', 1))
+  )
+  ON CONFLICT (id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Créer les profils pour les utilisateurs existants qui n'en ont pas
+INSERT INTO public.user_profiles (id, email, first_name)
+SELECT 
+  id, 
+  email, 
+  COALESCE(raw_user_meta_data->>'first_name', split_part(email, '@', 1))
+FROM auth.users
+WHERE id NOT IN (SELECT id FROM public.user_profiles)
+ON CONFLICT (id) DO NOTHING;
+
+-- 9. RLS POUR POSTS (UPDATE/DELETE)
+-- =====================================================
+ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Anyone can view posts in their family" ON posts;
+CREATE POLICY "Anyone can view posts in their family" ON posts FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Users can create posts" ON posts;
+CREATE POLICY "Users can create posts" ON posts FOR INSERT WITH CHECK (auth.uid() = author_id);
+DROP POLICY IF EXISTS "Users can update own posts" ON posts;
+CREATE POLICY "Users can update own posts" ON posts FOR UPDATE USING (auth.uid() = author_id);
+DROP POLICY IF EXISTS "Users can delete own posts" ON posts;
+CREATE POLICY "Users can delete own posts" ON posts FOR DELETE USING (auth.uid() = author_id);
+
+-- 10. RLS POUR COMMENTS (UPDATE)
+-- =====================================================
+DROP POLICY IF EXISTS "Users can update own comments" ON comments;
+CREATE POLICY "Users can update own comments" ON comments FOR UPDATE USING (auth.uid() = author_id);
+
+-- 11. VÉRIFICATION FINALE
 -- =====================================================
 SELECT table_name FROM information_schema.tables 
 WHERE table_schema = 'public' 
-AND table_name IN ('user_profiles', 'post_reactions', 'comments', 'comment_reactions', 'notifications');
+AND table_name IN ('user_profiles', 'post_reactions', 'comments', 'comment_reactions', 'notifications', 'posts');

@@ -206,19 +206,31 @@ export default function FeedPage({ user, familyId }) {
 
   const fetchUserData = useCallback(async () => {
     try {
+      // Essayer d'abord user_profiles
       const { data: profileData } = await supabase
         .from('user_profiles')
         .select('first_name')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
         
       if (profileData?.first_name) {
         setUserName(profileData.first_name);
+      } else {
+        // Fallback: utiliser les métadonnées de l'utilisateur auth
+        const name = user?.user_metadata?.first_name || 
+                     user?.user_metadata?.full_name?.split(' ')[0] ||
+                     user?.email?.split('@')[0] || 
+                     'Utilisateur';
+        setUserName(name);
       }
     } catch (error) {
-      console.error('Error fetching profile name:', error);
+      // Fallback en cas d'erreur
+      const name = user?.user_metadata?.first_name || 
+                   user?.email?.split('@')[0] || 
+                   'Utilisateur';
+      setUserName(name);
     }
-  }, [user.id]);
+  }, [user]);
 
   const fetchData = useCallback(async () => {
     await fetchUserData();

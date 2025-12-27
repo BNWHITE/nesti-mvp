@@ -133,7 +133,7 @@ export async function getLikesCount(postId) {
     if (error) throw error;
     return { count: count || 0, error: null };
   } catch (error) {
-    logError('Error counting likes:', error);
+    console.error('Error counting likes:', error);
     return { count: 0, error };
   }
 }
@@ -156,7 +156,7 @@ export async function getUserLikesForPosts(postIds, userId) {
     const likedPostIds = new Set((data || []).map(r => r.post_id));
     return { likedPostIds, error: null };
   } catch (error) {
-    logError('Error fetching user likes:', error);
+    console.error('Error fetching user likes:', error);
     return { likedPostIds: new Set(), error };
   }
 }

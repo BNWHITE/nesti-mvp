@@ -242,3 +242,38 @@ export async function deleteComment(commentId, userId) {
     return { success: false, error };
   }
 }
+
+/**
+ * Modifier un commentaire
+ */
+export async function updateComment(commentId, userId, newContent) {
+  try {
+    const { data: comment, error: fetchError } = await supabase
+      .from('comments')
+      .select('author_id')
+      .eq('id', commentId)
+      .single();
+
+    if (fetchError) throw fetchError;
+    
+    if (comment.author_id !== userId) {
+      throw new Error('Unauthorized');
+    }
+
+    const { data, error } = await supabase
+      .from('comments')
+      .update({ 
+        content: newContent,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', commentId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data, error: null };
+  } catch (error) {
+    console.error('Error updating comment:', error);
+    return { data: null, error };
+  }
+}
