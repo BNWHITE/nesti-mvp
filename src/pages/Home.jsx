@@ -187,11 +187,12 @@ export default function Home() {
         }
         
         // La table posts utilise has_photo, has_video, video_url au lieu de media_type
+        // content est NOT NULL, donc mettre une chaîne vide si pas de texte
         const postData = {
           family_id: family.id,
           author_id: user.id,
           user_id: user.id,
-          content: postContent.trim() || null,
+          content: postContent.trim() || '',
           has_photo: mediaType === 'photo',
           has_video: mediaType === 'video',
           video_url: mediaType === 'video' ? mediaUrl : null,
