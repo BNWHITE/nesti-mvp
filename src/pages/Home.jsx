@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { PlusIcon, PhotoIcon, FaceSmileIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
-import { familyService } from '../services/familyService';
-import { messageService } from '../services/messageService';
+import { supabase } from '../lib/supabaseClient';
+import { getUserLikesForPosts } from '../services/likeService';
 import { uploadPhoto, uploadVideo } from '../services/mediaService';
 import PostCard from "../components/PostCard";
 import WelcomeTips from "../components/WelcomeTips";
@@ -10,7 +10,7 @@ import './Home.css';
 
 export default function Home() {
   const { user } = useAuth();
-  const [posts, setPosts] = useState([]); // Start with empty array - no mock data
+  const [posts, setPosts] = useState([]);
   const [postContent, setPostContent] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -21,6 +21,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
   const [showTips, setShowTips] = useState(false);
+  const [userLikes, setUserLikes] = useState(new Set());
 
   useEffect(() => {
     // Check if tips have been shown before
@@ -44,40 +45,78 @@ export default function Home() {
       setLoading(true);
 
       // Get user profile
-      const { data: profile } = await familyService.getCurrentUserProfile();
-      setUserProfile(profile);
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('Error loading profile:', profileError);
+      } else {
+        setUserProfile(profile);
+      }
 
       // Get user's family
-      const { data: familyData } = await familyService.getUserFamily();
+      const { data: familyData, error: familyError } = await supabase
+        .from('families')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (familyError) {
+        console.error('Error loading family:', familyError);
+        setFamily(null);
+        setPosts([]);
+        return;
+      }
+
       setFamily(familyData);
 
-      // Load messages if family exists
-      if (familyData) {
-        const { data: messagesData } = await messageService.getFamilyMessages(familyData.id);
-        if (messagesData && messagesData.length > 0) {
-          // Transform messages to post format for display
-          const transformedPosts = messagesData.map(msg => ({
-            id: msg.id,
-            author: msg.sender?.first_name || 'Membre',
-            authorInitials: msg.sender?.first_name?.substring(0, 2).toUpperCase() || 'MM',
-            timestamp: formatTimestamp(msg.created_at),
-            type: msg.message_type,
-            content: msg.message_text,
-            image: msg.media_url,
-            likes: 0,
-            reactions: 0,
-            celebrations: 0,
-            comments: []
-          }));
-          setPosts(transformedPosts);
-        } else {
-          // No messages - keep empty
-          setPosts([]);
+      // Load posts from the posts table
+      const { data: postsData, error: postsError } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          user_profiles!posts_author_id_fkey (
+            first_name,
+            last_name,
+            avatar_url
+          )
+        `)
+        .eq('family_id', familyData.id)
+        .order('created_at', { ascending: false });
+
+      if (postsError) {
+        console.error('Error loading posts:', postsError);
+        setPosts([]);
+      } else {
+        // Transform posts to the expected format
+        const transformedPosts = (postsData || []).map(post => ({
+          id: post.id,
+          author: post.user_profiles?.first_name || 'Membre',
+          authorInitials: (post.user_profiles?.first_name?.substring(0, 2) || 'MM').toUpperCase(),
+          timestamp: formatTimestamp(post.created_at),
+          type: post.media_type || 'text',
+          content: post.content,
+          image: post.media_url,
+          likes: 0, // Will be updated below
+          reactions: 0,
+          celebrations: 0,
+          comments: []
+        }));
+        setPosts(transformedPosts);
+
+        // Load likes for these posts
+        if (transformedPosts.length > 0) {
+          const postIds = transformedPosts.map(p => p.id);
+          const userLikesData = await getUserLikesForPosts(postIds);
+          setUserLikes(new Set(userLikesData));
         }
       }
     } catch (error) {
       console.error('Error loading data:', error);
-      setPosts([]); // Ensure posts is empty on error
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -124,23 +163,42 @@ export default function Home() {
           mediaType = 'video';
         }
         
-        const { data, error } = await messageService.sendMessage(
-          family.id,
-          postContent || (mediaUrl ? 'A partagé un média' : ''),
-          mediaType,
-          mediaUrl
-        );
+        const { data, error } = await supabase
+          .from('posts')
+          .insert({
+            family_id: family.id,
+            author_id: user.id,
+            content: postContent.trim() || null,
+            media_url: mediaUrl,
+            media_type: mediaType
+          })
+          .select(`
+            *,
+            user_profiles!posts_author_id_fkey (
+              first_name,
+              last_name,
+              avatar_url
+            )
+          `)
+          .single();
 
-        if (!error && data) {
+        if (error) {
+          console.error('Error creating post:', error);
+          alert('Erreur lors de la publication: ' + error.message);
+          setUploading(false);
+          return;
+        }
+
+        if (data) {
           // Add new post to feed
           const newPost = {
             id: data.id,
-            author: userProfile?.first_name || 'Vous',
-            authorInitials: userProfile?.first_name?.substring(0, 2).toUpperCase() || 'ME',
+            author: data.user_profiles?.first_name || 'Vous',
+            authorInitials: (data.user_profiles?.first_name?.substring(0, 2) || 'ME').toUpperCase(),
             timestamp: 'Il y a quelques instants',
-            type: mediaType,
-            content: postContent,
-            image: mediaUrl || imagePreview,
+            type: data.media_type,
+            content: data.content,
+            image: data.media_url,
             likes: 0,
             reactions: 0,
             celebrations: 0,
@@ -289,7 +347,12 @@ export default function Home() {
           <div className="loading-message">Chargement...</div>
         ) : posts.length > 0 ? (
           posts.map((post) => (
-            <PostCard key={post.id} post={post} />
+            <PostCard 
+              key={post.id} 
+              post={post} 
+              userLikes={userLikes}
+              onLikeUpdate={loadData}
+            />
           ))
         ) : (
           <div className="empty-feed">

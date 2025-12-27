@@ -1,25 +1,59 @@
 import { HeartIcon, ChatBubbleLeftIcon, ShareIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { toggleLike, getLikeCount } from '../services/likeService';
 import CommentSection from './CommentSection';
 import ShareModal from './ShareModal';
 import './PostCard.css';
 
-export default function PostCard({ post }) {
+export default function PostCard({ post, userLikes, onLikeUpdate }) {
   const { user } = useAuth();
   const [liked, setLiked] = useState(false);
-  const [likes, setLikes] = useState(post.likes || 0);
+  const [likes, setLikes] = useState(0);
   const [showComments, setShowComments] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleLike = () => {
-    if (liked) {
-      setLikes(likes - 1);
-    } else {
-      setLikes(likes + 1);
+  const loadLikeCount = useCallback(async () => {
+    try {
+      const count = await getLikeCount(post.id);
+      setLikes(count);
+    } catch (error) {
+      console.error('Error loading like count:', error);
     }
-    setLiked(!liked);
+  }, [post.id]);
+
+  useEffect(() => {
+    // Initialize like state based on userLikes prop
+    if (userLikes) {
+      setLiked(userLikes.has(post.id));
+    }
+    // Load current like count
+    loadLikeCount();
+  }, [post.id, userLikes, loadLikeCount]);
+
+  const handleLike = async () => {
+    if (!user || loading) return;
+
+    try {
+      setLoading(true);
+      const result = await toggleLike(post.id);
+      
+      if (result.success) {
+        setLiked(result.liked);
+        setLikes(result.likeCount);
+        
+        // Notify parent to refresh data
+        if (onLikeUpdate) {
+          onLikeUpdate();
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getPostIcon = (type) => {
@@ -85,11 +119,18 @@ export default function PostCard({ post }) {
       {/* Post Actions */}
       <div className="post-actions">
         <button 
-          className={`post-action-btn ${liked ? 'active' : ''}`}
+          className={`post-action-btn ${liked ? 'active' : ''} ${loading ? 'loading' : ''}`}
           onClick={handleLike}
+          disabled={loading}
         >
-          {liked ? <HeartIconSolid className="action-icon" /> : <HeartIcon className="action-icon" />}
-          <span>J'aime</span>
+          {loading ? (
+            <div className="loading-spinner action-icon" />
+          ) : liked ? (
+            <HeartIconSolid className="action-icon" />
+          ) : (
+            <HeartIcon className="action-icon" />
+          )}
+          <span>{loading ? 'Chargement...' : 'J\'aime'}</span>
         </button>
         <button 
           className="post-action-btn"
